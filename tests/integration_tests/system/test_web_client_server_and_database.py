@@ -68,29 +68,29 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
 
     # Install DatabaseService on db server
     db_server.software_manager.install(DatabaseService)
-    db_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = db_server.software_manager.software.get("database-service")
     db_service.start()
 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.config.target_url = "http://arcd.com/users/"
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     # set dns server
     dns_client.dns_server = web_server.network_interfaces[next(iter(web_server.network_interfaces))].ip_address
 
     # Install Web Server service on web server
     web_server.software_manager.install(WebServer)
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = web_server.software_manager.software.get("web-server")
     web_server_service.start()
 
     # Install DNS Server service on web server
     web_server.software_manager.install(DNSServer)
-    dns_server: DNSServer = web_server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = web_server.software_manager.software.get("dns-server")
     # register arcd.com to DNS
     dns_server.dns_register(
         domain_name="arcd.com",
@@ -99,7 +99,7 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
 
     # Install DatabaseClient service on web server
     web_server.software_manager.install(DatabaseClient)
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = web_server.software_manager.software.get("database-client")
     db_client.server_ip_address = IPv4Address(db_server_nic.ip_address)  # set IP address of Database Server
     db_client.run()
     assert dns_client.check_domain_exists("arcd.com")
@@ -111,7 +111,7 @@ def web_client_web_server_database(example_network) -> Tuple[Network, Computer, 
 def test_web_client_requests_users(web_client_web_server_database):
     _, computer, _, _ = web_client_web_server_database
 
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
 
     assert web_browser.get_webpage()
 
@@ -121,8 +121,8 @@ def test_database_fix_disrupts_web_client(uc2_network):
     computer: Computer = uc2_network.get_node_by_hostname("client_1")
     db_server: Server = uc2_network.get_node_by_hostname("database_server")
 
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
-    database_service: DatabaseService = db_server.software_manager.software.get("DatabaseService")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
+    database_service: DatabaseService = db_server.software_manager.software.get("database-service")
 
     # fix the database service
     database_service.fix()
@@ -143,7 +143,7 @@ class TestWebBrowserHistory:
     def test_populating_history(self, web_client_web_server_database):
         network, computer, _, _ = web_client_web_server_database
 
-        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+        web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
         assert web_browser.history == []
         web_browser.get_webpage()
         assert len(web_browser.history) == 1
@@ -165,11 +165,11 @@ class TestWebBrowserHistory:
 
     def test_history_in_state(self, web_client_web_server_database):
         network, computer, _, _ = web_client_web_server_database
-        web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+        web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
 
         state = computer.describe_state()
-        assert "history" in state["applications"]["WebBrowser"]
-        assert len(state["applications"]["WebBrowser"]["history"]) == 0
+        assert "history" in state["applications"]["web-browser"]
+        assert len(state["applications"]["web-browser"]["history"]) == 0
 
         web_browser.get_webpage()
         router = network.get_node_by_hostname("router_1")
@@ -179,5 +179,5 @@ class TestWebBrowserHistory:
         web_browser.get_webpage()
 
         state = computer.describe_state()
-        assert state["applications"]["WebBrowser"]["history"][0]["outcome"] == 200
-        assert state["applications"]["WebBrowser"]["history"][1]["outcome"] == 404
+        assert state["applications"]["web-browser"]["history"][0]["outcome"] == 200
+        assert state["applications"]["web-browser"]["history"][1]["outcome"] == 404

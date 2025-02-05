@@ -26,18 +26,18 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
+    type: probabilistic-agent
 
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_application_execute
+          action: node-application-execute
           options:
             node_name: client_2
-            application_name: WebBrowser
+            application_name: web-browser
 
     agent_settings:
       action_probabilities:

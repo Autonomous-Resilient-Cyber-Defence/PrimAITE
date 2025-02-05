@@ -13,15 +13,15 @@ def test_creating_empty_agent():
 def test_creating_agent_from_dict():
     action_config = {
         "action_map": {
-            0: {"action": "do_nothing", "options": {}},
+            0: {"action": "do-nothing", "options": {}},
             1: {
-                "action": "node_application_execute",
+                "action": "node-application-execute",
                 "options": {"node_name": "client", "application_name": "database"},
             },
         }
     }
     observation_config = {
-        "type": "FILE",
+        "type": "file",
         "options": {
             "file_name": "dog.pdf",
             "include_num_access": False,
@@ -31,7 +31,7 @@ def test_creating_agent_from_dict():
     reward_config = {
         "reward_components": [
             {
-                "type": "DATABASE_FILE_INTEGRITY",
+                "type": "database-file-integrity",
                 "weight": 0.3,
                 "options": {"node_hostname": "server", "folder_name": "database", "file_name": "database.db"},
             }

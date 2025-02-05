@@ -244,7 +244,7 @@ class SimComponent(BaseModel):
 
         ..code::python
 
-            class WebBrowser(Application, identifier="WebBrowser"):
+            class WebBrowser(Application, discriminator="web-browser"):
             def _init_request_manager(self) -> RequestManager:
                 rm = super()._init_request_manager() # all requests generic to any Application get initialised
                 rm.add_request(...) # initialise any requests specific to the web browser

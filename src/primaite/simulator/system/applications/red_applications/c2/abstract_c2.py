@@ -162,11 +162,11 @@ class AbstractC2(Application):
         :return: An FTPClient object is successful, else None
         :rtype: union[FTPClient, None]
         """
-        ftp_client: Union[FTPClient, None] = self.software_manager.software.get("FTPClient")
+        ftp_client: Union[FTPClient, None] = self.software_manager.software.get("ftp-client")
         if ftp_client is None:
             self.sys_log.warning(f"{self.__class__.__name__}: No FTPClient.  Attempting to install.")
             self.software_manager.install(FTPClient)
-            ftp_client = self.software_manager.software.get("FTPClient")
+            ftp_client = self.software_manager.software.get("ftp-client")
 
         # Force start if the service is stopped.
         if ftp_client.operating_state == ServiceOperatingState.STOPPED:
@@ -189,11 +189,11 @@ class AbstractC2(Application):
         :return: An FTPServer object is successful, else None
         :rtype: Optional[FTPServer]
         """
-        ftp_server: Optional[FTPServer] = self.software_manager.software.get("FTPServer")
+        ftp_server: Optional[FTPServer] = self.software_manager.software.get("ftp-server")
         if ftp_server is None:
             self.sys_log.warning(f"{self.__class__.__name__}:No FTPServer installed. Attempting to install FTPServer.")
             self.software_manager.install(FTPServer)
-            ftp_server = self.software_manager.software.get("FTPServer")
+            ftp_server = self.software_manager.software.get("ftp-server")
 
         # Force start if the service is stopped.
         if ftp_server.operating_state == ServiceOperatingState.STOPPED:

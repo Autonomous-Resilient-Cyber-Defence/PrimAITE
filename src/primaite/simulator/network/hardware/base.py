@@ -824,7 +824,7 @@ class User(SimComponent):
         return self.model_dump()
 
 
-class UserManager(Service, identifier="UserManager"):
+class UserManager(Service, discriminator="user-manager"):
     """
     Manages users within the PrimAITE system, handling creation, authentication, and administration.
 
@@ -836,7 +836,7 @@ class UserManager(Service, identifier="UserManager"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserManager."""
 
-        type: str = "UserManager"
+        type: str = "user-manager"
 
     config: "UserManager.ConfigSchema" = Field(default_factory=lambda: UserManager.ConfigSchema())
 
@@ -849,7 +849,7 @@ class UserManager(Service, identifier="UserManager"):
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserManager"
+        kwargs["name"] = "user-manager"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
@@ -1037,7 +1037,7 @@ class UserManager(Service, identifier="UserManager"):
 
     @property
     def _user_session_manager(self) -> "UserSessionManager":
-        return self.software_manager.software["UserSessionManager"]  # noqa
+        return self.software_manager.software["user-session-manager"]  # noqa
 
 
 class UserSession(SimComponent):
@@ -1137,7 +1137,7 @@ class RemoteUserSession(UserSession):
         return state
 
 
-class UserSessionManager(Service, identifier="UserSessionManager"):
+class UserSessionManager(Service, discriminator="user-session-manager"):
     """
     Manages user sessions on a Node, including local and remote sessions.
 
@@ -1147,7 +1147,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for UserSessionManager."""
 
-        type: str = "UserSessionManager"
+        type: str = "user-session-manager"
 
     config: "UserSessionManager.ConfigSchema" = Field(default_factory=lambda: UserSessionManager.ConfigSchema())
 
@@ -1179,7 +1179,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserSessionManager"
+        kwargs["name"] = "user-session-manager"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
@@ -1289,7 +1289,7 @@ class UserSessionManager(Service, identifier="UserSessionManager"):
 
         :return: The UserManager instance.
         """
-        return self.software_manager.software["UserManager"]  # noqa
+        return self.software_manager.software["user-manager"]  # noqa
 
     def pre_timestep(self, timestep: int) -> None:
         """Apply any pre-timestep logic that helps make sure we have the correct observations."""
@@ -1522,8 +1522,9 @@ class Node(SimComponent, ABC):
     _registry: ClassVar[Dict[str, Type["Node"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
-    _identifier: ClassVar[str] = "unknown"
-    """Identifier for this particular class, used for printing and logging. Each subclass redefines this."""
+    # TODO: this should not be set for abstract classes.
+    _discriminator: ClassVar[str]
+    """discriminator for this particular class, used for printing and logging. Each subclass redefines this."""
 
     class ConfigSchema(BaseModel, ABC):
         """Configuration Schema for Node based classes."""
@@ -1586,22 +1587,22 @@ class Node(SimComponent, ABC):
         obj = cls(config=cls.ConfigSchema(**config))
         return obj
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register a node type.
 
-        :param identifier: Uniquely specifies an node class by name. Used for finding items by config.
-        :type identifier: str
+        :param discriminator: Uniquely specifies an node class by name. Used for finding items by config.
+        :type discriminator: str
         :raises ValueError: When attempting to register an node with a name that is already allocated.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        identifier = identifier.lower()
-        if identifier in cls._registry:
-            raise ValueError(f"Tried to define new node {identifier}, but this name is already reserved.")
-        cls._registry[identifier] = cls
-        cls._identifier = identifier
+        discriminator = discriminator.lower()
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new node {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
+        cls._discriminator = discriminator
 
     def __init__(self, **kwargs):
         """
@@ -1637,17 +1638,17 @@ class Node(SimComponent, ABC):
     @property
     def user_manager(self) -> Optional[UserManager]:
         """The Nodes User Manager."""
-        return self.software_manager.software.get("UserManager")  # noqa
+        return self.software_manager.software.get("user-manager")  # noqa
 
     @property
     def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
-        return self.software_manager.software.get("UserSessionManager")  # noqa
+        return self.software_manager.software.get("user-session-manager")  # noqa
 
     @property
     def terminal(self) -> Optional[Terminal]:
-        """The Nodes Terminal."""
-        return self.software_manager.software.get("Terminal")
+        """The Node's Terminal."""
+        return self.software_manager.software.get("terminal")
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """

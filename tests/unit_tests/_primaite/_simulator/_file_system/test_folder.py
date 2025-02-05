@@ -120,7 +120,7 @@ def test_folder_corrupt_repair(file_system):
     assert file.health_status == FileSystemItemHealthStatus.GOOD
 
 
-@pytest.mark.skip(reason="node_file_checkhash not implemented")
+@pytest.mark.skip(reason="node-file-checkhash not implemented")
 def test_simulated_folder_check_hash(file_system):
     folder: Folder = file_system.create_folder(folder_name="test_folder")
     file_system.create_file(file_name="test_file.txt", folder_name="test_folder")

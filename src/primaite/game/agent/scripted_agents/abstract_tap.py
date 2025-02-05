@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import random
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Dict, List, Optional, Tuple
 
 from gymnasium.core import ObsType
@@ -13,21 +13,21 @@ from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
 __all__ = "AbstractTAPAgent"
 
 
-class AbstractTAPAgent(PeriodicAgent, identifier="AbstractTAP"):
+class AbstractTAPAgent(PeriodicAgent, ABC):
     """Base class for TAP agents to inherit from."""
 
     config: "AbstractTAPAgent.ConfigSchema" = Field(default_factory=lambda: AbstractTAPAgent.ConfigSchema())
     next_execution_timestep: int = 0
 
-    class AgentSettingsSchema(PeriodicAgent.AgentSettingsSchema):
+    class AgentSettingsSchema(PeriodicAgent.AgentSettingsSchema, ABC):
         """Schema for the `agent_settings` part of the agent config."""
 
         possible_starting_nodes: List[str] = Field(default_factory=list)
 
-    class ConfigSchema(PeriodicAgent.ConfigSchema):
+    class ConfigSchema(PeriodicAgent.ConfigSchema, ABC):
         """Configuration schema for Abstract TAP agents."""
 
-        type: str = "AbstractTAP"
+        type: str = "abstract-tap"
         agent_settings: AbstractTAPAgent.AgentSettingsSchema = Field(
             default_factory=lambda: AbstractTAPAgent.AgentSettingsSchema()
         )

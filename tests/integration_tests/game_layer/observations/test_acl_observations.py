@@ -28,7 +28,7 @@ def test_acl_observations(simulation):
 
     # quick set up of ntp
     client_1.software_manager.install(NTPClient)
-    ntp_client: NTPClient = client_1.software_manager.software.get("NTPClient")
+    ntp_client: NTPClient = client_1.software_manager.software.get("ntp-client")
     ntp_client.configure(server.network_interface.get(1).ip_address)
     server.software_manager.install(NTPServer)
 

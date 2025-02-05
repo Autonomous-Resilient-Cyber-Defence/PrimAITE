@@ -44,7 +44,7 @@ class PortScanPayload(SimComponent):
         return state
 
 
-class NMAP(Application, identifier="NMAP"):
+class NMAP(Application, discriminator="nmap"):
     """
     A class representing the NMAP application for network scanning.
 
@@ -55,7 +55,7 @@ class NMAP(Application, identifier="NMAP"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for NMAP."""
 
-        type: str = "NMAP"
+        type: str = "nmap"
 
     config: "NMAP.ConfigSchema" = Field(default_factory=lambda: NMAP.ConfigSchema())
 
@@ -70,7 +70,7 @@ class NMAP(Application, identifier="NMAP"):
     }
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "NMAP"
+        kwargs["name"] = "nmap"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)

@@ -74,7 +74,7 @@ Via Configuration
                 ...
                 services:
                     - ref: dns_server
-                    type: DNSServer
+                    type: dns-server
                     options:
                         domain_mapping:
                             arcd.com: 192.168.0.10

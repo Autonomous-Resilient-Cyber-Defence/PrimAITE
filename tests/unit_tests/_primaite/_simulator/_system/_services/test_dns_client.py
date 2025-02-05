@@ -28,14 +28,14 @@ def dns_client() -> Computer:
 
 def test_create_dns_client(dns_client):
     assert dns_client is not None
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
-    assert dns_client_service.name is "DNSClient"
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
+    assert dns_client_service.name == "dns-client"
     assert dns_client_service.port is PORT_LOOKUP["DNS"]
     assert dns_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
 
     # shutdown the dns_client
     dns_client.power_off()
@@ -58,7 +58,7 @@ def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
 
 def test_dns_client_check_domain_exists_when_not_running(dns_client):
     dns_client.operating_state = NodeOperatingState.ON
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
     dns_client_service.start()
 
     assert dns_client.operating_state is NodeOperatingState.ON
@@ -85,7 +85,7 @@ def test_dns_client_check_domain_exists_when_not_running(dns_client):
 def test_dns_client_check_domain_in_cache(dns_client):
     """Test to make sure that the check_domain_in_cache returns the correct values."""
     dns_client.operating_state = NodeOperatingState.ON
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
     dns_client_service.start()
 
     # add a domain to the dns client cache
@@ -97,7 +97,7 @@ def test_dns_client_check_domain_in_cache(dns_client):
 
 def test_dns_client_receive(dns_client):
     """Test to make sure the DNS Client knows how to deal with request responses."""
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
 
     dns_client_service.receive(
         payload=DNSPacket(
@@ -111,6 +111,6 @@ def test_dns_client_receive(dns_client):
 
 
 def test_dns_client_receive_non_dns_payload(dns_client):
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
 
     assert dns_client_service.receive(payload=None) is False

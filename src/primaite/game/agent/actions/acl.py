@@ -21,9 +21,7 @@ __all__ = (
 class ACLAddRuleAbstractAction(AbstractAction, ABC):
     """Base abstract class for ACL add rule actions."""
 
-    config: ConfigSchema = "ACLAddRuleAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema base for ACL add rule abstract actions."""
 
         src_ip: Union[IPV4Address, Literal["ALL"]]
@@ -37,19 +35,17 @@ class ACLAddRuleAbstractAction(AbstractAction, ABC):
         dst_wildcard: Union[IPV4Address, Literal["NONE"]]
 
 
-class ACLRemoveRuleAbstractAction(AbstractAction, identifier="acl_remove_rule_abstract_action"):
-    """Base abstract class for ACL remove rule actions."""
+class ACLRemoveRuleAbstractAction(AbstractAction, ABC):
+    """Base abstract class for acl remove rule actions."""
 
-    config: ConfigSchema = "ACLRemoveRuleAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema base for ACL remove rule abstract actions."""
 
         position: int
 
 
-class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_add_rule"):
-    """Action which adds a rule to a router's ACL."""
+class RouterACLAddRuleAction(ACLAddRuleAbstractAction, discriminator="router-acl-add-rule"):
+    """Action which adds a rule to a router's acl."""
 
     config: "RouterACLAddRuleAction.ConfigSchema"
 
@@ -79,8 +75,8 @@ class RouterACLAddRuleAction(ACLAddRuleAbstractAction, identifier="router_acl_ad
         ]
 
 
-class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="router_acl_remove_rule"):
-    """Action which removes a rule from a router's ACL."""
+class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, discriminator="router-acl-remove-rule"):
+    """Action which removes a rule from a router's acl."""
 
     config: "RouterACLRemoveRuleAction.ConfigSchema"
 
@@ -95,8 +91,8 @@ class RouterACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="router_
         return ["network", "node", config.target_router, "acl", "remove_rule", config.position]
 
 
-class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_acl_add_rule"):
-    """Action which adds a rule to a firewall port's ACL."""
+class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, discriminator="firewall-acl-add-rule"):
+    """Action which adds a rule to a firewall port's acl."""
 
     config: "FirewallACLAddRuleAction.ConfigSchema"
 
@@ -130,8 +126,8 @@ class FirewallACLAddRuleAction(ACLAddRuleAbstractAction, identifier="firewall_ac
         ]
 
 
-class FirewallACLRemoveRuleAction(ACLRemoveRuleAbstractAction, identifier="firewall_acl_remove_rule"):
-    """Action which removes a rule from a firewall port's ACL."""
+class FirewallACLRemoveRuleAction(ACLRemoveRuleAbstractAction, discriminator="firewall-acl-remove-rule"):
+    """Action which removes a rule from a firewall port's acl."""
 
     config: "FirewallACLRemoveRuleAction.ConfigSchema"
 

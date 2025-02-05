@@ -5,46 +5,46 @@ game:
 
 agents:
   - ref: RL_Agent
-    type: ProxyAgent
+    type: proxy-agent
 
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_shutdown
+          action: node-shutdown
           options:
             node_name: client_1
         2:
-          action: node_shutdown
+          action: node-shutdown
           options:
             node_name: server
         3:
-          action: node_startup
+          action: node-startup
           options:
             node_name: client_1
         4:
-          action: node_startup
+          action: node-startup
           options:
             node_name: server
         5:
-          action: host_nic_disable
+          action: host-nic-disable
           options:
             node_name: client_1
             nic_num: 1
         6:
-          action: host_nic_disable
+          action: host-nic-disable
           options:
             node_name: server
             nic_num: 1
         7:
-          action: host_nic_enable
+          action: host-nic-enable
           options:
             node_name: client_1
             nic_num: 1
         8:
-          action: host_nic_enable
+          action: host-nic-enable
           options:
             node_name: server
             nic_num: 1

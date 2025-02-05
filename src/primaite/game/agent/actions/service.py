@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -17,15 +18,13 @@ __all__ = (
 )
 
 
-class NodeServiceAbstractAction(AbstractAction, identifier="node_service_abstract"):
+class NodeServiceAbstractAction(AbstractAction, ABC):
     """Abstract Action for Node Service related actions.
 
     Any actions which use node_name and service_name can inherit from this class.
     """
 
-    config: "NodeServiceAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         node_name: str
         service_name: str
         verb: ClassVar[str]
@@ -36,7 +35,7 @@ class NodeServiceAbstractAction(AbstractAction, identifier="node_service_abstrac
         return ["network", "node", config.node_name, "service", config.service_name, config.verb]
 
 
-class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_scan"):
+class NodeServiceScanAction(NodeServiceAbstractAction, discriminator="node-service-scan"):
     """Action which scans a service."""
 
     config: "NodeServiceScanAction.ConfigSchema"
@@ -47,7 +46,7 @@ class NodeServiceScanAction(NodeServiceAbstractAction, identifier="node_service_
         verb: ClassVar[str] = "scan"
 
 
-class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_stop"):
+class NodeServiceStopAction(NodeServiceAbstractAction, discriminator="node-service-stop"):
     """Action which stops a service."""
 
     config: "NodeServiceStopAction.ConfigSchema"
@@ -58,7 +57,7 @@ class NodeServiceStopAction(NodeServiceAbstractAction, identifier="node_service_
         verb: ClassVar[str] = "stop"
 
 
-class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service_start"):
+class NodeServiceStartAction(NodeServiceAbstractAction, discriminator="node-service-start"):
     """Action which starts a service."""
 
     config: "NodeServiceStartAction.ConfigSchema"
@@ -69,7 +68,7 @@ class NodeServiceStartAction(NodeServiceAbstractAction, identifier="node_service
         verb: ClassVar[str] = "start"
 
 
-class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service_pause"):
+class NodeServicePauseAction(NodeServiceAbstractAction, discriminator="node-service-pause"):
     """Action which pauses a service."""
 
     config: "NodeServicePauseAction.ConfigSchema"
@@ -80,7 +79,7 @@ class NodeServicePauseAction(NodeServiceAbstractAction, identifier="node_service
         verb: ClassVar[str] = "pause"
 
 
-class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_service_resume"):
+class NodeServiceResumeAction(NodeServiceAbstractAction, discriminator="node-service-resume"):
     """Action which resumes a service."""
 
     config: "NodeServiceResumeAction.ConfigSchema"
@@ -91,7 +90,7 @@ class NodeServiceResumeAction(NodeServiceAbstractAction, identifier="node_servic
         verb: ClassVar[str] = "resume"
 
 
-class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_service_restart"):
+class NodeServiceRestartAction(NodeServiceAbstractAction, discriminator="node-service-restart"):
     """Action which restarts a service."""
 
     config: "NodeServiceRestartAction.ConfigSchema"
@@ -102,7 +101,7 @@ class NodeServiceRestartAction(NodeServiceAbstractAction, identifier="node_servi
         verb: ClassVar[str] = "restart"
 
 
-class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_service_disable"):
+class NodeServiceDisableAction(NodeServiceAbstractAction, discriminator="node-service-disable"):
     """Action which disables a service."""
 
     config: "NodeServiceDisableAction.ConfigSchema"
@@ -113,7 +112,7 @@ class NodeServiceDisableAction(NodeServiceAbstractAction, identifier="node_servi
         verb: ClassVar[str] = "disable"
 
 
-class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_service_enable"):
+class NodeServiceEnableAction(NodeServiceAbstractAction, discriminator="node-service-enable"):
     """Action which enables a service."""
 
     config: "NodeServiceEnableAction.ConfigSchema"
@@ -124,7 +123,7 @@ class NodeServiceEnableAction(NodeServiceAbstractAction, identifier="node_servic
         verb: ClassVar[str] = "enable"
 
 
-class NodeServiceFixAction(NodeServiceAbstractAction, identifier="node_service_fix"):
+class NodeServiceFixAction(NodeServiceAbstractAction, discriminator="node-service-fix"):
     """Action which fixes a service."""
 
     config: "NodeServiceFixAction.ConfigSchema"

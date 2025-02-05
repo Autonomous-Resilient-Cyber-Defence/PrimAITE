@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ntp_client
-                    type: NTPClient
+                    type: ntp-client
                     options:
                         ntp_server_ip: 192.168.0.10
 

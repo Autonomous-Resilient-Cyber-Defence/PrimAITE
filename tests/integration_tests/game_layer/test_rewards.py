@@ -27,18 +27,18 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
     comp = WebpageUnavailablePenalty(config=schema)
 
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
-    browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    browser: WebBrowser = client_1.software_manager.software.get("web-browser")
     browser.run()
     browser.config.target_url = "http://www.example.com"
     agent.reward_function.register_component(comp, 0.7)
 
     # Check that before trying to fetch the webpage, the reward is 0.0
-    agent.store_action(("do_nothing", {}))
+    agent.store_action(("do-nothing", {}))
     game.step()
     assert agent.reward_function.current_reward == 0.0
 
     # Check that successfully fetching the webpage yields a reward of 0.7
-    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
+    agent.store_action(("node-application-execute", {"node_name": "client_1", "application_name": "web-browser"}))
     game.step()
     assert agent.reward_function.current_reward == 0.7
 
@@ -50,7 +50,7 @@ def test_WebpageUnavailablePenalty(game_and_agent: tuple[PrimaiteGame, Controlle
         src_port=PORT_LOOKUP["HTTP"],
         dst_port=PORT_LOOKUP["HTTP"],
     )
-    agent.store_action(("node_application_execute", {"node_name": "client_1", "application_name": "WebBrowser"}))
+    agent.store_action(("node-application-execute", {"node_name": "client_1", "application_name": "web-browser"}))
     game.step()
     assert agent.reward_function.current_reward == -0.7
 
@@ -62,12 +62,12 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
 
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
     server_1.software_manager.install(DatabaseService)
-    db_service = server_1.software_manager.software.get("DatabaseService")
+    db_service = server_1.software_manager.software.get("database-service")
     db_service.start()
 
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     client_1.software_manager.install(DatabaseClient)
-    db_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = client_1.software_manager.software.get("database-client")
     db_client.configure(server_ip_address=server_1.network_interface[1].ip_address)
     db_client.run()
 
@@ -79,11 +79,11 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     schema = GreenAdminDatabaseUnreachablePenalty.ConfigSchema(node_hostname="client_1", sticky=True)
     comp = GreenAdminDatabaseUnreachablePenalty(config=schema)
 
-    request = ["network", "node", "client_1", "application", "DatabaseClient", "execute"]
+    request = ["network", "node", "client_1", "application", "database-client", "execute"]
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
+        timestep=0, action="node-application-execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(state, last_action_response=ahi)
     assert reward_value == 1.0
@@ -94,7 +94,7 @@ def test_uc2_rewards(game_and_agent: tuple[PrimaiteGame, ControlledAgent]):
     response = game.simulation.apply_request(request)
     state = game.get_sim_state()
     ahi = AgentHistoryItem(
-        timestep=0, action="node_application_execute", parameters={}, request=request, response=response
+        timestep=0, action="node-application-execute", parameters={}, request=request, response=response
     )
     reward_value = comp.calculate(
         state,
@@ -154,13 +154,13 @@ def test_action_penalty():
     # Penalty = ActionPenalty(action_penalty=-0.75, do_nothing_penalty=0.125)
     Penalty = ActionPenalty(config=schema)
 
-    # Assert that penalty is applied if action isn't do_nothing
+    # Assert that penalty is applied if action isn't do-nothing
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="node_application_execute",
-            parameters={"node_name": "client", "application_name": "WebBrowser"},
+            action="node-application-execute",
+            parameters={"node_name": "client", "application_name": "web-browser"},
             request=["execute"],
             response=RequestResponse.from_bool(True),
         ),
@@ -168,14 +168,14 @@ def test_action_penalty():
 
     assert reward_value == -0.75
 
-    # Assert that no penalty applied for a do_nothing action
+    # Assert that no penalty applied for a do-nothing action
     reward_value = Penalty.calculate(
         state={},
         last_action_response=AgentHistoryItem(
             timestep=0,
-            action="do_nothing",
+            action="do-nothing",
             parameters={},
-            request=["do_nothing"],
+            request=["do-nothing"],
             response=RequestResponse.from_bool(True),
         ),
     )
@@ -192,12 +192,12 @@ def test_action_penalty_e2e(game_and_agent: tuple[PrimaiteGame, ControlledAgent]
 
     agent.reward_function.register_component(comp, 1.0)
 
-    action = ("do_nothing", {})
+    action = ("do-nothing", {})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == 0.125
 
-    action = ("node_file_scan", {"node_name": "client", "folder_name": "downloads", "file_name": "document.pdf"})
+    action = ("node-file-scan", {"node_name": "client", "folder_name": "downloads", "file_name": "document.pdf"})
     agent.store_action(action)
     game.step()
     assert agent.reward_function.current_reward == -0.75

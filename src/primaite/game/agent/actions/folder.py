@@ -22,9 +22,7 @@ class NodeFolderAbstractAction(AbstractAction, ABC):
     this base class.
     """
 
-    config: "NodeFolderAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base configuration schema for NodeFolder actions."""
 
         node_name: str
@@ -35,7 +33,7 @@ class NodeFolderAbstractAction(AbstractAction, ABC):
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -47,7 +45,7 @@ class NodeFolderAbstractAction(AbstractAction, ABC):
         ]
 
 
-class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_scan"):
+class NodeFolderScanAction(NodeFolderAbstractAction, discriminator="node-folder-scan"):
     """Action which scans a folder."""
 
     config: "NodeFolderScanAction.ConfigSchema"
@@ -58,7 +56,7 @@ class NodeFolderScanAction(NodeFolderAbstractAction, identifier="node_folder_sca
         verb: ClassVar[str] = "scan"
 
 
-class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folder_checkhash"):
+class NodeFolderCheckhashAction(NodeFolderAbstractAction, discriminator="node-folder-checkhash"):
     """Action which checks the hash of a folder."""
 
     config: "NodeFolderCheckhashAction.ConfigSchema"
@@ -69,7 +67,7 @@ class NodeFolderCheckhashAction(NodeFolderAbstractAction, identifier="node_folde
         verb: ClassVar[str] = "checkhash"
 
 
-class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_repair"):
+class NodeFolderRepairAction(NodeFolderAbstractAction, discriminator="node-folder-repair"):
     """Action which repairs a folder."""
 
     config: "NodeFolderRepairAction.ConfigSchema"
@@ -80,7 +78,7 @@ class NodeFolderRepairAction(NodeFolderAbstractAction, identifier="node_folder_r
         verb: ClassVar[str] = "repair"
 
 
-class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_restore"):
+class NodeFolderRestoreAction(NodeFolderAbstractAction, discriminator="node-folder-restore"):
     """Action which restores a folder."""
 
     config: "NodeFolderRestoreAction.ConfigSchema"
@@ -91,7 +89,7 @@ class NodeFolderRestoreAction(NodeFolderAbstractAction, identifier="node_folder_
         verb: ClassVar[str] = "restore"
 
 
-class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_create"):
+class NodeFolderCreateAction(NodeFolderAbstractAction, discriminator="node-folder-create"):
     """Action which creates a new folder."""
 
     config: "NodeFolderCreateAction.ConfigSchema"
@@ -105,7 +103,7 @@ class NodeFolderCreateAction(NodeFolderAbstractAction, identifier="node_folder_c
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",

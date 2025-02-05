@@ -20,7 +20,7 @@ Custom actions within PrimAITE must be a sub-class of `AbstractAction`, and cont
 
 #. ConfigSchema class
 
-#. Unique Identifier
+#. Unique discriminator
 
 #. `form_request` method.
 
@@ -31,14 +31,14 @@ ConfigSchema
 The ConfigSchema sub-class of the action must contain all `configurable` variables within the action, that would be specified within the environments configuration YAML file.
 
 
-Unique Identifier
+Unique discriminator
 #################
 
-When declaring a custom class, it must have a unique identifier string, that allows PrimAITE to generate the correct action when needed.
+When declaring a custom class, it must have a unique discriminator string, that allows PrimAITE to generate the correct action when needed.
 
 .. code:: Python
 
-    class CreateDirectoryAction(AbstractAction, identifier="node_folder_create")
+    class CreateDirectoryAction(AbstractAction, discriminator="node-folder-create")
 
         config: CreateDirectoryAction.ConfigSchema
 
@@ -58,7 +58,7 @@ When declaring a custom class, it must have a unique identifier string, that all
                     config.directory_name,
                 ]
 
-The above action would fail pydantic validation as the identifier "node_folder_create" is already used by the `NodeFolderCreateAction`, and would create a duplicate listing within `AbstractAction._registry`.
+The above action would fail pydantic validation as the discriminator "node-folder-create" is already used by the `NodeFolderCreateAction`, and would create a duplicate listing within `AbstractAction._registry`.
 
 
 form_request method

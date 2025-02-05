@@ -68,7 +68,7 @@ class AbstractAgent(BaseModel, ABC):
         )
         reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
 
-    config: "AbstractAgent.ConfigSchema" = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
     logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
     history: List[AgentHistoryItem] = []
@@ -79,13 +79,13 @@ class AbstractAgent(BaseModel, ABC):
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Cannot create a new agent under reserved name {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Cannot create a new agent under reserved name {discriminator}")
+        cls._registry[discriminator] = cls
 
     def model_post_init(self, __context: Any) -> None:
         """Overwrite the default empty action, observation, and rewards with ones defined through the config."""
@@ -130,7 +130,7 @@ class AbstractAgent(BaseModel, ABC):
         """
         # in RL agent, this method will send CAOS observation to RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ("do_nothing", {})
+        return ("do-nothing", {})
 
     def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> RequestFormat:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
@@ -161,15 +161,15 @@ class AbstractAgent(BaseModel, ABC):
         return agent_class(config=config)
 
 
-class AbstractScriptedAgent(AbstractAgent, identifier="AbstractScriptedAgent"):
+class AbstractScriptedAgent(AbstractAgent, ABC):
     """Base class for actors which generate their own behaviour."""
 
-    config: "AbstractScriptedAgent.ConfigSchema" = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
-
-    class ConfigSchema(AbstractAgent.ConfigSchema):
+    class ConfigSchema(AbstractAgent.ConfigSchema, ABC):
         """Configuration Schema for AbstractScriptedAgents."""
 
         type: str = "AbstractScriptedAgent"
+
+    config: ConfigSchema = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -177,7 +177,7 @@ class AbstractScriptedAgent(AbstractAgent, identifier="AbstractScriptedAgent"):
         return super().get_action(obs=obs, timestep=timestep)
 
 
-class ProxyAgent(AbstractAgent, identifier="ProxyAgent"):
+class ProxyAgent(AbstractAgent, discriminator="proxy-agent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
     config: "ProxyAgent.ConfigSchema" = Field(default_factory=lambda: ProxyAgent.ConfigSchema())

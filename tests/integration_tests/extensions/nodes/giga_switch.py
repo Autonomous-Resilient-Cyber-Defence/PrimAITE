@@ -11,7 +11,7 @@ from primaite.simulator.network.hardware.nodes.network.switch import SwitchPort
 from primaite.simulator.network.transmission.data_link_layer import Frame
 
 
-class GigaSwitch(NetworkNode, identifier="gigaswitch"):
+class GigaSwitch(NetworkNode, discriminator="gigaswitch"):
     """
     A class representing a Layer 2 network switch.
 

@@ -40,13 +40,13 @@ class DataManipulationAttackStage(IntEnum):
     "Signifies that the attack has failed."
 
 
-class DataManipulationBot(Application, identifier="DataManipulationBot"):
+class DataManipulationBot(Application, discriminator="data-manipulation-bot"):
     """A bot that simulates a script which performs a SQL injection attack."""
 
     class ConfigSchema(Application.ConfigSchema):
         """Configuration schema for DataManipulationBot."""
 
-        type: str = "DataManipulationBot"
+        type: str = "data-manipulation-bot"
         server_ip: Optional[IPV4Address] = None
         server_password: Optional[str] = None
         payload: str = "DELETE"
@@ -64,7 +64,7 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
     "Whether to repeat attacking once finished."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DataManipulationBot"
+        kwargs["name"] = "data-manipulation-bot"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
@@ -92,7 +92,7 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
     @property
     def _host_db_client(self) -> DatabaseClient:
         """Return the database client that is installed on the same machine as the DataManipulationBot."""
-        db_client = self.software_manager.software.get("DatabaseClient")
+        db_client = self.software_manager.software.get("database-client")
         if db_client is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client

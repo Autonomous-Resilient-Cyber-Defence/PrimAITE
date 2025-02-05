@@ -23,7 +23,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class WebBrowser(Application, identifier="WebBrowser"):
+class WebBrowser(Application, discriminator="web-browser"):
     """
     Represents a web browser in the simulation environment.
 
@@ -33,7 +33,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for WebBrowser."""
 
-        type: str = "WebBrowser"
+        type: str = "web-browser"
         target_url: Optional[str] = None
 
     config: "WebBrowser.ConfigSchema" = Field(default_factory=lambda: WebBrowser.ConfigSchema())
@@ -48,7 +48,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
     """Keep a log of visited websites and information about the visit, such as response code."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "WebBrowser"
+        kwargs["name"] = "web-browser"
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
@@ -108,7 +108,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
             return False
 
         # get the IP address of the domain name via DNS
-        dns_client: DNSClient = self.software_manager.software.get("DNSClient")
+        dns_client: DNSClient = self.software_manager.software.get("dns-client")
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails

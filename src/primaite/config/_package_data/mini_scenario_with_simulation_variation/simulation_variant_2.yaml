@@ -1,5 +1,5 @@
 server_services: &server_services
-  - type: FTPServer
+  - type: ftp-server
 
 client_applications: &client_applications
-  - type: RansomwareScript
+  - type: ransomware-script

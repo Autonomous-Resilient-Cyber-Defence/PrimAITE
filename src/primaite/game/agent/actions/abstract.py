@@ -12,8 +12,6 @@ from primaite.interface.request import RequestFormat
 class AbstractAction(BaseModel, ABC):
     """Base class for actions."""
 
-    config: "AbstractAction.ConfigSchema"
-
     class ConfigSchema(BaseModel, ABC):
         """Base configuration schema for Actions."""
 
@@ -22,13 +20,20 @@ class AbstractAction(BaseModel, ABC):
 
     _registry: ClassVar[Dict[str, Type[AbstractAction]]] = {}
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
+        """
+        Register an action type.
+
+        :param discriminator: discriminator used to uniquely specify action types.
+        :type discriminator: str
+        :raises ValueError: When attempting to create an action with a name that is already in use.
+        """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Cannot create new action under reserved name {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Cannot create new action under reserved name {discriminator}")
+        cls._registry[discriminator] = cls
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:

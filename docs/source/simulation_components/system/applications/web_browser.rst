@@ -85,7 +85,7 @@ Via Configuration
                 ...
                 applications:
                     - ref: web_browser
-                    type: WebBrowser
+                    type: web-browser
                     options:
                         target_url: http://arcd.com/
 

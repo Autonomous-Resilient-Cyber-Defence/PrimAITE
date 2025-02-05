@@ -87,7 +87,7 @@ Via Configuration
                 ...
                 services:
                     - ref: database_service
-                    type: DatabaseService
+                    type: database-service
                     options:
                         backup_server_ip: 192.168.0.10
 

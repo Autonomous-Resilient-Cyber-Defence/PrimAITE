@@ -31,20 +31,20 @@ class AbstractObservation(ABC):
         """Initialise an observation. This method must be overwritten."""
         self.default_observation: ObsType
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register an observation type.
 
-        :param identifier: Identifier used to uniquely specify observation component types.
-        :type identifier: str
+        :param discriminator: discriminator used to uniquely specify observation component types.
+        :type discriminator: str
         :raises ValueError: When attempting to create a component with a name that is already in use.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Duplicate observation component type {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Duplicate observation component type {discriminator}")
+        cls._registry[discriminator] = cls
 
     @abstractmethod
     def observe(self, state: Dict) -> Any:

@@ -1,13 +1,13 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-# class RouterICMP(ICMP):
+# class RouterICMP(icmp):
 #     """
-#     A class to represent a router's Internet Control Message Protocol (ICMP) handler.
+#     A class to represent a router's Internet Control Message Protocol (icmp) handler.
 #
 #     :param sys_log: System log for logging network events and errors.
 #     :type sys_log: SysLog
-#     :param arp_cache: The ARP cache for resolving MAC addresses.
+#     :param arp_cache: The arp cache for resolving MAC addresses.
 #     :type arp_cache: ARPCache
-#     :param router: The router to which this ICMP handler belongs.
+#     :param router: The router to which this icmp handler belongs.
 #     :type router: Router
 #     """
 #
@@ -19,7 +19,7 @@
 #
 #     def process_icmp(self, frame: Frame, from_network_interface: NIC, is_reattempt: bool = False):
 #         """
-#         Process incoming ICMP frames based on ICMP type.
+#         Process incoming icmp frames based on icmp type.
 #
 #         :param frame: The incoming frame to process.
 #         :param from_network_interface: The network interface where the frame is coming from.
@@ -36,13 +36,13 @@
 #                             self.sys_log.info(f"Received echo request from {frame.ip.src_ip_address}")
 #                         target_mac_address = self.arp.get_arp_cache_mac_address(frame.ip.src_ip_address)
 #                         src_nic = self.arp.get_arp_cache_network_interface(frame.ip.src_ip_address)
-#                         tcp_header = TCPHeader(src_port=Port["ARP"], dst_port=Port["ARP"])
+#                         tcp_header = TCPHeader(src_port=Port["arp"], dst_port=Port["arp"])
 #
 #                         # Network Layer
 #                         ip_packet = IPPacket(
 #                             src_ip_address=network_interface.ip_address,
 #                             dst_ip_address=frame.ip.src_ip_address,
-#                             protocol=IPProtocol["ICMP"],
+#                             protocol=IPProtocol["icmp"],
 #                         )
 #                         # Data Link Layer
 #                         ethernet_header = EthernetHeader(
@@ -54,7 +54,7 @@
 #                             identifier=frame.icmp.identifier,
 #                             sequence=frame.icmp.sequence + 1,
 #                         )
-#                         payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard ICMP 32 bytes size
+#                         payload = secrets.token_urlsafe(int(32 / 1.3))  # Standard icmp 32 bytes size
 #                         frame = Frame(
 #                             ethernet=ethernet_header,
 #                             ip=ip_packet,

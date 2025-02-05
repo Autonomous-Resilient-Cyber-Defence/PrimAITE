@@ -30,8 +30,8 @@ def ftp_server() -> Node:
 
 def test_create_ftp_server(ftp_server):
     assert ftp_server is not None
-    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
-    assert ftp_server_service.name is "FTPServer"
+    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
+    assert ftp_server_service.name == "ftp-server"
     assert ftp_server_service.port is PORT_LOOKUP["FTP"]
     assert ftp_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
@@ -51,7 +51,7 @@ def test_ftp_server_store_file(ftp_server):
         packet_payload_size=24,
     )
 
-    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
+    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
     ftp_server_service.receive(response)
 
     assert ftp_server.file_system.get_file(folder_name="downloads", file_name="file.txt")
@@ -65,7 +65,7 @@ def test_ftp_server_should_send_error_if_port_arg_is_invalid(ftp_server):
         packet_payload_size=24,
     )
 
-    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
+    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
     assert ftp_server_service._process_ftp_command(payload=payload).status_code is FTPStatusCode.ERROR
 
 
@@ -73,7 +73,7 @@ def test_ftp_server_receives_non_ftp_packet(ftp_server):
     """Receive should return false if the service receives a non ftp packet."""
     response: FTPPacket = None
 
-    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
+    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
     assert ftp_server_service.receive(response) is False
 
 
@@ -89,7 +89,7 @@ def test_offline_ftp_server_receives_request(ftp_server):
         packet_payload_size=24,
     )
 
-    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("FTPServer")
+    ftp_server_service: FTPServer = ftp_server.software_manager.software.get("ftp-server")
     ftp_server_service.stop()
     assert ftp_server_service.operating_state is ServiceOperatingState.STOPPED
     assert ftp_server_service.receive(response) is False

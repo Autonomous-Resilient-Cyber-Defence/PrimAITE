@@ -19,13 +19,13 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
             ...
         - ref: green_agent_example
             team: GREEN
-            type: ProbabilisticAgent
+            type: probabilistic-agent
             observation_space:
                 type: UC2GreenObservation
             action_space:
             reward_function:
                 reward_components:
-                - type: DUMMY
+                - type: dummy
 
             agent_settings:
                 start_settings:
@@ -44,13 +44,13 @@ Specifies if the agent is malicious (``RED``), benign (``GREEN``), or defensive 
 
 ``type``
 --------
-Specifies which class should be used for the agent. ``ProxyAgent`` is used for agents that receive instructions from an RL algorithm. Scripted agents like ``RedDatabaseCorruptingAgent`` and ``ProbabilisticAgent`` generate their own behaviour.
+Specifies which class should be used for the agent. ``proxy-agent`` is used for agents that receive instructions from an RL algorithm. Scripted agents like ``red-database-corrupting-agent`` and ``probabilistic-agent`` generate their own behaviour.
 
 Available agent types:
 
-- ``ProbabilisticAgent``
-- ``ProxyAgent``
-- ``RedDatabaseCorruptingAgent``
+- ``probabilistic-agent``
+- ``proxy-agent``
+- ``red-database-corrupting-agent``
 
 ``observation_space``
 ---------------------
@@ -66,10 +66,10 @@ selects which python class from the :py:mod:`primaite.game.agent.observation` mo
 
 Allows configuration of the chosen observation type. These are optional.
 
-    * ``num_services_per_node``, ``num_folders_per_node``, ``num_files_per_folder``, ``num_nics_per_node`` all define the shape of the observation space. The size and shape of the obs space must remain constant, but the number of files, folders, ACL rules, and other components can change within an episode. Therefore padding is performed and these options set the size of the obs space.
+    * ``num_services_per_node``, ``num_folders_per_node``, ``num_files_per_folder``, ``num_nics_per_node`` all define the shape of the observation space. The size and shape of the obs space must remain constant, but the number of files, folders, acl rules, and other components can change within an episode. Therefore padding is performed and these options set the size of the obs space.
     * ``nodes``: list of nodes that will be present in this agent's observation space. The ``node_ref`` relates to the human-readable unique reference defined later in the ``simulation`` part of the config. Each node can also be configured with services, and files that should be monitored.
     * ``links``: list of links that will be present in this agent's observation space. The ``link_ref`` relates to the human-readable unique reference defined later in the ``simulation`` part of the config.
-    * ``acl``: configure how the agent reads the access control list on the router in the simulation. ``router_node_ref`` is for selecting which router's ACL table should be used. ``ip_list`` sets the encoding of ip addresses as integers within the observation space.
+    * ``acl``: configure how the agent reads the access control list on the router in the simulation. ``router_node_ref`` is for selecting which router's acl table should be used. ``ip_list`` sets the encoding of ip addresses as integers within the observation space.
 
 For more information see :py:mod:`primaite.game.agent.observations`
 
@@ -103,7 +103,7 @@ Similar to action space, this is defined as a list of components from the :py:mo
 
 ``reward_components``
 ^^^^^^^^^^^^^^^^^^^^^
-
+TODO: update description
 A list of reward types from :py:mod:`primaite.game.agent.rewards.RewardFunction.rew_class_identifiers`
 
 e.g.
@@ -111,8 +111,8 @@ e.g.
 .. code-block:: yaml
 
     reward_components:
-        - type: DUMMY
-        - type: DATABASE_FILE_INTEGRITY
+        - type: dummy
+        - type: database-file-integrity
 
 
 ``agent_settings``

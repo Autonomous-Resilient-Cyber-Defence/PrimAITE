@@ -22,7 +22,7 @@ class NetworkNodeAdder(BaseModel):
 
     Here is a template that users can use to define custom node adders:
     ```
-    class YourNodeAdder(NetworkNodeAdder, identifier="your_name"):
+    class YourNodeAdder(NetworkNodeAdder, discriminator="your-name"):
         class ConfigSchema(NetworkNodeAdder.ConfigSchema):
             property_1 : str
             property_2 : int
@@ -40,8 +40,8 @@ class NetworkNodeAdder(BaseModel):
         """
         Base schema for node adders.
 
-        Child classes of NetworkNodeAdder must define a schema which inherits from this schema. The identifier is used
-        by the from_config method to select the correct node adder at runtime.
+        Child classes of NetworkNodeAdder must define a schema which inherits from this schema. The discriminator is
+        used by the from_config method to select the correct node adder at runtime.
         """
 
         model_config = ConfigDict(extra="forbid")
@@ -50,20 +50,20 @@ class NetworkNodeAdder(BaseModel):
 
     _registry: ClassVar[Dict[str, Type["NetworkNodeAdder"]]] = {}
 
-    def __init_subclass__(cls, identifier: Optional[str], **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str], **kwargs: Any) -> None:
         """
         Register a network node adder class.
 
-        :param identifier: Unique name for the node adder to use for matching against primaite config entries.
-        :type identifier: str
+        :param discriminator: Unique name for the node adder to use for matching against primaite config entries.
+        :type discriminator: str
         :raises ValueError: When attempting to register a name that is already reserved.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Duplicate node adder {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Duplicate node adder {discriminator}")
+        cls._registry[discriminator] = cls
 
     @classmethod
     @abstractmethod
@@ -99,13 +99,13 @@ class NetworkNodeAdder(BaseModel):
         adder_class.add_nodes_to_net(config=adder_class.ConfigSchema(**config), network=network)
 
 
-class OfficeLANAdder(NetworkNodeAdder, identifier="office_lan"):
+class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
     """Creates an office LAN."""
 
     class ConfigSchema(NetworkNodeAdder.ConfigSchema):
         """Configuration schema for OfficeLANAdder."""
 
-        type: Literal["office_lan"] = "office_lan"
+        type: Literal["office-lan"] = "office-lan"
         lan_name: str
         """Name of lan used for generating hostnames for new nodes."""
         subnet_base: int

@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import ClassVar, List, Optional, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -18,16 +18,14 @@ __all__ = (
 )
 
 
-class NodeAbstractAction(AbstractAction, identifier="node_abstract"):
+class NodeAbstractAction(AbstractAction, ABC):
     """
     Abstract base class for node actions.
 
     Any action which applies to a node and uses node_name as its only parameter can inherit from this base class.
     """
 
-    config: "NodeAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration schema for Node actions."""
 
         node_name: str
@@ -39,7 +37,7 @@ class NodeAbstractAction(AbstractAction, identifier="node_abstract"):
         return ["network", "node", config.node_name, config.verb]
 
 
-class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
+class NodeOSScanAction(NodeAbstractAction, discriminator="node-os-scan"):
     """Action which scans a node's OS."""
 
     config: "NodeOSScanAction.ConfigSchema"
@@ -50,7 +48,7 @@ class NodeOSScanAction(NodeAbstractAction, identifier="node_os_scan"):
         verb: ClassVar[str] = "scan"
 
 
-class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
+class NodeShutdownAction(NodeAbstractAction, discriminator="node-shutdown"):
     """Action which shuts down a node."""
 
     config: "NodeShutdownAction.ConfigSchema"
@@ -61,7 +59,7 @@ class NodeShutdownAction(NodeAbstractAction, identifier="node_shutdown"):
         verb: ClassVar[str] = "shutdown"
 
 
-class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
+class NodeStartupAction(NodeAbstractAction, discriminator="node-startup"):
     """Action which starts up a node."""
 
     config: "NodeStartupAction.ConfigSchema"
@@ -72,7 +70,7 @@ class NodeStartupAction(NodeAbstractAction, identifier="node_startup"):
         verb: ClassVar[str] = "startup"
 
 
-class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
+class NodeResetAction(NodeAbstractAction, discriminator="node-reset"):
     """Action which resets a node."""
 
     config: "NodeResetAction.ConfigSchema"
@@ -83,12 +81,10 @@ class NodeResetAction(NodeAbstractAction, identifier="node_reset"):
         verb: ClassVar[str] = "reset"
 
 
-class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_action"):
+class NodeNMAPAbstractAction(AbstractAction, ABC):
     """Base class for NodeNMAP actions."""
 
-    config: "NodeNMAPAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration Schema for NodeNMAP actions."""
 
         target_ip_address: Union[str, List[str]]
@@ -103,8 +99,8 @@ class NodeNMAPAbstractAction(AbstractAction, identifier="node_nmap_abstract_acti
         pass
 
 
-class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_scan"):
-    """Action which performs an NMAP ping scan."""
+class NodeNMAPPingScanAction(NodeNMAPAbstractAction, discriminator="node-nmap-ping-scan"):
+    """Action which performs an nmap ping scan."""
 
     config: "NodeNMAPPingScanAction.ConfigSchema"
 
@@ -116,14 +112,14 @@ class NodeNMAPPingScanAction(NodeNMAPAbstractAction, identifier="node_nmap_ping_
             "node",
             config.source_node,
             "application",
-            "NMAP",
+            "nmap",
             "ping_scan",
             {"target_ip_address": config.target_ip_address, "show": config.show},
         ]
 
 
-class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_scan"):
-    """Action which performs an NMAP port scan."""
+class NodeNMAPPortScanAction(NodeNMAPAbstractAction, discriminator="node-nmap-port-scan"):
+    """Action which performs an nmap port scan."""
 
     config: "NodeNMAPPortScanAction.ConfigSchema"
 
@@ -143,7 +139,7 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
             "node",
             config.source_node,
             "application",
-            "NMAP",
+            "nmap",
             "port_scan",
             {
                 "target_ip_address": config.target_ip_address,
@@ -154,8 +150,8 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, identifier="node_nmap_port_
         ]
 
 
-class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_network_service_recon"):
-    """Action which performs an NMAP network service recon (ping scan followed by port scan)."""
+class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, discriminator="node-network-service-recon"):
+    """Action which performs an nmap network service recon (ping scan followed by port scan)."""
 
     config: "NodeNetworkServiceReconAction.ConfigSchema"
 
@@ -174,7 +170,7 @@ class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, identifier="node_net
             "node",
             config.source_node,
             "application",
-            "NMAP",
+            "nmap",
             "network_service_recon",
             {
                 "target_ip_address": config.target_ip_address,

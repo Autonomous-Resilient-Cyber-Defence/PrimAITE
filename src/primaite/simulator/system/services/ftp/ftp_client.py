@@ -18,7 +18,7 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class FTPClient(FTPServiceABC, identifier="FTPClient"):
+class FTPClient(FTPServiceABC, discriminator="ftp-client"):
     """
     A class for simulating an FTP client service.
 
@@ -26,15 +26,15 @@ class FTPClient(FTPServiceABC, identifier="FTPClient"):
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
-    config: "FTPClient.ConfigSchema" = Field(default_factory=lambda: FTPClient.ConfigSchema())
-
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for FTPClient."""
 
-        type: str = "FTPClient"
+        type: str = "ftp-client"
+
+    config: ConfigSchema = Field(default_factory=lambda: FTPClient.ConfigSchema())
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "FTPClient"
+        kwargs["name"] = "ftp-client"
         kwargs["port"] = PORT_LOOKUP["FTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)

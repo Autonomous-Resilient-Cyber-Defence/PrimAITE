@@ -19,7 +19,7 @@ def database_server() -> Node:
     node = Computer.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(DatabaseService)
-    node.software_manager.software.get("DatabaseService").start()
+    node.software_manager.software.get("database-service").start()
     return node
 
 

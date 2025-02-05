@@ -11,11 +11,11 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class TestSoftware(Service, identifier="TestSoftware"):
+class TestSoftware(Service, discriminator="TestSoftware"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSChema for TestSoftware."""
 
-        type: str = "TestSoftware"
+        type: str = "test-software"
 
     config: "TestSoftware.ConfigSchema" = Field(default_factory=lambda: TestSoftware.ConfigSchema())
 
@@ -26,7 +26,7 @@ class TestSoftware(Service, identifier="TestSoftware"):
 @pytest.fixture(scope="function")
 def software(file_system):
     return TestSoftware(
-        name="TestSoftware",
+        name="test-software",
         port=PORT_LOOKUP["ARP"],
         file_system=file_system,
         sys_log=SysLog(hostname="test_service"),

@@ -83,7 +83,7 @@ Via Configuration
                 ...
                 applications:
                     - ref: database_client
-                    type: DatabaseClient
+                    type: database-client
                     options:
                         db_server_ip: 192.168.0.1
 

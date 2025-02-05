@@ -15,7 +15,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class ARP(Service, identifier="ARP"):
+class ARP(Service, discriminator="arp"):
     """
     The ARP (Address Resolution Protocol) Service.
 
@@ -26,14 +26,14 @@ class ARP(Service, identifier="ARP"):
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for ARP."""
 
-        type: str = "ARP"
+        type: str = "arp"
 
     config: "ARP.ConfigSchema" = Field(default_factory=lambda: ARP.ConfigSchema())
 
     arp: Dict[IPV4Address, ARPEntry] = {}
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ARP"
+        kwargs["name"] = "arp"
         kwargs["port"] = PORT_LOOKUP["ARP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)

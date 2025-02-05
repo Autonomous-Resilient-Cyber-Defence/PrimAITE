@@ -1,11 +1,11 @@
 reds: &reds
   - ref: red_A
     team: RED
-    type: RedDatabaseCorruptingAgent
+    type: red-database-corrupting-agent
 
     agent_settings:
       possible_start_nodes: [client,]
-      target_application: DataManipulationBot
+      target_application: data-manipulation-bot
       start_step: 10
       frequency: 10
       variance: 0
