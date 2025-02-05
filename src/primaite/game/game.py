@@ -1,6 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """PrimAITE game - Encapsulates the simulation and agents."""
-from ipaddress import IPv4Address
 from typing import Dict, List, Optional, Union
 
 import numpy as np
@@ -13,14 +12,8 @@ from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
-from primaite.simulator.network.hardware.nodes.host.computer import Computer
-from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
-from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
-from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
-from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
-from primaite.simulator.network.hardware.nodes.network.router import Router
+from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -274,66 +267,10 @@ class PrimaiteGame:
             n_type = node_cfg["type"]
 
             new_node = None
-            # Default PrimAITE nodes
-            if n_type == "computer":
-                new_node = Computer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "server":
-                new_node = Server(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "switch":
-                new_node = Switch(
-                    hostname=node_cfg["hostname"],
-                    num_ports=int(node_cfg.get("num_ports", "8")),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "router":
-                new_node = Router.from_config(node_cfg)
-            elif n_type == "firewall":
-                new_node = Firewall.from_config(node_cfg)
-            elif n_type == "wireless_router":
-                new_node = WirelessRouter.from_config(node_cfg, airspace=net.airspace)
-            elif n_type == "printer":
-                new_node = Printer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            # Handle extended nodes
-            elif n_type.lower() in Node._registry:
-                new_node = HostNode._registry[n_type](
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg.get("ip_address"),
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type in NetworkNode._registry:
-                new_node = NetworkNode._registry[n_type](**node_cfg)
+            if n_type in Node._registry:
+                if n_type == "wireless_router":
+                    node_cfg["airspace"] = net.airspace
+                new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
@@ -341,11 +278,11 @@ class PrimaiteGame:
 
             # TODO: handle simulation defaults more cleanly
             if "node_start_up_duration" in defaults_config:
-                new_node.start_up_duration = defaults_config["node_startup_duration"]
+                new_node.config.start_up_duration = defaults_config["node_startup_duration"]
             if "node_shut_down_duration" in defaults_config:
-                new_node.shut_down_duration = defaults_config["node_shut_down_duration"]
+                new_node.config.shut_down_duration = defaults_config["node_shut_down_duration"]
             if "node_scan_duration" in defaults_config:
-                new_node.node_scan_duration = defaults_config["node_scan_duration"]
+                new_node.config.node_scan_duration = defaults_config["node_scan_duration"]
             if "folder_scan_duration" in defaults_config:
                 new_node.file_system._default_folder_scan_duration = defaults_config["folder_scan_duration"]
             if "folder_restore_duration" in defaults_config:
@@ -382,7 +319,7 @@ class PrimaiteGame:
                         service_class = SERVICE_TYPES_MAPPING[service_type]
 
                     if service_class is not None:
-                        _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
+                        _LOGGER.debug(f"installing {service_type} on node {new_node.config.hostname}")
                         new_node.software_manager.install(service_class, software_config=service_cfg.get("options", {}))
                         new_service = new_node.software_manager.software[service_class.__name__]
 
@@ -400,7 +337,7 @@ class PrimaiteGame:
 
                     # TODO: handle simulation defaults more cleanly
                     if "service_fix_duration" in defaults_config:
-                        new_service.fixing_duration = defaults_config["service_fix_duration"]
+                        new_service.config.fixing_duration = defaults_config["service_fix_duration"]
                     if "service_restart_duration" in defaults_config:
                         new_service.restart_duration = defaults_config["service_restart_duration"]
                     if "service_install_duration" in defaults_config:
@@ -431,8 +368,8 @@ class PrimaiteGame:
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             # temporarily set to 0 so all nodes are initially on
-            new_node.start_up_duration = 0
-            new_node.shut_down_duration = 0
+            new_node.config.start_up_duration = 0
+            new_node.config.shut_down_duration = 0
 
             net.add_node(new_node)
             # run through the power on step if the node is to be turned on at the start
@@ -440,8 +377,8 @@ class PrimaiteGame:
                 new_node.power_on()
 
             # set start up and shut down duration
-            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
-            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+            new_node.config.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.config.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
 
         # 1.1 Create Node Sets
         for node_set_cfg in node_sets_cfg:

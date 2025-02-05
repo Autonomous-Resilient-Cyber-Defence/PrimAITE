@@ -75,7 +75,7 @@ def test_nic(simulation):
 
     nic: NIC = pc.network_interface[1]
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
+    nic_obs = NICObservation(where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=True)
 
     # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs
     nmne_config = {
@@ -108,7 +108,7 @@ def test_nic_categories(simulation):
     """Test the NIC observation nmne count categories."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
+    nic_obs = NICObservation(where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=True)
 
     assert nic_obs.high_nmne_threshold == 10  # default
     assert nic_obs.med_nmne_threshold == 5  # default
@@ -163,7 +163,9 @@ def test_nic_monitored_traffic(simulation):
     pc2: Computer = simulation.network.get_node_by_hostname("client_2")
 
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=False, monitored_traffic=monitored_traffic
+        where=["network", "nodes", pc.config.hostname, "NICs", 1],
+        include_nmne=False,
+        monitored_traffic=monitored_traffic,
     )
 
     simulation.pre_timestep(0)  # apply timestep to whole sim

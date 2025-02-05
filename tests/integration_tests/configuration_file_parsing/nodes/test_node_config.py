@@ -3,6 +3,8 @@ from primaite.config.load import data_manipulation_config_path
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests.integration_tests.configuration_file_parsing import BASIC_CONFIG, DMZ_NETWORK, load_config
 
 

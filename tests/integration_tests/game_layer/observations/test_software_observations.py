@@ -29,7 +29,7 @@ def test_service_observation(simulation):
     ntp_server = pc.software_manager.software.get("NTPServer")
     assert ntp_server
 
-    service_obs = ServiceObservation(where=["network", "nodes", pc.hostname, "services", "NTPServer"])
+    service_obs = ServiceObservation(where=["network", "nodes", pc.config.hostname, "services", "NTPServer"])
 
     assert service_obs.space["operating_status"] == spaces.Discrete(7)
     assert service_obs.space["health_status"] == spaces.Discrete(5)
@@ -54,7 +54,7 @@ def test_application_observation(simulation):
     web_browser: WebBrowser = pc.software_manager.software.get("WebBrowser")
     assert web_browser
 
-    app_obs = ApplicationObservation(where=["network", "nodes", pc.hostname, "applications", "WebBrowser"])
+    app_obs = ApplicationObservation(where=["network", "nodes", pc.config.hostname, "applications", "WebBrowser"])
 
     web_browser.close()
     observation_state = app_obs.observe(simulation.describe_state())

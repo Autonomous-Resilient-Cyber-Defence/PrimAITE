@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -88,14 +89,8 @@ class SwitchPort(WiredNetworkInterface):
 
 
 class Switch(NetworkNode, identifier="switch"):
-    """
-    A class representing a Layer 2 network switch.
+    """A class representing a Layer 2 network switch."""
 
-    :ivar num_ports: The number of ports on the switch. Default is 24.
-    """
-
-    num_ports: int = 24
-    "The number of ports on the switch."
     network_interfaces: Dict[str, SwitchPort] = {}
     "The SwitchPorts on the Switch."
     network_interface: Dict[int, SwitchPort] = {}
@@ -103,9 +98,18 @@ class Switch(NetworkNode, identifier="switch"):
     mac_address_table: Dict[str, SwitchPort] = {}
     "A MAC address table mapping destination MAC addresses to corresponding SwitchPorts."
 
+    class ConfigSchema(NetworkNode.ConfigSchema):
+        """Configuration Schema for Switch nodes within PrimAITE."""
+
+        hostname: str = "Switch"
+        num_ports: int = 24
+        "The number of ports on the switch. Default is 24."
+
+    config: ConfigSchema = Field(default_factory=lambda: Switch.ConfigSchema())
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        for i in range(1, self.num_ports + 1):
+        for i in range(1, self.config.num_ports + 1):
             self.connect_nic(SwitchPort())
 
     def _install_system_software(self):
@@ -121,7 +125,7 @@ class Switch(NetworkNode, identifier="switch"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Switch Ports"
+        table.title = f"{self.config.hostname} Switch Ports"
         for port_num, port in self.network_interface.items():
             table.add_row([port_num, port.mac_address, port.speed, "Enabled" if port.enabled else "Disabled"])
         print(table)
@@ -134,7 +138,7 @@ class Switch(NetworkNode, identifier="switch"):
         """
         state = super().describe_state()
         state["ports"] = {port_num: port.describe_state() for port_num, port in self.network_interface.items()}
-        state["num_ports"] = self.num_ports  # redundant?
+        state["num_ports"] = self.config.num_ports  # redundant?
         state["mac_address_table"] = {mac: port.port_num for mac, port in self.mac_address_table.items()}
         return state
 

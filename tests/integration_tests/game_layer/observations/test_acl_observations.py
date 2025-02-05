@@ -36,7 +36,7 @@ def test_acl_observations(simulation):
     router.acl.add_rule(action=ACLAction.PERMIT, dst_port=PORT_LOOKUP["NTP"], src_port=PORT_LOOKUP["NTP"], position=1)
 
     acl_obs = ACLObservation(
-        where=["network", "nodes", router.hostname, "acl", "acl"],
+        where=["network", "nodes", router.config.hostname, "acl", "acl"],
         ip_list=[],
         port_list=[123, 80, 5432],
         protocol_list=["tcp", "udp", "icmp"],

@@ -27,7 +27,15 @@ def test_network(example_network):
 def test_adding_removing_nodes():
     """Check that we can create and add a node to a network."""
     net = Network()
-    n1 = Computer(hostname="computer", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    n1 = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     net.add_node(n1)
     assert n1.parent is net
     assert n1 in net
@@ -37,10 +45,18 @@ def test_adding_removing_nodes():
     assert n1 not in net
 
 
-def test_readding_node():
-    """Check that warning is raised when readding a node."""
+def test_reading_node():
+    """Check that warning is raised when reading a node."""
     net = Network()
-    n1 = Computer(hostname="computer", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    n1 = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     net.add_node(n1)
     net.add_node(n1)
     assert n1.parent is net
@@ -50,7 +66,15 @@ def test_readding_node():
 def test_removing_nonexistent_node():
     """Check that warning is raised when trying to remove a node that is not in the network."""
     net = Network()
-    n1 = Computer(hostname="computer1", ip_address="192.168.1.1", subnet_mask="255.255.255.0", start_up_duration=0)
+    n1 = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer1",
+            "ip_address": "192.168.1.1",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     net.remove_node(n1)
     assert n1.parent is None
     assert n1 not in net
@@ -59,8 +83,24 @@ def test_removing_nonexistent_node():
 def test_connecting_nodes():
     """Check that two nodes on the network can be connected."""
     net = Network()
-    n1 = Computer(hostname="computer1", ip_address="192.168.1.1", subnet_mask="255.255.255.0", start_up_duration=0)
-    n2 = Computer(hostname="computer2", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    n1: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer1",
+            "ip_address": "192.168.1.1",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
+    n2: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer2",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
 
     net.add_node(n1)
     net.add_node(n2)
@@ -75,7 +115,15 @@ def test_connecting_nodes():
 
 def test_connecting_node_to_itself_fails():
     net = Network()
-    node = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "node_b",
+            "ip_address": "192.168.0.11",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
     node.power_on()
     node.connect_nic(NIC(ip_address="10.0.0.12", subnet_mask="255.0.0.0"))
 
@@ -92,8 +140,24 @@ def test_connecting_node_to_itself_fails():
 def test_disconnecting_nodes():
     net = Network()
 
-    n1 = Computer(hostname="computer1", ip_address="192.168.1.1", subnet_mask="255.255.255.0", start_up_duration=0)
-    n2 = Computer(hostname="computer2", ip_address="192.168.1.2", subnet_mask="255.255.255.0", start_up_duration=0)
+    n1 = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer1",
+            "ip_address": "192.168.1.1",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
+    n2 = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "computer2",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "start_up_duration": 0,
+        }
+    )
 
     net.connect(n1.network_interface[1], n2.network_interface[1])
     assert len(net.links) == 1
