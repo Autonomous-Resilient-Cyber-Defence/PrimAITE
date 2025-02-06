@@ -18,24 +18,22 @@ if TYPE_CHECKING:
 _LOGGER = getLogger(__name__)
 
 
-class DNSClient(Service, identifier="DNSClient"):
+class DNSClient(Service, discriminator="dns-client"):
     """Represents a DNS Client as a Service."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for DNSClient."""
 
-        type: str = "DNSClient"
-
-        dns_server: Optional[IPv4Address] = None
+        type: str = "dns-client"
+        dns_server: Optional[IPV4Address] = None
         "The DNS Server the client sends requests to."
 
     config: ConfigSchema = Field(default_factory=lambda: DNSClient.ConfigSchema())
-
     dns_cache: Dict[str, IPv4Address] = {}
     "A dict of known mappings between domain/URLs names and IPv4 addresses."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DNSClient"
+        kwargs["name"] = "dns-client"
         kwargs["port"] = PORT_LOOKUP["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes

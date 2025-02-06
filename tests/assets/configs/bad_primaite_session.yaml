@@ -12,37 +12,37 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
+    type: probabilistic-agent
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
       action_probabilities:
         0: 1.0
 
   - ref: data_manipulation_attacker
     team: RED
-    type: RedDatabaseCorruptingAgent
+    type: red-database-corrupting-agent
     agent_settings: # options specific to this particular agent type, basically args of __init__(self)
       possible_start_nodes: [client_1,]
-      target_application: DataManipulationBot
+      target_application: data-manipulation-bot
       start_step: 25
       frequency: 20
       variance: 5
 
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
                 - hostname: domain_controller
                 - hostname: web_server
                   services:
-                    - service_name: WebServer
+                    - service_name: web-server
                 - hostname: database_server
                   folders:
                     - folder_name: database
@@ -82,7 +82,7 @@ agents:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -96,7 +96,7 @@ agents:
                 - switch_2:eth-1<->client_1:eth-1
                 - switch_2:eth-2<->client_2:eth-1
                 - switch_2:eth-7<->security_suite:eth-2
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {}
 
@@ -104,118 +104,118 @@ agents:
 
       action_map:
           0:
-            action: do_nothing
+            action: do-nothing
             options: {}
           # scan webapp service
           1:
-            action: node_service_scan
+            action: node-service-scan
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           # stop webapp service
           2:
-            action: node_service_stop
+            action: node-service-stop
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           # start webapp service
           3:
-            action: "node_service_start"
+            action: "node-service-start"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           4:
-            action: "node_service_pause"
+            action: "node-service-pause"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           5:
-            action: "node_service_resume"
+            action: "node-service-resume"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           6:
-            action: "node_service_restart"
+            action: "node-service-restart"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           7:
-            action: "node_service_disable"
+            action: "node-service-disable"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           8:
-            action: "node_service_enable"
+            action: "node-service-enable"
             options:
               node_name: web_server
-              service_name: WebServer
+              service_name: web-server
           9: # check database.db file
-            action: "node_file_scan"
+            action: "node-file-scan"
             options:
                 node_name: database_server
                 folder_name: database
                 file_name: database.db
           10:
-            action: "node_file_checkhash"
+            action: "node-file-checkhash"
             options:
                 node_name: database_server
                 folder_name: database
                 file_name: database.db
           11:
-            action: "node_file_delete"
+            action: "node-file-delete"
             options:
                 node_name: database_server
                 folder_name: database
                 file_name: database.db
           12:
-            action: "node_file_repair"
+            action: "node-file-repair"
             options:
                 node_name: database_server
                 folder_name: database
                 file_name: database.db
           13:
-            action: "node_service_fix"
+            action: "node-service-fix"
             options:
                 node_name: database_server
-                service_name: DatabaseService
+                service_name: database-service
           14:
-            action: "node_folder_scan"
+            action: "node-folder-scan"
             options:
                 node_name: database_server
                 folder_name: database
           15:
-            action: "node_folder_checkhash"
+            action: "node-folder-checkhash"
             options:
                 node_name: database_server
                 folder_name: database
           16:
-            action: "node_folder_repair"
+            action: "node-folder-repair"
             options:
                 node_name: database_server
                 folder_name: database
           17:
-            action: "node_folder_restore"
+            action: "node-folder-restore"
             options:
                 node_name: database_server
                 folder_name: database
           18:
-            action: "node_os_scan"
+            action: "node-os-scan"
             options:
                 node_name: database_server
           19: # shutdown client 1
-            action: "node_shutdown"
+            action: "node-shutdown"
             options:
                 node_name: client_1
           20:
-            action: "node_startup"
+            action: "node-startup"
             options:
                 node_name: client_1
           21:
-            action: "node_reset"
+            action: "node-reset"
             options:
                 node_name: client_1
-          22: # "ACL: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
-            action: "router_acl_add_rule"
+          22: # "acl: ADDRULE - Block outgoing traffic from client 1" (not supported in Primaite)
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 1
@@ -227,8 +227,8 @@ agents:
                 protocol_name: ALL
                 src_wildcard: NONE
                 dst_wildcard: NONE
-          23: # "ACL: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
-            action: "router_acl_add_rule"
+          23: # "acl: ADDRULE - Block outgoing traffic from client 2" (not supported in Primaite)
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 2
@@ -241,7 +241,7 @@ agents:
                 src_wildcard: NONE
                 dst_wildcard: NONE
           24: # block tcp traffic from client 1 to web app
-            action: "router_acl_add_rule"
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 3
@@ -254,7 +254,7 @@ agents:
                 src_wildcard: NONE
                 dst_wildcard: NONE
           25: # block tcp traffic from client 2 to web app
-            action: "router_acl_add_rule"
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 4
@@ -267,7 +267,7 @@ agents:
                 src_wildcard: NONE
                 dst_wildcard: NONE
           26:
-            action: "router_acl_add_rule"
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 5
@@ -280,7 +280,7 @@ agents:
                 src_wildcard: NONE
                 dst_wildcard: NONE
           27:
-            action: "router_acl_add_rule"
+            action: "router-acl-add-rule"
             options:
                 target_router: router_1
                 position: 6
@@ -293,139 +293,139 @@ agents:
                 src_wildcard: NONE
                 dst_wildcard: NONE
           28:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 0
           29:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 1
           30:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 2
           31:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 3
           32:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 4
           33:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 5
           34:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 6
           35:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 7
           36:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 8
           37:
-            action: "router_acl_remove_rule"
+            action: "router-acl-remove-rule"
             options:
                 target_router: router_1
                 position: 9
           38:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: domain_controller
                 nic_num: 1
           39:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: domain_controller
                 nic_num: 1
           40:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: web_server
                 nic_num: 1
           41:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: web_server
                 nic_num: 1
           42:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: database_server
                 nic_num: 1
           43:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: database_server
                 nic_num: 1
           44:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: backup_server
                 nic_num: 1
           45:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: backup_server
                 nic_num: 1
           46:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: security_suite
                 nic_num: 1
           47:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: security_suite
                 nic_num: 1
           48:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: security_suite
                 nic_num: 2
           49:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: security_suite
                 nic_num: 2
           50:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: client_1
                 nic_num: 1
           51:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: client_1
                 nic_num: 1
           52:
-            action: "host_nic_disable"
+            action: "host-nic-disable"
             options:
                 node_name: client_2
                 nic_num: 1
           53:
-            action: "host_nic_enable"
+            action: "host-nic-enable"
             options:
                 node_name: client_2
                 nic_num: 1
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
+        - type: database-file-integrity
           weight: 0.5
           options:
             node_hostname: database_server
@@ -433,7 +433,7 @@ agents:
             file_name: database.db
 
 
-        - type: WEB_SERVER_404_PENALTY
+        - type: web-server-404-penalty
           weight: 0.5
           options:
             node_hostname: web_server
@@ -492,7 +492,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-      - type: DNSServer
+      - type: dns-server
         options:
           domain_mapping:
             arcd.com: 192.168.1.12 # web server
@@ -504,9 +504,9 @@ simulation:
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - type: WebServer
+      - type: web-server
       applications:
-      - type: DatabaseClient
+      - type: database-client
         options:
           db_server_ip: 192.168.1.14
 
@@ -518,7 +518,7 @@ simulation:
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - type: DatabaseService
+      - type: database-service
 
     - type: server
       hostname: backup_server
@@ -527,7 +527,7 @@ simulation:
       default_gateway: 192.168.1.1
       dns_server: 192.168.1.10
       services:
-      - type: FTPServer
+      - type: ftp-server
 
     - type: server
       hostname: security_suite
@@ -547,14 +547,14 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - type: DataManipulationBot
+      - type: data-manipulation-bot
         options:
           port_scan_p_of_success: 0.1
           data_manipulation_p_of_success: 0.1
           payload: "DELETE"
           server_ip: 192.168.1.14
       services:
-      - type: DNSClient
+      - type: dns-client
 
     - type: computer
       hostname: client_2
@@ -563,9 +563,9 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - type: WebBrowser
+      - type: web-browser
       services:
-      - type: DNSClient
+      - type: dns-client
 
     links:
     - endpoint_a_hostname: router_1

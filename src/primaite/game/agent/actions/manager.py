@@ -5,9 +5,9 @@ agents:
   - name: agent_1
     action_space:
       actions:
-        - do_nothing
-        - node_service_start
-        - node_service_stop
+        - do-nothing
+        - node-service-start
+        - node-service-stop
       action_map:
 """
 
@@ -24,18 +24,18 @@ from primaite.interface.request import RequestFormat
 __all__ = ("DoNothingAction", "ActionManager")
 
 
-class DoNothingAction(AbstractAction, identifier="do_nothing"):
+class DoNothingAction(AbstractAction, discriminator="do-nothing"):
     """Do Nothing Action."""
 
     class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration Schema for do_nothingAction."""
 
-        type: str = "do_nothing"
+        type: str = "do-nothing"
 
     @classmethod
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
-        return ["do_nothing"]
+        return ["do-nothing"]
 
 
 class _ActionMapItem(BaseModel):

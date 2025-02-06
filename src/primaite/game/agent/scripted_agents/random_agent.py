@@ -11,7 +11,7 @@ from primaite.game.agent.interface import AbstractScriptedAgent
 __all__ = ("RandomAgent", "PeriodicAgent")
 
 
-class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
+class RandomAgent(AbstractScriptedAgent, discriminator="random-agent"):
     """Agent that ignores its observation and acts completely at random."""
 
     config: "RandomAgent.ConfigSchema" = Field(default_factory=lambda: RandomAgent.ConfigSchema())
@@ -19,7 +19,7 @@ class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Random Agents."""
 
-        type: str = "RandomAgent"
+        type: str = "random-agent"
 
     def get_action(self) -> Tuple[str, Dict]:
         """Sample the action space randomly.
@@ -34,7 +34,7 @@ class RandomAgent(AbstractScriptedAgent, identifier="RandomAgent"):
         return self.action_manager.get_action(self.action_manager.space.sample())
 
 
-class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
+class PeriodicAgent(AbstractScriptedAgent, discriminator="periodic-agent"):
     """Agent that does nothing most of the time, but executes application at regular intervals (with variance)."""
 
     config: "PeriodicAgent.ConfigSchema" = Field(default_factory=lambda: PeriodicAgent.ConfigSchema())
@@ -72,7 +72,7 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
     class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
         """Configuration Schema for Periodic Agent."""
 
-        type: str = "PeriodicAgent"
+        type: str = "periodic-agent"
         """Name of the agent."""
         agent_settings: "PeriodicAgent.AgentSettingsSchema" = Field(
             default_factory=lambda: PeriodicAgent.AgentSettingsSchema()
@@ -113,9 +113,9 @@ class PeriodicAgent(AbstractScriptedAgent, identifier="PeriodicAgent"):
             self._set_next_execution_timestep(
                 timestep + self.config.agent_settings.frequency, self.config.agent_settings.variance
             )
-            return "node_application_execute", {
+            return "node-application-execute", {
                 "node_name": self.start_node,
                 "application_name": self.config.agent_settings.target_application,
             }
 
-        return "do_nothing", {}
+        return "do-nothing", {}

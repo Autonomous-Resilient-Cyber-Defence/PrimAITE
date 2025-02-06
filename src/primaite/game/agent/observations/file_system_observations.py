@@ -13,7 +13,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 
-class FileObservation(AbstractObservation, identifier="FILE"):
+class FileObservation(AbstractObservation, discriminator="file"):
     """File observation, provides status information about a file within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -125,7 +125,7 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         )
 
 
-class FolderObservation(AbstractObservation, identifier="FOLDER"):
+class FolderObservation(AbstractObservation, discriminator="folder"):
     """Folder observation, provides status information about a folder within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

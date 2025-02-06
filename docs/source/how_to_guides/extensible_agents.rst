@@ -25,7 +25,7 @@ The core features that should be implemented in any new agent are detailed below
 
     .. code-block:: python
 
-        class ExampleAgent(AbstractAgent, identifier = "ExampleAgent"):
+        class ExampleAgent(AbstractAgent, discriminator = "ExampleAgent"):
             """An example agent for demonstration purposes."""
 
             config: "ExampleAgent.ConfigSchema" = Field(default_factory= lambda: ExampleAgent.ConfigSchema())
@@ -51,11 +51,11 @@ The core features that should be implemented in any new agent are detailed below
 		  action_space:
 			action_map:
 				0:
-					action: do_nothing
+					action: do-nothing
 					options: {}
 		  reward_function:
 		  	reward_components:
-				- type: DUMMY
+				- type: dummy
 
 		  agent_settings:
 			start_step: 25
@@ -64,9 +64,9 @@ The core features that should be implemented in any new agent are detailed below
 			starting_host: "Server_1"
 
 
-#. **Identifiers**:
+#. **discriminators**:
 
-    All agent classes should have an ``identifier`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
+    All agent classes should have an ``discriminator`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
 
 Changes to YAML file
 ====================

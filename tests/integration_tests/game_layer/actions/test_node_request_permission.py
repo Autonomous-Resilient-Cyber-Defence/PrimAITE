@@ -30,14 +30,14 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     assert client_1.operating_state == NodeOperatingState.ON
 
     # turn it off
-    action = ("node_shutdown", {"node_name": "client_1"})
+    action = ("node-shutdown", {"node_name": "client_1"})
     agent.store_action(action)
     game.step()
 
     assert client_1.operating_state == NodeOperatingState.SHUTTING_DOWN
 
     for i in range(client_1.config.shut_down_duration + 1):
-        action = ("do_nothing", {})
+        action = ("do-nothing", {})
         agent.store_action(action)
         game.step()
 
@@ -46,14 +46,14 @@ def test_node_startup_shutdown(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     client_1.config.start_up_duration = 3
 
     # turn it on
-    action = ("node_startup", {"node_name": "client_1"})
+    action = ("node-startup", {"node_name": "client_1"})
     agent.store_action(action)
     game.step()
 
     assert client_1.operating_state == NodeOperatingState.BOOTING
 
     for i in range(client_1.config.start_up_duration + 1):
-        action = ("do_nothing", {})
+        action = ("do-nothing", {})
         agent.store_action(action)
         game.step()
 
@@ -68,7 +68,7 @@ def test_node_cannot_be_started_up_if_node_is_already_on(game_and_agent_fixture:
     assert client_1.operating_state == NodeOperatingState.ON
 
     # turn it on
-    action = ("node_startup", {"node_name": "client_1"})
+    action = ("node-startup", {"node_name": "client_1"})
     agent.store_action(action)
     game.step()
 
@@ -83,14 +83,14 @@ def test_node_cannot_be_shut_down_if_node_is_already_off(game_and_agent_fixture:
     client_1.power_off()
 
     for i in range(client_1.config.shut_down_duration + 1):
-        action = ("do_nothing", {})
+        action = ("do-nothing", {})
         agent.store_action(action)
         game.step()
 
     assert client_1.operating_state == NodeOperatingState.OFF
 
     # turn it ff
-    action = ("node_shutdown", {"node_name": "client_1"})
+    action = ("node-shutdown", {"node_name": "client_1"})
     agent.store_action(action)
     game.step()
 

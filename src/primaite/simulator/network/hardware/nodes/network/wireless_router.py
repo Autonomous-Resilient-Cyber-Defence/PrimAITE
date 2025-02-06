@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union
 
 from pydantic import Field, validate_call
 
@@ -91,7 +91,7 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
         )
 
 
-class WirelessRouter(Router, identifier="wireless_router"):
+class WirelessRouter(Router, discriminator="wireless-router"):
     """
     A WirelessRouter class that extends the functionality of a standard Router to include wireless capabilities.
 
@@ -126,10 +126,13 @@ class WirelessRouter(Router, identifier="wireless_router"):
     class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for WirelessRouter nodes within PrimAITE."""
 
+        type: Literal["wireless-router"] = "wireless-router"
         hostname: str = "WirelessRouter"
-        airspace: AirSpace
         num_ports: int = 0
+        router_interface: Any = None  # temporarily unset to appease extra="forbid"
+        wireless_access_point: Any = None  # temporarily unset to appease extra="forbid"
 
+    airspace: AirSpace
     config: ConfigSchema = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
 
     def __init__(self, **kwargs):
@@ -137,7 +140,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
 
         self.connect_nic(
             WirelessAccessPoint(
-                ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=kwargs["config"].airspace
+                ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=self.airspace
             )
         )
 
@@ -236,7 +239,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
         )
 
     @classmethod
-    def from_config(cls, config: Dict, **kwargs) -> "WirelessRouter":
+    def from_config(cls, config: Dict, airspace: AirSpace) -> "WirelessRouter":
         """Generate the wireless router from config.
 
         Schema:
@@ -263,7 +266,7 @@ class WirelessRouter(Router, identifier="wireless_router"):
         :return: WirelessRouter instance.
         :rtype: WirelessRouter
         """
-        router = cls(config=cls.ConfigSchema(**config))
+        router = cls(config=cls.ConfigSchema(**config), airspace=airspace)
         router.operating_state = (
             NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         )

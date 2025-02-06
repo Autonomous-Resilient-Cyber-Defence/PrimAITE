@@ -32,11 +32,11 @@ def test_remote_login(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
     # create a new user account on server_1 that will be logged into remotely
-    server_1_usm: UserManager = server_1.software_manager.software["UserManager"]
+    server_1_usm: UserManager = server_1.software_manager.software["user-manager"]
     server_1_usm.add_user("user123", "password", is_admin=True)
 
     action = (
-        "node_session_remote_login",
+        "node-session-remote-login",
         {
             "node_name": "client_1",
             "username": "user123",
@@ -64,11 +64,11 @@ def test_remote_login_wrong_password(game_and_agent_fixture: Tuple[PrimaiteGame,
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
     # create a new user account on server_1 that will be logged into remotely
-    server_1_usm: UserManager = server_1.software_manager.software["UserManager"]
+    server_1_usm: UserManager = server_1.software_manager.software["user-manager"]
     server_1_usm.add_user("user123", "password", is_admin=True)
 
     action = (
-        "node_session_remote_login",
+        "node-session-remote-login",
         {
             "node_name": "client_1",
             "username": "user123",
@@ -96,11 +96,11 @@ def test_remote_login_change_password(game_and_agent_fixture: Tuple[PrimaiteGame
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
     # create a new user account on server_1 that will be logged into remotely
-    server_1_um: UserManager = server_1.software_manager.software["UserManager"]
+    server_1_um: UserManager = server_1.software_manager.software["user-manager"]
     server_1_um.add_user("user123", "password", is_admin=True)
 
     action = (
-        "node_account_change_password",
+        "node-account-change-password",
         {
             "node_name": "server_1",  # server_1
             "username": "user123",
@@ -122,12 +122,12 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
 
     # create a new user account on server_1 that will be logged into remotely
-    server_1_usm: UserManager = server_1.software_manager.software["UserManager"]
+    server_1_usm: UserManager = server_1.software_manager.software["user-manager"]
     server_1_usm.add_user("user123", "password", is_admin=True)
 
     # Log in remotely
     action = (
-        "node_session_remote_login",
+        "node-session-remote-login",
         {
             "node_name": "client_1",
             "username": "user123",
@@ -140,7 +140,7 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     # Change password
     action = (
-        "node_account_change_password",
+        "node-account-change-password",
         {
             "node_name": "server_1",  # server_1
             "username": "user123",
@@ -154,7 +154,7 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     # Assert that the user cannot execute an action
     action = (
-        "node_send_remote_command",
+        "node-send-remote-command",
         {
             "node_name": "client_1",
             "remote_ip": str(server_1.network_interface[1].ip_address),

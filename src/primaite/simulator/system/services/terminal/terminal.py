@@ -129,13 +129,13 @@ class RemoteTerminalConnection(TerminalClientConnection):
         return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
-class Terminal(Service, identifier="Terminal"):
+class Terminal(Service, discriminator="terminal"):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for Terminal."""
 
-        type: str = "Terminal"
+        type: str = "terminal"
 
     config: "Terminal.ConfigSchema" = Field(default_factory=lambda: Terminal.ConfigSchema())
 
@@ -143,7 +143,7 @@ class Terminal(Service, identifier="Terminal"):
     """Dictionary of connect requests made to remote nodes."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "Terminal"
+        kwargs["name"] = "terminal"
         kwargs["port"] = PORT_LOOKUP["SSH"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
@@ -186,7 +186,7 @@ class Terminal(Service, identifier="Terminal"):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "node_session_remote_login",
+            "node-session-remote-login",
             request_type=RequestType(func=_remote_login),
         )
 

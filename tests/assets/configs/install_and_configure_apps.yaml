@@ -16,48 +16,48 @@ game:
 agents:
   - ref: agent_1
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
 
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_application_install
+          action: node-application-install
           options:
             node_name: client_1
-            application_name: DatabaseClient
+            application_name: database-client
         2:
-          action: node_application_install
+          action: node-application-install
           options:
             node_name: client_2
-            application_name: RansomwareScript
+            application_name: ransomware-script
         3:
-          action: node_application_install
+          action: node-application-install
           options:
             node_name: client_3
-            application_name: DoSBot
+            application_name: dos-bot
         4:
-          action: configure_database_client
+          action: configure-database-client
           options:
             node_name: client_1
             server_ip_address: 10.0.0.5
         5:
-          action: configure_database_client
+          action: configure-database-client
           options:
             node_name: client_1
             server_password: correct_password
         6:
-          action: configure_ransomware_script
+          action: configure-ransomware-script
           options:
             node_name: client_2
             server_ip_address: 10.0.0.5
             server_password: correct_password
             payload: ENCRYPT
         7:
-          action: configure_dos_bot
+          action: configure-dos-bot
           options:
             node_name: client_3
             target_ip_address: 10.0.0.5
@@ -68,10 +68,10 @@ agents:
             dos_intensity: 1.0
             max_sessions: 1000
         8:
-          action: node_application_install
+          action: node-application-install
           options:
             node_name: client_2
-            application_name: DatabaseClient
+            application_name: database-client
     agent_settings:
       flatten_obs: True
       action_masking: False
@@ -103,7 +103,7 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 10.0.0.1
         services:
-          - type: DatabaseService
+          - type: database-service
             options:
               db_password: correct_password
     links:

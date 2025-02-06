@@ -13,18 +13,18 @@ from primaite.utils.validation.port import PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 
-class NTPServer(Service, identifier="NTPServer"):
+class NTPServer(Service, discriminator="ntp-server"):
     """Represents a NTP server as a service."""
 
     class ConfigSchema(Service.ConfigSchema):
         """ConfigSchema for NTPServer."""
 
-        type: str = "NTPServer"
+        type: str = "ntp-server"
 
-    config: "NTPServer.ConfigSchema" = Field(default_factory=lambda: NTPServer.ConfigSchema())
+    config: ConfigSchema = Field(default_factory=lambda: NTPServer.ConfigSchema())
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "NTPServer"
+        kwargs["name"] = "ntp-server"
         kwargs["port"] = PORT_LOOKUP["NTP"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)

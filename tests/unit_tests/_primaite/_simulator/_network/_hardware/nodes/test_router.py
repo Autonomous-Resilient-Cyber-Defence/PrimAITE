@@ -8,7 +8,6 @@ from primaite.utils.validation.port import PORT_LOOKUP
 
 def test_wireless_router_from_config():
     cfg = {
-        "ref": "router_1",
         "type": "router",
         "hostname": "router_1",
         "num_ports": 6,

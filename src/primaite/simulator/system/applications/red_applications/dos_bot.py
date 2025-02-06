@@ -32,13 +32,13 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient, identifier="DoSBot"):
+class DoSBot(DatabaseClient, discriminator="dos-bot"):
     """A bot that simulates a Denial of Service attack."""
 
     class ConfigSchema(DatabaseClient.ConfigSchema):
         """ConfigSchema for DoSBot."""
 
-        type: str = "DoSBot"
+        type: str = "dos-bot"
         target_ip_address: Optional[IPV4Address] = None
         target_port: Port = PORT_LOOKUP["POSTGRES_SERVER"]
         payload: Optional[str] = None
@@ -72,7 +72,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "DoSBot"
+        self.name = "dos-bot"
         self.target_ip_address = self.config.target_ip_address
         self.target_port = self.config.target_port
         self.payload = self.config.payload

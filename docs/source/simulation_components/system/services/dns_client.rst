@@ -77,7 +77,7 @@ Via Configuration
                 ...
                 services:
                     - ref: dns_client
-                    type: DNSClient
+                    type: dns-client
                     options:
                         dns_server: 192.168.0.10
 

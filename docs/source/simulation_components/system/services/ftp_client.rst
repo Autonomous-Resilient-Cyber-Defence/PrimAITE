@@ -78,7 +78,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ftp_client
-                    type: FTPClient
+                    type: ftp-client
 
 Configuration
 =============

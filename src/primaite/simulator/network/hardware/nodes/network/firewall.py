@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Dict, Final, Union
+from typing import Dict, Final, Literal, Union
 
 from prettytable import MARKDOWN, PrettyTable
 from pydantic import Field, validate_call
@@ -26,7 +26,7 @@ DMZ_PORT_ID: Final[int] = 3
 """The Firewall port ID of the DMZ port."""
 
 
-class Firewall(Router, identifier="firewall"):
+class Firewall(Router, discriminator="firewall"):
     """
     A Firewall class that extends the functionality of a Router.
 
@@ -103,6 +103,7 @@ class Firewall(Router, identifier="firewall"):
     class ConfigSchema(Router.ConfigSchema):
         """Configuration Schema for Firewall 'Nodes' within PrimAITE."""
 
+        type: Literal["firewall"] = "firewall"
         hostname: str = "firewall"
         num_ports: int = 0
 

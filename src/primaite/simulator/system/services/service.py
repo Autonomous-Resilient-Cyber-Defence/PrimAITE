@@ -61,22 +61,22 @@ class Service(IOSoftware):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register a hostnode type.
 
-        :param identifier: Uniquely specifies an hostnode class by name. Used for finding items by config.
-        :type identifier: str
+        :param discriminator: Uniquely specifies an hostnode class by name. Used for finding items by config.
+        :type discriminator: str
         :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
         # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
-        identifier = identifier.lower()
-        if identifier in cls._registry:
-            raise ValueError(f"Tried to define new hostnode {identifier}, but this name is already reserved.")
-        cls._registry[identifier] = cls
+        discriminator = discriminator.lower()
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new hostnode {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
 
     @classmethod
     def from_config(cls, config: Dict) -> "Service":

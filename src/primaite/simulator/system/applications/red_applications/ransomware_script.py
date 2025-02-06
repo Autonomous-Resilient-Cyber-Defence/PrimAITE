@@ -14,7 +14,7 @@ from primaite.utils.validation.ipv4_address import IPV4Address
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class RansomwareScript(Application, identifier="RansomwareScript"):
+class RansomwareScript(Application, discriminator="ransomware-script"):
     """Ransomware Kill Chain - Designed to be used by the TAP001 Agent on the example layout Network.
 
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
@@ -23,7 +23,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     class ConfigSchema(Application.ConfigSchema):
         """ConfigSchema for RansomwareScript."""
 
-        type: str = "RansomwareScript"
+        type: str = "ransomware-script"
         server_ip: Optional[IPV4Address] = None
         server_password: Optional[str] = None
         payload: str = "ENCRYPT"
@@ -38,7 +38,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     "Payload String for the payload stage"
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "RansomwareScript"
+        kwargs["name"] = "ransomware-script"
         kwargs["port"] = PORT_LOOKUP["NONE"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
@@ -63,7 +63,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     @property
     def _host_db_client(self) -> DatabaseClient:
         """Return the database client that is installed on the same machine as the Ransomware Script."""
-        db_client: DatabaseClient = self.software_manager.software.get("DatabaseClient")
+        db_client: DatabaseClient = self.software_manager.software.get("database-client")
         if db_client is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client

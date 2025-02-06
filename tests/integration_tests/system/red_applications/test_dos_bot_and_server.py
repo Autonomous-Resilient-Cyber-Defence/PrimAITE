@@ -23,7 +23,7 @@ def dos_bot_and_db_server(client_server) -> Tuple[DoSBot, Computer, DatabaseServ
     # Install DoSBot on computer
     computer.software_manager.install(DoSBot)
 
-    dos_bot: DoSBot = computer.software_manager.software.get("DoSBot")
+    dos_bot: DoSBot = computer.software_manager.software.get("dos-bot")
     dos_bot.configure(
         target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=PORT_LOOKUP["POSTGRES_SERVER"],
@@ -31,7 +31,7 @@ def dos_bot_and_db_server(client_server) -> Tuple[DoSBot, Computer, DatabaseServ
 
     # Install DB Server service on server
     server.software_manager.install(DatabaseService)
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
     db_server_service.start()
 
     return dos_bot, computer, db_server_service, server
@@ -56,7 +56,7 @@ def dos_bot_db_server_green_client(example_network) -> Network:
     # install DoS bot on client 1
     client_1.software_manager.install(DoSBot)
 
-    dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
+    dos_bot: DoSBot = client_1.software_manager.software.get("dos-bot")
     dos_bot.configure(
         target_ip_address=IPv4Address(server.network_interface[1].ip_address),
         target_port=PORT_LOOKUP["POSTGRES_SERVER"],
@@ -64,13 +64,13 @@ def dos_bot_db_server_green_client(example_network) -> Network:
 
     # install db server service on server
     server.software_manager.install(DatabaseService)
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
     db_server_service.start()
 
     # Install DB client (green) on client 2
     client_2.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client_2.software_manager.software.get("database-client")
     database_client.configure(server_ip_address=IPv4Address("192.168.0.1"))
     database_client.run()
 
@@ -159,13 +159,13 @@ def test_dos_blocks_green_agent_connection(dos_bot_db_server_green_client):
     network: Network = dos_bot_db_server_green_client
 
     client_1: Computer = network.get_node_by_hostname("client_1")
-    dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
+    dos_bot: DoSBot = client_1.software_manager.software.get("dos-bot")
 
     client_2: Computer = network.get_node_by_hostname("client_2")
-    green_db_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    green_db_client: DatabaseClient = client_2.software_manager.software.get("database-client")
 
     server: Server = network.get_node_by_hostname("server_1")
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
 
     assert db_server_service.health_state_actual is SoftwareHealthState.GOOD
 

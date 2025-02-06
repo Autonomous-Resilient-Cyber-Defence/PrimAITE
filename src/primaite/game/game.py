@@ -14,6 +14,7 @@ from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -268,9 +269,11 @@ class PrimaiteGame:
 
             new_node = None
             if n_type in Node._registry:
-                if n_type == "wireless_router":
-                    node_cfg["airspace"] = net.airspace
-                new_node = Node._registry[n_type].from_config(config=node_cfg)
+                n_class = Node._registry[n_type]
+                if issubclass(n_class, WirelessRouter):
+                    new_node = n_class.from_config(config=node_cfg, airspace=net.airspace)
+                else:
+                    new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
@@ -288,8 +291,8 @@ class PrimaiteGame:
             if "folder_restore_duration" in defaults_config:
                 new_node.file_system._default_folder_restore_duration = defaults_config["folder_restore_duration"]
 
-            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
-                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+            if "users" in node_cfg and new_node.software_manager.software.get("user-manager"):
+                user_manager: UserManager = new_node.software_manager.software["user-manager"]  # noqa
                 for user_cfg in node_cfg["users"]:
                     user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
 
@@ -321,7 +324,7 @@ class PrimaiteGame:
                     if service_class is not None:
                         _LOGGER.debug(f"installing {service_type} on node {new_node.config.hostname}")
                         new_node.software_manager.install(service_class, software_config=service_cfg.get("options", {}))
-                        new_service = new_node.software_manager.software[service_class.__name__]
+                        new_service = new_node.software_manager.software[service_type]
 
                         # fixing duration for the service
                         if "fixing_duration" in service_cfg.get("options", {}):

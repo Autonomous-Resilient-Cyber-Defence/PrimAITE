@@ -21,17 +21,17 @@ class TestFileSystemRequiresScan:
     def test_obs_config(self, yaml_option_string, expected_val):
         """Check that the default behaviour is to set FileSystemRequiresScan to True."""
         obs_cfg_yaml = f"""
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
                 - hostname: domain_controller
                 - hostname: web_server
                   services:
-                    - service_name: WebServer
+                    - service_name: web-server
                 - hostname: database_server
                   folders:
                     - folder_name: database
@@ -77,7 +77,7 @@ class TestFileSystemRequiresScan:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -91,7 +91,7 @@ class TestFileSystemRequiresScan:
                 - switch_2:eth-1<->client_1:eth-1
                 - switch_2:eth-2<->client_2:eth-1
                 - switch_2:eth-7<->security_suite:eth-2
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {{}}
 

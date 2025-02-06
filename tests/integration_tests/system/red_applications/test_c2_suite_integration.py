@@ -111,15 +111,15 @@ def basic_network() -> Network:
 def setup_c2(given_network: Network):
     """Installs the C2 Beacon & Server, configures and then returns."""
     computer_a: Computer = given_network.get_node_by_hostname("node_a")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
     computer_a.software_manager.install(DatabaseService)
-    computer_a.software_manager.software["DatabaseService"].start()
+    computer_a.software_manager.software["database-service"].start()
 
     computer_b: Computer = given_network.get_node_by_hostname("node_b")
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
     computer_b.software_manager.install(DatabaseClient)
-    computer_b.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.2"))
-    computer_b.software_manager.software["DatabaseClient"].run()
+    computer_b.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.2"))
+    computer_b.software_manager.software["database-client"].run()
 
     c2_beacon.configure(c2_server_ip_address="192.168.0.2", keep_alive_frequency=2)
     c2_server.run()
@@ -189,9 +189,9 @@ def test_c2_suite_configure_request(basic_network):
         "masquerade_port": 80,
     }
 
-    network.apply_request(["node", "node_b", "application", "C2Beacon", "configure", c2_beacon_config])
+    network.apply_request(["node", "node_b", "application", "c2-beacon", "configure", c2_beacon_config])
     network.apply_timestep(0)
-    network.apply_request(["node", "node_b", "application", "C2Beacon", "execute"])
+    network.apply_request(["node", "node_b", "application", "c2-beacon", "execute"])
 
     assert c2_beacon.c2_connection_active is True
     assert c2_server.c2_connection_active is True
@@ -207,13 +207,13 @@ def test_c2_suite_ransomware_commands(basic_network):
     # Testing Via Requests:
     computer_b.software_manager.install(software_class=RansomwareScript)
     ransomware_config = {"server_ip_address": "192.168.0.2"}
-    network.apply_request(["node", "node_a", "application", "C2Server", "ransomware_configure", ransomware_config])
+    network.apply_request(["node", "node_a", "application", "c2-server", "ransomware_configure", ransomware_config])
 
-    ransomware_script: RansomwareScript = computer_b.software_manager.software["RansomwareScript"]
+    ransomware_script: RansomwareScript = computer_b.software_manager.software["ransomware-script"]
 
     assert ransomware_script.server_ip_address == "192.168.0.2"
 
-    network.apply_request(["node", "node_a", "application", "C2Server", "ransomware_launch"])
+    network.apply_request(["node", "node_a", "application", "c2-server", "ransomware_launch"])
 
     database_file = computer_a.software_manager.file_system.get_file("database", "database.db")
 
@@ -503,10 +503,10 @@ def test_c2_suite_yaml():
 
     yaml_network = game.simulation.network
     computer_a: Computer = yaml_network.get_node_by_hostname("node_a")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
 
     computer_b: Computer = yaml_network.get_node_by_hostname("node_b")
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
     c2_beacon.configure(
         c2_server_ip_address=c2_beacon.config.c2_server_ip_address,
         keep_alive_frequency=c2_beacon.config.keep_alive_frequency,

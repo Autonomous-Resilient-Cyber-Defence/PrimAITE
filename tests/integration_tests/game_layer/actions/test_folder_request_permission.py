@@ -32,7 +32,7 @@ def test_create_folder(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     assert client_1.file_system.get_folder(folder_name=random_folder) is None
 
     action = (
-        "node_folder_create",
+        "node-folder-create",
         {
             "node_name": "client_1",
             "folder_name": random_folder,
@@ -60,7 +60,7 @@ def test_folder_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
     assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     action = (
-        "node_folder_scan",
+        "node-folder-scan",
         {
             "node_name": "client_1",  # client_1,
             "folder_name": "downloads",  # downloads
@@ -87,7 +87,7 @@ def test_folder_repair_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "node_folder_repair",
+        "node-folder-repair",
         {
             "node_name": "client_1",  # client_1,
             "folder_name": "downloads",  # downloads
@@ -111,7 +111,7 @@ def test_folder_restore_action(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "node_folder_restore",
+        "node-folder-restore",
         {
             "node_name": "client_1",  # client_1,
             "folder_name": "downloads",  # downloads

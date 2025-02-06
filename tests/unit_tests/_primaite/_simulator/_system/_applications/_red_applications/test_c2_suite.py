@@ -52,8 +52,8 @@ def setup_c2(given_network: Network):
     computer_a: Computer = network.get_node_by_hostname("computer_a")
     computer_b: Computer = network.get_node_by_hostname("computer_b")
 
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
 
     c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=2)
     c2_server.run()

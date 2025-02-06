@@ -55,7 +55,7 @@ Via YAML Config
         nodes:
           # ... nodes go here
         node_sets:
-          - type: office_lan
+          - type: office-lan
             lan_name: CORP_LAN
             subnet_base: 2
             pcs_ip_block_start: 10
@@ -82,9 +82,9 @@ Here is an example of creating a custom node adder, DataCenterAdder:
 
 .. code-block:: python
 
-    class DataCenterAdder(NetworkNodeAdder, identifier="data_center"):
+    class DataCenterAdder(NetworkNodeAdder, discriminator="data-center"):
         class ConfigSchema(NetworkNodeAdder.ConfigSchema):
-            type: Literal["data_center"] = "data_center"
+            type: Literal["data-center"] = "data-center"
             num_servers: int
             data_center_name: str
 
@@ -106,7 +106,7 @@ Here is an example of creating a custom node adder, DataCenterAdder:
 .. code-block:: python
 
     config = {
-        "type": "data_center",
+        "type": "data-center",
         "num_servers": 5,
         "data_center_name": "dc1"
     }

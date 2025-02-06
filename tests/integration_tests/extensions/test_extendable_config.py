@@ -30,5 +30,5 @@ def test_extended_example_config():
 
     extended_host = network.get_node_by_hostname("client_1")
 
-    assert "ExtendedApplication" in extended_host.software_manager.software
-    assert "ExtendedService" in extended_host.software_manager.software
+    assert "extended-application" in extended_host.software_manager.software
+    assert "extended-service" in extended_host.software_manager.software

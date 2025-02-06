@@ -32,7 +32,7 @@ def game_and_agent_fixture(game_and_agent):
 
     c2_server_host = game.simulation.network.get_node_by_hostname("client_1")
     c2_server_host.software_manager.install(software_class=C2Server)
-    c2_server: C2Server = c2_server_host.software_manager.software["C2Server"]
+    c2_server: C2Server = c2_server_host.software_manager.software["c2-server"]
     c2_server.run()
 
     return (game, agent)
@@ -46,15 +46,15 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
 
     action = (
-        "node_application_install",
-        {"node_name": "server_1", "application_name": "C2Beacon"},
+        "node-application-install",
+        {"node_name": "server_1", "application_name": "c2-beacon"},
     )
     agent.store_action(action)
     game.step()
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "configure_c2_beacon",
+        "configure-c2-beacon",
         {
             "node_name": "server_1",
             "c2_server_ip_address": "10.0.1.2",
@@ -68,15 +68,15 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "node_application_execute",
-        {"node_name": "server_1", "application_name": "C2Beacon"},
+        "node-application-execute",
+        {"node_name": "server_1", "application_name": "c2-beacon"},
     )
     agent.store_action(action)
     game.step()
     assert agent.history[-1].response.status == "success"
 
     # Asserting that we've confirmed our connection
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     assert c2_beacon.c2_connection_active == True
 
 
@@ -91,9 +91,9 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # Installing a database on Server_2 for the ransomware to attack
     server_2: Server = game.simulation.network.get_node_by_hostname("server_2")
     server_2.software_manager.install(DatabaseService)
-    server_2.software_manager.software["DatabaseService"].start()
+    server_2.software_manager.software["database-service"].start()
     # Configuring the C2 to connect to client 1 (C2 Server)
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     c2_beacon.configure(c2_server_ip_address=IPv4Address("10.0.1.2"))
     c2_beacon.establish()
     assert c2_beacon.c2_connection_active == True
@@ -101,15 +101,15 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # C2 Action 1: Installing the RansomwareScript & Database client via Terminal
 
     action = (
-        "c2_server_terminal_command",
+        "c2-server-terminal-command",
         {
             "node_name": "client_1",
             "ip_address": None,
             "username": "admin",
             "password": "admin",
             "commands": [
-                ["software_manager", "application", "install", "RansomwareScript"],
-                ["software_manager", "application", "install", "DatabaseClient"],
+                ["software_manager", "application", "install", "ransomware-script"],
+                ["software_manager", "application", "install", "database-client"],
             ],
         },
     )
@@ -118,7 +118,7 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "c2_server_ransomware_configure",
+        "c2-server-ransomware-configure",
         {
             "node_name": "client_1",
             "server_ip_address": "10.0.2.3",
@@ -131,14 +131,14 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
 
     # Stepping a few timesteps to allow for the RansowmareScript to finish installing.
 
-    action = ("do_nothing", {})
+    action = ("do-nothing", {})
     agent.store_action(action)
     game.step()
     game.step()
     game.step()
 
     action = (
-        "c2_server_ransomware_launch",
+        "c2-server-ransomware-launch",
         {
             "node_name": "client_1",
         },
@@ -162,10 +162,10 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # Installing a database on Server_2 (creates a database.db file.)
     server_2: Server = game.simulation.network.get_node_by_hostname("server_2")
     server_2.software_manager.install(DatabaseService)
-    server_2.software_manager.software["DatabaseService"].start()
+    server_2.software_manager.software["database-service"].start()
 
     # Configuring the C2 to connect to client 1 (C2 Server)
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     c2_beacon.configure(c2_server_ip_address=IPv4Address("10.0.1.2"))
     c2_beacon.establish()
     assert c2_beacon.c2_connection_active == True
@@ -178,7 +178,7 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # C2 Action: Data exfiltrate.
 
     action = (
-        "c2_server_data_exfiltrate",
+        "c2-server-data-exfiltrate",
         {
             "node_name": "client_1",
             "target_file_name": "database.db",

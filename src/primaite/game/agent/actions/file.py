@@ -24,9 +24,7 @@ class NodeFileAbstractAction(AbstractAction, ABC):
     only three parameters can inherit from this base class.
     """
 
-    config: "NodeFileAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Configuration Schema for NodeFileAbstractAction."""
 
         node_name: str
@@ -38,7 +36,7 @@ class NodeFileAbstractAction(AbstractAction, ABC):
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None or config.file_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -52,7 +50,7 @@ class NodeFileAbstractAction(AbstractAction, ABC):
         ]
 
 
-class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"):
+class NodeFileCreateAction(NodeFileAbstractAction, discriminator="node-file-create"):
     """Action which creates a new file in a given folder."""
 
     config: "NodeFileCreateAction.ConfigSchema"
@@ -67,7 +65,7 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None or config.file_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -81,7 +79,7 @@ class NodeFileCreateAction(NodeFileAbstractAction, identifier="node_file_create"
         ]
 
 
-class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
+class NodeFileScanAction(NodeFileAbstractAction, discriminator="node-file-scan"):
     """Action which scans a file."""
 
     config: "NodeFileScanAction.ConfigSchema"
@@ -92,7 +90,7 @@ class NodeFileScanAction(NodeFileAbstractAction, identifier="node_file_scan"):
         verb: ClassVar[str] = "scan"
 
 
-class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"):
+class NodeFileDeleteAction(NodeFileAbstractAction, discriminator="node-file-delete"):
     """Action which deletes a file."""
 
     config: "NodeFileDeleteAction.ConfigSchema"
@@ -106,7 +104,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None or config.file_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -119,7 +117,7 @@ class NodeFileDeleteAction(NodeFileAbstractAction, identifier="node_file_delete"
         ]
 
 
-class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restore"):
+class NodeFileRestoreAction(NodeFileAbstractAction, discriminator="node-file-restore"):
     """Action which restores a file."""
 
     config: "NodeFileRestoreAction.ConfigSchema"
@@ -130,7 +128,7 @@ class NodeFileRestoreAction(NodeFileAbstractAction, identifier="node_file_restor
         verb: ClassVar[str] = "restore"
 
 
-class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrupt"):
+class NodeFileCorruptAction(NodeFileAbstractAction, discriminator="node-file-corrupt"):
     """Action which corrupts a file."""
 
     config: "NodeFileCorruptAction.ConfigSchema"
@@ -141,7 +139,7 @@ class NodeFileCorruptAction(NodeFileAbstractAction, identifier="node_file_corrup
         verb: ClassVar[str] = "corrupt"
 
 
-class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"):
+class NodeFileAccessAction(NodeFileAbstractAction, discriminator="node-file-access"):
     """Action which increases a file's access count."""
 
     config: "NodeFileAccessAction.ConfigSchema"
@@ -155,7 +153,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.folder_name is None or config.file_name is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -167,7 +165,7 @@ class NodeFileAccessAction(NodeFileAbstractAction, identifier="node_file_access"
         ]
 
 
-class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_checkhash"):
+class NodeFileCheckhashAction(NodeFileAbstractAction, discriminator="node-file-checkhash"):
     """Action which checks the hash of a file."""
 
     config: "NodeFileCheckhashAction.ConfigSchema"
@@ -178,7 +176,7 @@ class NodeFileCheckhashAction(NodeFileAbstractAction, identifier="node_file_chec
         verb: ClassVar[str] = "checkhash"
 
 
-class NodeFileRepairAction(NodeFileAbstractAction, identifier="node_file_repair"):
+class NodeFileRepairAction(NodeFileAbstractAction, discriminator="node-file-repair"):
     """Action which repairs a file."""
 
     config: "NodeFileRepairAction.ConfigSchema"

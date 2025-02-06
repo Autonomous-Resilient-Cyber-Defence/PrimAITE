@@ -1,5 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+from abc import ABC
 from typing import ClassVar
 
 from primaite.game.agent.actions.manager import AbstractAction
@@ -8,12 +9,10 @@ from primaite.interface.request import RequestFormat
 __all__ = ("NetworkPortEnableAction", "NetworkPortDisableAction")
 
 
-class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstract"):
+class NetworkPortAbstractAction(AbstractAction, ABC):
     """Base class for Network port actions."""
 
-    config: "NetworkPortAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base configuration schema for NetworkPort actions."""
 
         target_nodename: str
@@ -24,7 +23,7 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.target_nodename is None or config.port_num is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -35,7 +34,7 @@ class NetworkPortAbstractAction(AbstractAction, identifier="network_port_abstrac
         ]
 
 
-class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_port_enable"):
+class NetworkPortEnableAction(NetworkPortAbstractAction, discriminator="network-port-enable"):
     """Action which enables are port on a router or a firewall."""
 
     config: "NetworkPortEnableAction.ConfigSchema"
@@ -46,7 +45,7 @@ class NetworkPortEnableAction(NetworkPortAbstractAction, identifier="network_por
         verb: ClassVar[str] = "enable"
 
 
-class NetworkPortDisableAction(NetworkPortAbstractAction, identifier="network_port_disable"):
+class NetworkPortDisableAction(NetworkPortAbstractAction, discriminator="network-port-disable"):
     """Action which disables are port on a router or a firewall."""
 
     config: "NetworkPortDisableAction.ConfigSchema"

@@ -21,12 +21,12 @@ game:
 agents:
   - ref: client_1_red_nmap
     team: RED
-    type: ProbabilisticAgent
+    type: probabilistic-agent
 
     action_space:
       action_map:
         0:
-          action: node_nmap_ping_scan
+          action: node-nmap-ping-scan
           options:
             source_node: client_1
             target_ip_address: 192.168.1.0/24

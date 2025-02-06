@@ -1,12 +1,12 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from typing import ClassVar, Dict
+from typing import ClassVar, Dict, Literal
 
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode, NIC
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.utils.validation.ipv4_address import IPV4Address
 
 
-class SuperComputer(HostNode, identifier="supercomputer"):
+class SuperComputer(HostNode, discriminator="supercomputer"):
     """
     A basic Computer class.
 
@@ -34,7 +34,10 @@ class SuperComputer(HostNode, identifier="supercomputer"):
         * Web Browser
     """
 
-    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
+    class ConfigSchema(HostNode.ConfigSchema):
+        type: Literal["supercomputer"] = "supercomputer"
+
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "ftp-client": FTPClient}
 
     def __init__(self, **kwargs):
         print("--- Extended Component: SuperComputer ---")

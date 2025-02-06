@@ -28,7 +28,7 @@ def database_client_on_computer() -> Tuple[DatabaseClient, Computer]:
     )
     db_server.power_on()
     db_server.software_manager.install(DatabaseService)
-    db_server.software_manager.software["DatabaseService"].start()
+    db_server.software_manager.software["database-service"].start()
 
     db_client: Computer = Computer.from_config(
         config={
@@ -42,7 +42,7 @@ def database_client_on_computer() -> Tuple[DatabaseClient, Computer]:
     db_client.power_on()
     db_client.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = db_client.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = db_client.software_manager.software.get("database-client")
     database_client.configure(server_ip_address=IPv4Address("192.168.0.1"))
     database_client.run()
 

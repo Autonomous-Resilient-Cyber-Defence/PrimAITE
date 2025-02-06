@@ -26,18 +26,18 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
+    type: probabilistic-agent
 
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_application_execute
+          action: node-application-execute
           options:
             node_name: client_1
-            application_name: WebBrowser
+            application_name: web-browser
     agent_settings:
       action_probabilities:
         0: 0.4
@@ -46,13 +46,13 @@ agents:
 
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
@@ -89,25 +89,25 @@ agents:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
                 - switch_1:eth-1<->client_1:eth-1
                 - switch_1:eth-2<->client_2:eth-1
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {}
 
     action_space:
       action_map:
           0:
-            action: do_nothing
+            action: do-nothing
             options: {}
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
+        - type: database-file-integrity
           weight: 0.5
           options:
             node_hostname: database_server
@@ -115,7 +115,7 @@ agents:
             file_name: database.db
 
 
-        - type: WEB_SERVER_404_PENALTY
+        - type: web-server-404-penalty
           weight: 0.5
           options:
             node_hostname: web_server
@@ -140,46 +140,46 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - type: RansomwareScript
-      - type: WebBrowser
+      - type: ransomware-script
+      - type: web-browser
         options:
           target_url: http://arcd.com/users/
-      - type: DatabaseClient
+      - type: database-client
         options:
           db_server_ip: 192.168.1.10
           server_password: arcd
           fixing_duration: 1
-      - type: DataManipulationBot
+      - type: data-manipulation-bot
         options:
           port_scan_p_of_success: 0.8
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.21
           server_password: arcd
-      - type: DoSBot
+      - type: dos-bot
         options:
           target_ip_address: 192.168.10.21
           payload: SPOOF DATA
           port_scan_p_of_success: 0.8
       services:
-      - type: DNSClient
-      - type: DNSServer
+      - type: dns-client
+      - type: dns-server
         options:
           domain_mapping:
             arcd.com: 192.168.1.10
-      - type: DatabaseService
+      - type: database-service
         options:
           fixing_duration: 5
           backup_server_ip: 192.168.1.10
-      - type: WebServer
-      - type: FTPClient
-      - type: FTPServer
+      - type: web-server
+      - type: ftp-client
+      - type: ftp-server
         options:
           server_password: arcd
-      - type: NTPClient
+      - type: ntp-client
         options:
           ntp_server_ip: 192.168.1.10
-      - type: NTPServer
+      - type: ntp-server
     - hostname: client_2
       type: computer
       ip_address: 192.168.10.22
@@ -187,12 +187,12 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-        - type: DatabaseClient
+        - type: database-client
           options:
             db_server_ip: 192.168.1.10
             server_password: arcd
       services:
-        - type: DNSClient
+        - type: dns-client
 
     links:
     - endpoint_a_hostname: switch_1

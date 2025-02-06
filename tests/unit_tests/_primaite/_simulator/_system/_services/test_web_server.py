@@ -27,22 +27,22 @@ def web_server() -> Server:
     node = Server.from_config(config=node_cfg)
     node.power_on()
     node.software_manager.install(WebServer)
-    node.software_manager.software.get("WebServer").start()
+    node.software_manager.software.get("web-server").start()
     return node
 
 
 def test_create_web_server(web_server):
     assert web_server is not None
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
-    assert web_server_service.name is "WebServer"
-    assert web_server_service.port is PORT_LOOKUP["HTTP"]
-    assert web_server_service.protocol is PROTOCOL_LOOKUP["TCP"]
+    web_server_service: WebServer = web_server.software_manager.software.get("web-server")
+    assert web_server_service.name == "web-server"
+    assert web_server_service.port == PORT_LOOKUP["HTTP"]
+    assert web_server_service.protocol == PROTOCOL_LOOKUP["TCP"]
 
 
 def test_handling_get_request_not_found_path(web_server):
     payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/fake-path")
 
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = web_server.software_manager.software.get("web-server")
 
     response: HttpResponsePacket = web_server_service._handle_get_request(payload=payload)
     assert response.status_code == HttpStatusCode.NOT_FOUND
@@ -51,7 +51,7 @@ def test_handling_get_request_not_found_path(web_server):
 def test_handling_get_request_home_page(web_server):
     payload = HttpRequestPacket(request_method=HttpRequestMethod.GET, request_url="http://domain.com/")
 
-    web_server_service: WebServer = web_server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = web_server.software_manager.software.get("web-server")
 
     response: HttpResponsePacket = web_server_service._handle_get_request(payload=payload)
     assert response.status_code == HttpStatusCode.OK

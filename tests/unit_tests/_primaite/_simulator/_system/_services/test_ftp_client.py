@@ -31,8 +31,8 @@ def ftp_client() -> Node:
 
 def test_create_ftp_client(ftp_client):
     assert ftp_client is not None
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
-    assert ftp_client_service.name is "FTPClient"
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
+    assert ftp_client_service.name == "ftp-client"
     assert ftp_client_service.port is PORT_LOOKUP["FTP"]
     assert ftp_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
@@ -53,7 +53,7 @@ def test_ftp_client_store_file(ftp_client):
         status_code=FTPStatusCode.OK,
     )
 
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     ftp_client_service.receive(response)
 
     assert ftp_client.file_system.get_file(folder_name="downloads", file_name="file.txt")
@@ -67,7 +67,7 @@ def test_ftp_should_not_process_commands_if_service_not_running(ftp_client):
         status_code=FTPStatusCode.OK,
     )
 
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     ftp_client_service.stop()
     assert ftp_client_service.operating_state is ServiceOperatingState.STOPPED
     assert ftp_client_service._process_ftp_command(payload=payload).status_code is FTPStatusCode.ERROR
@@ -77,7 +77,7 @@ def test_ftp_tries_to_senf_file__that_does_not_exist(ftp_client):
     """Method send_file should return false if no file to send."""
     assert ftp_client.file_system.get_file(folder_name="root", file_name="test.txt") is None
 
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     assert ftp_client_service.operating_state is ServiceOperatingState.RUNNING
     assert (
         ftp_client_service.send_file(
@@ -93,7 +93,7 @@ def test_ftp_tries_to_senf_file__that_does_not_exist(ftp_client):
 
 def test_offline_ftp_client_receives_request(ftp_client):
     """Receive should return false if the node the ftp client is installed on is offline."""
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     ftp_client.power_off()
 
     for i in range(ftp_client.config.shut_down_duration + 1):
@@ -113,7 +113,7 @@ def test_offline_ftp_client_receives_request(ftp_client):
 
 def test_receive_should_fail_if_payload_is_not_ftp(ftp_client):
     """Receive should return false if the node the ftp client is installed on is not an FTPPacket."""
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     assert ftp_client_service.receive(payload=None) is False
 
 
@@ -124,5 +124,5 @@ def test_receive_should_ignore_payload_with_none_status_code(ftp_client):
         ftp_command_args=PORT_LOOKUP["FTP"],
         status_code=None,
     )
-    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = ftp_client.software_manager.software.get("ftp-client")
     assert ftp_client_service.receive(payload=payload) is False

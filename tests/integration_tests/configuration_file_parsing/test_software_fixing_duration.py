@@ -16,7 +16,7 @@ from tests import TEST_ASSETS_ROOT
 TEST_CONFIG = TEST_ASSETS_ROOT / "configs/software_fixing_duration.yaml"
 ONE_ITEM_CONFIG = TEST_ASSETS_ROOT / "configs/fixing_duration_one_item.yaml"
 
-TestApplications = ["DummyApplication", "BroadcastTestClient"]
+TestApplications = ["dummy-application", "broadcast-test-client"]
 
 
 def load_config(config_path: Union[str, Path]) -> PrimaiteGame:
@@ -32,10 +32,10 @@ def test_default_fixing_duration():
     game = load_config(TEST_CONFIG)
     client_2: Computer = game.simulation.network.get_node_by_hostname("client_2")
 
-    database_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client_2.software_manager.software.get("database-client")
     assert database_client.config.fixing_duration == 2
 
-    dns_client: DNSClient = client_2.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = client_2.software_manager.software.get("dns-client")
     assert dns_client.config.fixing_duration == 2
 
 
@@ -45,7 +45,15 @@ def test_fixing_duration_set_from_config():
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
     # in config - services take 3 timesteps to fix
-    for service in ["DNSClient", "DNSServer", "DatabaseService", "WebServer", "FTPClient", "FTPServer", "NTPServer"]:
+    for service in [
+        "dns-client",
+        "dns-server",
+        "database-service",
+        "web-server",
+        "ftp-client",
+        "ftp-server",
+        "ntp-server",
+    ]:
         assert client_1.software_manager.software.get(service) is not None
         assert client_1.software_manager.software.get(service).config.fixing_duration == 3
 
@@ -53,7 +61,7 @@ def test_fixing_duration_set_from_config():
     # remove test applications from list
     applications = set(Application._registry) - set(TestApplications)
 
-    for application in ["RansomwareScript", "WebBrowser", "DataManipulationBot", "DoSBot", "DatabaseClient"]:
+    for application in ["ransomware-script", "web-browser", "data-manipulation-bot", "dos-bot", "database-client"]:
         assert client_1.software_manager.software.get(application) is not None
         assert client_1.software_manager.software.get(application).config.fixing_duration == 1
 
@@ -64,18 +72,18 @@ def test_fixing_duration_for_one_item():
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
     # in config - services take 3 timesteps to fix
-    for service in ["DNSClient", "DNSServer", "WebServer", "FTPClient", "FTPServer", "NTPServer"]:
+    for service in ["dns-client", "dns-server", "web-server", "ftp-client", "ftp-server", "ntp-server"]:
         assert client_1.software_manager.software.get(service) is not None
         assert client_1.software_manager.software.get(service).config.fixing_duration == 2
 
     # in config - applications take 1 timestep to fix
     # remove test applications from list
-    for applications in ["RansomwareScript", "WebBrowser", "DataManipulationBot", "DoSBot"]:
+    for applications in ["ransomware-script", "web-browser", "data-manipulation-bot", "dos-bot"]:
         assert client_1.software_manager.software.get(applications) is not None
         assert client_1.software_manager.software.get(applications).config.fixing_duration == 2
 
-    database_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client_1.software_manager.software.get("database-client")
     assert database_client.config.fixing_duration == 1
 
-    database_service: DatabaseService = client_1.software_manager.software.get("DatabaseService")
+    database_service: DatabaseService = client_1.software_manager.software.get("database-service")
     assert database_service.config.fixing_duration == 5

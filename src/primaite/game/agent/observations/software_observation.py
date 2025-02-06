@@ -10,7 +10,7 @@ from primaite.game.agent.observations.observations import AbstractObservation, W
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 
-class ServiceObservation(AbstractObservation, identifier="SERVICE"):
+class ServiceObservation(AbstractObservation, discriminator="service"):
     """Service observation, shows status of a service in the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -73,7 +73,7 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         return cls(where=parent_where + ["services", config.service_name])
 
 
-class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
+class ApplicationObservation(AbstractObservation, discriminator="application"):
     """Application observation, shows the status of an application within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

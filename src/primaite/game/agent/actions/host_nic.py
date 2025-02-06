@@ -16,9 +16,7 @@ class HostNICAbstractAction(AbstractAction, ABC):
     base class.
     """
 
-    config: "HostNICAbstractAction.ConfigSchema"
-
-    class ConfigSchema(AbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
         """Base Configuration schema for HostNIC actions."""
 
         node_name: str
@@ -29,7 +27,7 @@ class HostNICAbstractAction(AbstractAction, ABC):
     def form_request(cls, config: ConfigSchema) -> RequestFormat:
         """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
         if config.node_name is None or config.nic_num is None:
-            return ["do_nothing"]
+            return ["do-nothing"]
         return [
             "network",
             "node",
@@ -40,7 +38,7 @@ class HostNICAbstractAction(AbstractAction, ABC):
         ]
 
 
-class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
+class HostNICEnableAction(HostNICAbstractAction, discriminator="host-nic-enable"):
     """Action which enables a NIC."""
 
     config: "HostNICEnableAction.ConfigSchema"
@@ -51,7 +49,7 @@ class HostNICEnableAction(HostNICAbstractAction, identifier="host_nic_enable"):
         verb: ClassVar[str] = "enable"
 
 
-class HostNICDisableAction(HostNICAbstractAction, identifier="host_nic_disable"):
+class HostNICDisableAction(HostNICAbstractAction, discriminator="host-nic-disable"):
     """Action which disables a NIC."""
 
     config: "HostNICDisableAction.ConfigSchema"

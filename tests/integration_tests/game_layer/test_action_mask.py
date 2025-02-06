@@ -45,13 +45,13 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             nic_obj.enable()
 
-        if act_type == "router_acl_add_rule":
+        if act_type == "router-acl-add-rule":
             assert mask[action_num]
 
-        if act_type == "router_acl_remove_rule":
+        if act_type == "router-acl-remove-rule":
             assert mask[action_num]
 
-        if act_type == "node_reset":
+        if act_type == "node-reset":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
@@ -61,7 +61,7 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "node_shutdown":
+        if act_type == "node-shutdown":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
@@ -71,7 +71,7 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "node_os_scan":
+        if act_type == "node-os-scan":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
@@ -81,7 +81,7 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "node_startup":
+        if act_type == "node-startup":
             node_name = act_params["node_name"]
             node_obj = net.get_node_by_hostname(node_name)
             assert node_obj.operating_state is NodeOperatingState.ON
@@ -91,13 +91,13 @@ def test_mask_contents_correct():
             assert mask[action_num]
             node_obj.operating_state = NodeOperatingState.ON
 
-        if act_type == "do_nothing":
+        if act_type == "do-nothing":
             assert mask[action_num]
 
-        if act_type == "node_service_disable":
+        if act_type == "node-service-disable":
             assert mask[action_num]
 
-        if act_type in ["node_service_scan", "node_service_stop", "node_service_pause"]:
+        if act_type in ["node-service-scan", "node-service-stop", "node-service-pause"]:
             node_name = act_params["node_name"]
             service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
@@ -109,7 +109,7 @@ def test_mask_contents_correct():
             assert not mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "node_service_resume":
+        if act_type == "node-service-resume":
             node_name = act_params["node_name"]
             service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
@@ -121,7 +121,7 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "node_service_start":
+        if act_type == "node-service-start":
             node_name = act_params["node_name"]
             service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
@@ -133,7 +133,7 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type == "node_service_enable":
+        if act_type == "node-service-enable":
             node_name = act_params["node_name"]
             service_name = act_params["service_name"]
             node_obj = net.get_node_by_hostname(node_name)
@@ -145,7 +145,7 @@ def test_mask_contents_correct():
             assert mask[action_num]
             service_obj.operating_state = ServiceOperatingState.RUNNING
 
-        if act_type in ["node_file_scan", "node_file_checkhash", "node_file_delete"]:
+        if act_type in ["node-file-scan", "node-file-checkhash", "node-file-delete"]:
             node_name = act_params["node_name"]
             folder_name = act_params["folder_name"]
             file_name = act_params["file_name"]

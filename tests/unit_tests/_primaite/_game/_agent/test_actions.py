@@ -21,7 +21,7 @@ from primaite.game.agent.actions.service import (
 def test_do_nothing_action_form_request():
     """Test that the do_nothingAction can form a request and that it is correct."""
     request = DoNothingAction.form_request(DoNothingAction.ConfigSchema())
-    assert request == ["do_nothing"]
+    assert request == ["do-nothing"]
 
 
 @pytest.mark.parametrize(

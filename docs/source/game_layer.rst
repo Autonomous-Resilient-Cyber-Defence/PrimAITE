@@ -57,13 +57,13 @@ An agent's reward can be based on rewards of other agents. This is particularly 
         reward_components:
 
           # When the webpage loads, the reward goes up by 0.25 when it fails to load, it goes down to -0.25
-          - type: WEBPAGE_UNAVAILABLE_PENALTY
+          - type: webpage-unavailable-penalty
             weight: 0.25
             options:
               node_hostname: client_2
 
           # When the database is reachable, the reward goes up by 0.05, when it is unreachable it goes down to -0.05
-          - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+          - type: green-admin-database-unreachable-penalty
             weight: 0.05
             options:
               node_hostname: client_2
@@ -74,7 +74,7 @@ An agent's reward can be based on rewards of other agents. This is particularly 
         reward_components:
 
           # When the database file is in a good state, blue's reward is 0.4, when it's in a corrupted state the reward is -0.4
-          - type: DATABASE_FILE_INTEGRITY
+          - type: database-file-integrity
             weight: 0.40
             options:
               node_hostname: database_server
@@ -82,7 +82,7 @@ An agent's reward can be based on rewards of other agents. This is particularly 
               file_name: database.db
 
           # The green's reward is added onto the blue's reward.
-          - type: SHARED_REWARD
+          - type: shared-reward
             weight: 1.0
             options:
               agent_name: client_2_green_user

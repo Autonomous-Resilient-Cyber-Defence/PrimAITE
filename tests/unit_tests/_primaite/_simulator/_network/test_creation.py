@@ -56,7 +56,7 @@ def test_office_lan_from_config(kwargs):
     net = Network()
 
     config = dict(
-        type="office_lan",
+        type="office-lan",
         lan_name=kwargs["lan_name"],
         subnet_base=kwargs["subnet_base"],
         pcs_ip_block_start=kwargs["pcs_ip_block_start"],

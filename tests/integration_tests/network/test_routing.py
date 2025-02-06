@@ -200,11 +200,11 @@ def test_routing_services(multi_hop_network):
     pc_b = multi_hop_network.get_node_by_hostname("pc_b")
 
     pc_a.software_manager.install(NTPClient)
-    ntp_client = pc_a.software_manager.software["NTPClient"]
+    ntp_client = pc_a.software_manager.software["ntp-client"]
     ntp_client.start()
 
     pc_b.software_manager.install(NTPServer)
-    pc_b.software_manager.software["NTPServer"].start()
+    pc_b.software_manager.software["ntp-server"].start()
 
     ntp_client.configure(ntp_server_ip_address=pc_b.network_interface[1].ip_address)
 

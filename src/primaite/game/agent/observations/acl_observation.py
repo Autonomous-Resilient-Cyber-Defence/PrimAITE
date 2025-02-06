@@ -16,7 +16,7 @@ from primaite.utils.validation.port import Port
 _LOGGER = getLogger(__name__)
 
 
-class ACLObservation(AbstractObservation, identifier="ACL"):
+class ACLObservation(AbstractObservation, discriminator="acl"):
     """ACL observation, provides information about access control lists within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

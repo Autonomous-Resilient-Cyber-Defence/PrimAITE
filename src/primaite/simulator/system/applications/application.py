@@ -53,20 +53,20 @@ class Application(IOSoftware, ABC):
     _registry: ClassVar[Dict[str, Type["Application"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
-    def __init_subclass__(cls, identifier: Optional[str] = None, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register an application type.
 
-        :param identifier: Uniquely specifies an application class by name. Used for finding items by config.
-        :type identifier: Optional[str]
+        :param discriminator: Uniquely specifies an application class by name. Used for finding items by config.
+        :type discriminator: Optional[str]
         :raises ValueError: When attempting to register an application with a name that is already allocated.
         """
         super().__init_subclass__(**kwargs)
-        if identifier is None:
+        if discriminator is None:
             return
-        if identifier in cls._registry:
-            raise ValueError(f"Tried to define new application {identifier}, but this name is already reserved.")
-        cls._registry[identifier] = cls
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new application {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
 
     @classmethod
     def from_config(cls, config: Dict) -> "Application":
