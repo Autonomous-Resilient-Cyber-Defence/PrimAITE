@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from typing import ClassVar, Dict
+from typing import ClassVar, Dict, Literal
 
 from pydantic import Field
 
@@ -40,6 +40,7 @@ class Computer(HostNode, discriminator="computer"):
     class ConfigSchema(HostNode.ConfigSchema):
         """Configuration Schema for Computer class."""
 
+        type: Literal["computer"] = "computer"
         hostname: str = "Computer"
 
     config: ConfigSchema = Field(default_factory=lambda: Computer.ConfigSchema())

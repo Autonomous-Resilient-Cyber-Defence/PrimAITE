@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, Literal, Optional
 
 from pydantic import Field
 
@@ -333,9 +333,14 @@ class HostNode(Node, discriminator="host-node"):
     class ConfigSchema(Node.ConfigSchema):
         """Configuration Schema for HostNode class."""
 
+        type: Literal["host-node"]
         hostname: str = "HostNode"
         subnet_mask: IPV4Address = "255.255.255.0"
         ip_address: IPV4Address
+        services: Any = None  # temporarily unset to appease extra="forbid"
+        applications: Any = None  # temporarily unset to appease extra="forbid"
+        folders: Any = None  # temporarily unset to appease extra="forbid"
+        network_interfaces: Any = None  # temporarily unset to appease extra="forbid"
 
     config: ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
 

@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-from typing import Dict
+from typing import Dict, Literal
 
 from prettytable import MARKDOWN, PrettyTable
 
@@ -17,6 +17,9 @@ class GigaSwitch(NetworkNode, discriminator="gigaswitch"):
 
     :ivar num_ports: The number of ports on the switch. Default is 24.
     """
+
+    class ConfigSchema(NetworkNode.ConfigSchema):
+        type: Literal["gigaswitch"] = "gigaswitch"
 
     num_ports: int = 24
     "The number of ports on the switch."

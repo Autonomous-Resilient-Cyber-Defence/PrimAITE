@@ -14,6 +14,7 @@ from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
@@ -268,9 +269,11 @@ class PrimaiteGame:
 
             new_node = None
             if n_type in Node._registry:
-                if n_type == "wireless-router":
-                    node_cfg["airspace"] = net.airspace
-                new_node = Node._registry[n_type].from_config(config=node_cfg)
+                n_class = Node._registry[n_type]
+                if issubclass(n_class, WirelessRouter):
+                    new_node = n_class.from_config(config=node_cfg, airspace=net.airspace)
+                else:
+                    new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)

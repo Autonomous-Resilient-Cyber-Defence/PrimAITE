@@ -95,7 +95,7 @@ def wireless_wan_network():
 
     # Configure Router 1
     router_1 = WirelessRouter.from_config(
-        config={"type": "wireless_router", "hostname": "router_1", "start_up_duration": 0, "airspace": network.airspace}
+        config={"type": "wireless-router", "hostname": "router_1", "start_up_duration": 0}, airspace=network.airspace
     )
     router_1.power_on()
     network.add_node(router_1)
