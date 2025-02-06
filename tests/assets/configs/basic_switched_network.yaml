@@ -34,10 +34,10 @@ agents:
     action_space:
       action_map:
         0:
-          action: do-nothing
+          action: do_nothing
           options: {}
         1:
-          action: node-application-execute
+          action: node_application_execute
           options:
             node_name: client_2
             application_name: web-browser
@@ -109,7 +109,7 @@ agents:
     action_space:
       action_map:
           0:
-            action: do-nothing
+            action: do_nothing
             options: {}
 
     reward_function:

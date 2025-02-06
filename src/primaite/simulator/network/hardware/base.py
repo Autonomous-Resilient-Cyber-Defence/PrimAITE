@@ -1632,7 +1632,9 @@ class Node(SimComponent, ABC):
                 dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
-        self.operating_state = NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else p
+        self.operating_state = (
+            NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
+        )
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
