@@ -21,7 +21,7 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
             team: GREEN
             type: probabilistic-agent
             observation_space:
-                type: UC2GreenObservation
+                type: UC2GreenObservation  # TODO: what
             action_space:
             reward_function:
                 reward_components:
@@ -160,3 +160,4 @@ If ``True``, gymnasium flattening will be performed on the observation space bef
 -----------------
 
 Agents will record their action log for each step. This is a summary of what the agent did, along with response information from requests within the simulation.
+A summary of the actions taken by the agent can be viewed using the `show_history()` function. By default, this will display all actions taken apart from ``DONOTHING``.

@@ -73,7 +73,7 @@ def test_ftp_should_not_process_commands_if_service_not_running(ftp_client):
     assert ftp_client_service._process_ftp_command(payload=payload).status_code is FTPStatusCode.ERROR
 
 
-def test_ftp_tries_to_senf_file__that_does_not_exist(ftp_client):
+def test_ftp_tries_to_send_file__that_does_not_exist(ftp_client):
     """Method send_file should return false if no file to send."""
     assert ftp_client.file_system.get_file(folder_name="root", file_name="test.txt") is None
 

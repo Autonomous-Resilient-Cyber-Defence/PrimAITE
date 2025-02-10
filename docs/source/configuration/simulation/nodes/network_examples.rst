@@ -1177,8 +1177,8 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv = network.get_node_by_hostname("some_tech_storage_srv")
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
-    pc_1_ftp_client: FTPClient = network.get_node_by_hostname("pc_1").software_manager.software["FTPClient"]
-    pc_2_ftp_client: FTPClient = network.get_node_by_hostname("pc_2").software_manager.software["FTPClient"]
+    pc_1_ftp_client: FTPClient = network.get_node_by_hostname("pc_1").software_manager.software["ftp-client"]
+    pc_2_ftp_client: FTPClient = network.get_node_by_hostname("pc_2").software_manager.software["ftp-client"]
 
     assert not pc_1_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1224,7 +1224,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
 
     web_server: Server = network.get_node_by_hostname("some_tech_web_srv")
 
-    web_ftp_client: FTPClient = web_server.software_manager.software["FTPClient"]
+    web_ftp_client: FTPClient = web_server.software_manager.software["ftp-client"]
 
     assert not web_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1269,7 +1269,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_snr_dev_pc: Computer = network.get_node_by_hostname("some_tech_snr_dev_pc")
-    snr_dev_ftp_client: FTPClient = some_tech_snr_dev_pc.software_manager.software["FTPClient"]
+    snr_dev_ftp_client: FTPClient = some_tech_snr_dev_pc.software_manager.software["ftp-client"]
 
     assert snr_dev_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1294,7 +1294,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_jnr_dev_pc: Computer = network.get_node_by_hostname("some_tech_jnr_dev_pc")
-    jnr_dev_ftp_client: FTPClient = some_tech_jnr_dev_pc.software_manager.software["FTPClient"]
+    jnr_dev_ftp_client: FTPClient = some_tech_jnr_dev_pc.software_manager.software["ftp-client"]
 
     assert not jnr_dev_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1337,7 +1337,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_hr_pc: Computer = network.get_node_by_hostname("some_tech_hr_1")
-    hr_ftp_client: FTPClient = some_tech_hr_pc.software_manager.software["FTPClient"]
+    hr_ftp_client: FTPClient = some_tech_hr_pc.software_manager.software["ftp-client"]
 
     assert not hr_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,

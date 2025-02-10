@@ -55,7 +55,7 @@ Python
 
     # Install NTPServer on server
     server.software_manager.install(NTPServer)
-    ntp_server: NTPServer = server.software_manager.software.get("NTPServer")
+    ntp_server: NTPServer = server.software_manager.software.get("ntp-server")
     ntp_server.start()
 
 

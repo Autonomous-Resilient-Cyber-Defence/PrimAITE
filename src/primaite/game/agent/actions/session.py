@@ -34,8 +34,6 @@ class NodeSessionAbstractAction(AbstractAction, ABC):
 class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="node-session-remote-login"):
     """Action which performs a remote session login."""
 
-    config: "NodeSessionsRemoteLoginAction.ConfigSchema"
-
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLoginAction."""
 
@@ -53,7 +51,7 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="no
             config.node_name,
             "service",
             "terminal",
-            "node-session-remote-login",
+            "node_session_remote_login",
             config.username,
             config.password,
             config.remote_ip,
@@ -62,8 +60,6 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="no
 
 class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="node-session-remote-logoff"):
     """Action which performs a remote session logout."""
-
-    config: "NodeSessionsRemoteLogoutAction.ConfigSchema"
 
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLogoutAction."""
@@ -78,14 +74,13 @@ class NodeSessionsRemoteLogoutAction(NodeSessionAbstractAction, discriminator="n
         return ["network", "node", config.node_name, "service", "terminal", config.verb, config.remote_ip]
 
 
-class NodeAccountChangePasswordAction(NodeSessionAbstractAction, discriminator="node-account-change-password"):
+class NodeAccountChangePasswordAction(AbstractAction, discriminator="node-account-change-password"):
     """Action which changes the password for a user."""
 
-    config: "NodeAccountChangePasswordAction.ConfigSchema"
-
-    class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
+    class ConfigSchema(AbstractAction.ConfigSchema):
         """Configuration schema for NodeAccountsChangePasswordAction."""
 
+        node_name: str
         username: str
         current_password: str
         new_password: str

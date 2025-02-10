@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.0.0] = TBC
 
 ### Added
+-   Log observation space data by episode and step.
+-   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `do-nothing` actions are omitted.
+-  New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
+-  Added ability to set the observation threshold for NMNE, file access and application executions
 
 ### Changed
 -   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
@@ -24,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Updated tests that don't use YAMLs to still use the new action and agent schemas
 -   Nodes now use a config schema and are extensible, allowing for plugin support.
 -   Node tests have been updated to use the new node config schemas when not using YAML files.
+-   ACLs are no longer applied to layer-2 traffic.
+-   Random number seed values are recorded in simulation/seed.log if the seed is set in the config file
+    or `generate_seed_value` is set to `true`.
+-   ARP .show() method will now include the port number associated with each entry.
+-   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config to allow the agents to be able to see actual health states of services and applications without requiring scans (Default `True`, set to `False` to allow agents to see actual health state without scanning).
+-   Updated the `Terminal` class to provide response information when sending remote command execution.
 
 ### Fixed
 -   DNS client no longer fails to check its cache if a DNS server address is missing.

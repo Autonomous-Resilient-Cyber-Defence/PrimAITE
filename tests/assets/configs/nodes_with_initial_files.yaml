@@ -25,24 +25,11 @@ game:
   - ICMP
   - TCP
   - UDP
-  thresholds:
-    nmne:
-      high: 100
-      medium: 25
-      low: 5
-    file_access:
-      high: 10
-      medium: 5
-      low: 2
-    app_executions:
-      high: 5
-      medium: 3
-      low: 2
+
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: probabilistic-agent
-
+    type: periodic-agent
     action_space:
       action_map:
         0:
@@ -51,17 +38,17 @@ agents:
         1:
           action: node-application-execute
           options:
-            node_name: client_2
-            application_name: web-browser
-
-    reward_function:
-      reward_components:
-        - type: dummy
+            node_id: 0
+            application_id: 0
 
     agent_settings:
-      action_probabilities:
-        0: 0.4
-        1: 0.6
+      possible_start_nodes: [client_2,]
+      target_application: web-browser
+      start_step: 5
+      frequency: 4
+      variance: 3
+
+
 
   - ref: defender
     team: BLUE
@@ -76,16 +63,10 @@ agents:
             options:
               hosts:
                 - hostname: client_1
-                  applications:
-                    - application_name: WebBrowser
-                  folders:
-                    - folder_name: root
-                      files:
-                        - file_name: "test.txt"
                 - hostname: client_2
                 - hostname: client_3
               num_services: 1
-              num_applications: 1
+              num_applications: 0
               num_folders: 1
               num_files: 1
               num_nics: 2
@@ -106,8 +87,8 @@ agents:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - HTTP
-                - POSTGRES_SERVER
+                - 80
+                - 5432
               protocol_list:
                 - ICMP
                 - TCP
@@ -120,7 +101,7 @@ agents:
               link_references:
                 - switch_1:eth-1<->client_1:eth-1
                 - switch_1:eth-2<->client_2:eth-1
-          - type: "none"
+          - type: none
             label: ICS
             options: {}
 
@@ -138,7 +119,6 @@ agents:
             node_hostname: database_server
             folder_name: database
             file_name: database.db
-
 
         - type: web-server-404-penalty
           weight: 0.5
@@ -187,6 +167,8 @@ simulation:
           port_scan_p_of_success: 0.8
       services:
       - type: dns-client
+        options:
+          dns_server: 192.168.1.10
       - type: dns-server
         options:
           domain_mapping:
@@ -196,20 +178,29 @@ simulation:
           backup_server_ip: 192.168.1.10
       - type: web-server
       - type: ftp-server
+        options:
+          server_password: arcd
       - type: ntp-client
         options:
           ntp_server_ip: 192.168.1.10
       - type: ntp-server
-      folders:
-        - folder_name: root
-          files:
-          - file_name: test.txt
     - hostname: client_2
       type: computer
       ip_address: 192.168.10.22
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
+      folders:
+        - folder_name: empty_folder
+        - folder_name: downloads
+          files:
+            - file_name: "test.txt"
+            - file_name: "another_file.pwtwoti"
+        - folder_name: root
+          files:
+            - file_name: passwords
+              size: 663
+              type: TXT
       # pre installed services and applications
     - hostname: client_3
       type: computer

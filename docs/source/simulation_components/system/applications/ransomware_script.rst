@@ -62,7 +62,7 @@ Python
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)
     client_1.software_manager.install(RansomwareScript)
-    RansomwareScript: RansomwareScript = client_1.software_manager.software.get("RansomwareScript")
+    RansomwareScript: RansomwareScript = client_1.software_manager.software.get("ransomware-script")
     RansomwareScript.configure(server_ip_address=IPv4Address("192.168.1.14"))
     RansomwareScript.execute()
 

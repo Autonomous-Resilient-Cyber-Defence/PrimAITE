@@ -102,8 +102,8 @@ ICMP traffic, ensuring basic network connectivity and ping functionality.
     network.connect(pc_a.network_interface[1], router_1.router_interface)
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port["ARP"], dst_port=Port["ARP"], position=22)
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol["ICMP"], position=23)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22)
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # Configure PC B
     pc_b = Computer(

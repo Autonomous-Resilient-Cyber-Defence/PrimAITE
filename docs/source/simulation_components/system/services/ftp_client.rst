@@ -60,7 +60,7 @@ Python
 
     # Install FTPClient on server
     server.software_manager.install(FTPClient)
-    ftp_client: FTPClient = server.software_manager.software.get("FTPClient")
+    ftp_client: FTPClient = server.software_manager.software.get("ftp-client")
     ftp_client.start()
 
 

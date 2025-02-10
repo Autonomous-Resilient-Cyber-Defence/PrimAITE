@@ -55,7 +55,7 @@ Python
 
     # Install FTPServer on server
     server.software_manager.install(FTPServer)
-    ftp_server: FTPServer = server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = server.software_manager.software.get("ftp-server")
     ftp_server.start()
 
     ftp_server.server_password = "test"
