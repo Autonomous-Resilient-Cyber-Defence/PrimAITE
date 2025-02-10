@@ -1,0 +1,94 @@
+red: &red
+  - ref: attacker
+    team: RED
+    type: tap-003
+    observation_space: {}
+    action_space: {}
+    agent_settings:
+      start_step: 1
+      frequency: 3
+      variance: 0
+      repeat_kill_chain: false
+      repeat_kill_chain_stages: true
+      default_starting_node: "ST-PROJ-A-PRV-PC-1"
+      starting_nodes:
+      # starting_nodes: ["ST-PROJ-A-PRV-PC-1", "ST-PROJ-B-PRV-PC-2", "ST-PROJ-C-PRV-PC-3"]
+      kill_chain:
+        PLANNING:
+          probability: 1
+          starting_network_knowledge:
+            credentials:
+              ST-PROJ-A-PRV-PC-1:
+                username: admin
+                password: admin
+              ST-PROJ-B-PRV-PC-2:
+                username: admin
+                password: admin
+              ST-PROJ-C-PRV-PC-3:
+                username: admin
+                password: admin
+              ST-INTRA-PRV-RT-DR-1:
+                ip_address: 192.168.230.1
+                username: admin
+                password: admin
+              ST-INTRA-PRV-RT-CR:
+                ip_address: 192.168.160.1
+                username: admin
+                password: admin
+              REM-PUB-RT-DR:
+                ip_address: 192.168.10.2
+                username: admin
+                password: admin
+        ACCESS:
+          probability: 1
+        MANIPULATION:
+          probability: 1
+          account_changes:
+            - host: ST-INTRA-PRV-RT-DR-1
+              ip_address: 192.168.230.1 # ST-INTRA-PRV-RT-DR-1
+              action: change_password
+              username: admin
+              new_password: "red_pass"
+            - host: ST-INTRA-PRV-RT-CR
+              ip_address: 192.168.160.1 # ST-INTRA-PRV-RT-CR
+              action: change_password
+              username: "admin"
+              new_password: "red_pass"
+            - host: REM-PUB-RT-DR
+              ip_address: 192.168.10.2 # REM-PUB-RT-DR
+              action: change_password
+              username: "admin"
+              new_password: "red_pass"
+        EXPLOIT:
+          probability: 1
+          malicious_acls:
+            - target_router: ST-INTRA-PRV-RT-DR-1
+              position: 1
+              permission: DENY
+              src_ip: ALL
+              src_wildcard: 0.0.255.255
+              dst_ip: ALL
+              dst_wildcard: 0.0.255.255
+              src_port: POSTGRES_SERVER
+              dst_port: POSTGRES_SERVER
+              protocol_name: TCP
+            - target_router: ST-INTRA-PRV-RT-CR
+              position: 1
+              permission: DENY
+              src_ip: ALL
+              src_wildcard: 0.0.255.255
+              dst_ip: ALL
+              dst_wildcard: 0.0.255.255
+              src_port: HTTP
+              dst_port: HTTP
+              protocol_name: TCP
+            - target_router: REM-PUB-RT-DR
+              position: 1
+              permission: DENY
+              src_ip: ALL
+              src_wildcard: 0.0.255.255
+              dst_ip: ALL
+              dst_wildcard: 0.0.255.255
+              src_port: DNS
+              dst_port: DNS
+              protocol_name: TCP

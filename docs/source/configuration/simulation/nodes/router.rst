@@ -74,7 +74,7 @@ The subnet mask setting for the port.
 ``acl``
 -------
 
-Sets up the ACL rules for the router.
+Sets up the ACL rules for the router to apply to layer-3 traffic. These are not applied to layer-2 traffic such as ARP.
 
 e.g.
 
@@ -85,10 +85,6 @@ e.g.
         ...
         acl:
             1:
-                action: PERMIT
-                src_port: ARP
-                dst_port: ARP
-            2:
                 action: PERMIT
                 protocol: ICMP
 

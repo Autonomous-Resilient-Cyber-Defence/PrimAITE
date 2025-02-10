@@ -114,7 +114,9 @@ class NestedObservation(AbstractObservation, discriminator="custom"):
         instances = dict()
         for component in config.components:
             obs_class = AbstractObservation._registry[component.type]
-            obs_instance = obs_class.from_config(config=obs_class.ConfigSchema(**component.options))
+            obs_instance = obs_class.from_config(
+                config=obs_class.ConfigSchema(**component.options, thresholds=config.thresholds)
+            )
             instances[component.label] = obs_instance
         return cls(components=instances)
 
@@ -242,8 +244,5 @@ class ObservationManager(BaseModel):
         """
         if config is None:
             return cls(NullObservation())
-        obs_type = config["type"]
-        obs_class = AbstractObservation._registry[obs_type]
-        observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]))
-        obs_manager = cls(observation)
+        obs_manager = cls(config=config)
         return obs_manager

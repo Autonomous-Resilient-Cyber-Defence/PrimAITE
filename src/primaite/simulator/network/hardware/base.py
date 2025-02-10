@@ -864,7 +864,21 @@ class UserManager(Service, discriminator="user-manager"):
         """
         rm = super()._init_request_manager()
 
-        # todo add doc about requeest schemas
+        # todo add doc about request schemas
+        rm.add_request(
+            "add_user",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(
+                    self.add_user(username=request[0], password=request[1], is_admin=request[2])
+                )
+            ),
+        )
+        rm.add_request(
+            "disable_user",
+            RequestType(
+                func=lambda request, context: RequestResponse.from_bool(self.disable_user(username=request[0]))
+            ),
+        )
         rm.add_request(
             "change_password",
             RequestType(
@@ -1572,7 +1586,7 @@ class Node(SimComponent, ABC):
 
         operating_state: Any = None
 
-        users: Any = None  # Temporary to appease "extra=forbid"
+        users: List[Dict] = []  # Temporary to appease "extra=forbid"
 
     config: ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
     """Configuration items within Node"""
@@ -1638,6 +1652,8 @@ class Node(SimComponent, ABC):
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
+        for user in self.config.users:
+            self.user_manager.add_user(**user, bypass_can_perform_action=True)
 
     @property
     def user_manager(self) -> Optional[UserManager]:
@@ -1769,7 +1785,7 @@ class Node(SimComponent, ABC):
             """
             application_name = request[0]
             if self.software_manager.software.get(application_name):
-                self.sys_log.warning(f"Can't install {application_name}. It's already installed.")
+                self.sys_log.info(f"Can't install {application_name}. It's already installed.")
                 return RequestResponse(status="success", data={"reason": "already installed"})
             application_class = Application._registry[application_name]
             self.software_manager.install(application_class)

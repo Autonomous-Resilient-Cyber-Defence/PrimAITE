@@ -1,6 +1,6 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from abc import ABC, abstractmethod
-from typing import ClassVar, List, Optional, Union
+from typing import ClassVar, List, Literal, Optional, Union
 
 from primaite.game.agent.actions.manager import AbstractAction
 from primaite.interface.request import RequestFormat
@@ -153,8 +153,6 @@ class NodeNMAPPortScanAction(NodeNMAPAbstractAction, discriminator="node-nmap-po
 class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, discriminator="node-network-service-recon"):
     """Action which performs an nmap network service recon (ping scan followed by port scan)."""
 
-    config: "NodeNetworkServiceReconAction.ConfigSchema"
-
     class ConfigSchema(NodeNMAPAbstractAction.ConfigSchema):
         """Configuration schema for NodeNetworkServiceReconAction."""
 
@@ -178,4 +176,71 @@ class NodeNetworkServiceReconAction(NodeNMAPAbstractAction, discriminator="node-
                 "target_protocol": config.target_protocol,
                 "show": config.show,
             },
+        ]
+
+
+class NodeAccountsAddUserAction(AbstractAction, discriminator="node-account-add-user"):
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        type: Literal["node-account-add-user"] = "node-account-add-user"
+        node_name: str
+        username: str
+        password: str
+        is_admin: bool
+
+    @classmethod
+    @staticmethod
+    def form_request(config: ConfigSchema) -> RequestFormat:
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "service",
+            "user-manager",
+            "add_user",
+            config.username,
+            config.password,
+            config.is_admin,
+        ]
+
+
+class NodeAccountsDisableUserAction(AbstractAction, discriminator="node-account-disable-user"):
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        type: Literal["node-account-disable-user"] = "node-account-disable-user"
+        node_name: str
+        username: str
+
+    @classmethod
+    @staticmethod
+    def form_request(config: ConfigSchema) -> RequestFormat:
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "service",
+            "user-manager",
+            "disable_user",
+            config.username,
+        ]
+
+
+class NodeSendLocalCommandAction(AbstractAction, discriminator="node-send-local-command"):
+    class ConfigSchema(AbstractAction.ConfigSchema):
+        type: Literal["node-send-local-command"] = "node-send-local-command"
+        node_name: str
+        username: str
+        password: str
+        command: RequestFormat
+
+    @staticmethod
+    def form_request(config: ConfigSchema) -> RequestFormat:
+        return [
+            "network",
+            "node",
+            config.node_name,
+            "service",
+            "terminal",
+            "send_local_command",
+            config.username,
+            config.password,
+            {"command": config.command},
         ]

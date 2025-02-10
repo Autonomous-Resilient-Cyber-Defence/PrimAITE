@@ -26,9 +26,9 @@ class Router(NetworkNode, identifier="router"):
     """ Represents a network router within the simulation, managing routing and forwarding of IP packets across network interfaces."""
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "UserSessionManager": UserSessionManager,
-        "UserManager": UserManager,
-        "Terminal": Terminal,
+        "user-session-manager": UserSessionManager,
+        "user-manager": UserManager,
+        "terminal": Terminal,
     }
 
     network_interfaces: Dict[str, RouterInterface] = {}
@@ -52,4 +52,4 @@ class Router(NetworkNode, identifier="router"):
 Changes to YAML file.
 =====================
 
-While effort has been made to ensure that nodes defined within configuration YAML files for use with PrimAITE 3.X remain compatible with PrimAITE v4+, it is encouraged to review for minor changes needed. 
+While effort has been made to ensure that nodes defined within configuration YAML files for use with PrimAITE 3.X remain compatible with PrimAITE v4+, it is encouraged to review for minor changes needed.

@@ -66,7 +66,7 @@ Python
 
     # Install DatabaseService on server
     server.software_manager.install(DatabaseService)
-    db_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = server.software_manager.software.get("database-service")
     db_service.start()
 
     # configure DatabaseService

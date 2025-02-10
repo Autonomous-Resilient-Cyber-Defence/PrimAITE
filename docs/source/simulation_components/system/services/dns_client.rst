@@ -56,7 +56,7 @@ Python
 
     # Install DNSClient on server
     server.software_manager.install(DNSClient)
-    dns_client: DNSClient = server.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = server.software_manager.software.get("dns-client")
     dns_client.start()
 
     # configure DatabaseService

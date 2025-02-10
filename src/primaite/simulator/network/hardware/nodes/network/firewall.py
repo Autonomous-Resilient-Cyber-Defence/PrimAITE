@@ -49,7 +49,7 @@ class Firewall(Router, discriminator="firewall"):
 
     Example:
         >>> from primaite.simulator.network.transmission.network_layer import IPProtocol
-        >>> from primaite.simulator.network.transmission.transport_layer import Port
+        >>> from primaite.utils.validation.port import Port
         >>> firewall = Firewall(hostname="Firewall1")
         >>> firewall.configure_internal_port(ip_address="192.168.1.1", subnet_mask="255.255.255.0")
         >>> firewall.configure_external_port(ip_address="10.0.0.1", subnet_mask="255.255.255.0")

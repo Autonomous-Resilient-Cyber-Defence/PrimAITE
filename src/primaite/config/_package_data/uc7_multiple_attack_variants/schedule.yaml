@@ -1,0 +1,42 @@
+base_scenario: uc7_config_no_red.yaml
+schedule:
+  0:
+    - TAP001_PC1.yaml
+  1:
+    - TAP001_PC2.yaml
+  2:
+    - TAP001_PC3.yaml
+  3:
+    - TAP001_PC1.yaml
+  4:
+    - TAP001_PC2.yaml
+  5:
+    - TAP003.yaml
+  6:
+    - TAP003.yaml
+  7:
+    - TAP003.yaml
+  8:
+    - TAP003.yaml
+  9:
+    - TAP003.yaml
+  10:
+    - TAP001_PC1.yaml
+  11:
+    - TAP003.yaml
+  12:
+    - TAP001_PC1.yaml
+  13:
+    - TAP003.yaml
+  14:
+    - TAP001_PC2.yaml
+  15:
+    - TAP003.yaml
+  16:
+    - TAP001_PC3.yaml
+  17:
+    - TAP003.yaml
+  18:
+    - TAP001_PC1.yaml
+  19:
+    - TAP003.yaml

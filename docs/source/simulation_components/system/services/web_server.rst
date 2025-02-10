@@ -56,7 +56,7 @@ Python
 
     # Install WebServer on server
     server.software_manager.install(WebServer)
-    web_server: WebServer = server.software_manager.software.get("WebServer")
+    web_server: WebServer = server.software_manager.software.get("web-server")
     web_server.start()
 
 Via Configuration

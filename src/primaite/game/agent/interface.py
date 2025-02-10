@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
+from prettytable import PrettyTable
 from pydantic import BaseModel, ConfigDict, Field
 
 from primaite.game.agent.actions import ActionManager
@@ -42,6 +43,9 @@ class AgentHistoryItem(BaseModel):
 
     reward_info: Dict[str, Any] = {}
 
+    observation: Optional[ObsType] = None
+    """The observation space data for this step."""
+
 
 class AbstractAgent(BaseModel, ABC):
     """Base class for scripted and RL agents."""
@@ -67,6 +71,9 @@ class AbstractAgent(BaseModel, ABC):
             default_factory=lambda: ObservationManager.ConfigSchema()
         )
         reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+        thresholds: Optional[Dict] = {}
+        # TODO: this is only relevant to some observations, need to refactor the way thresholds are dealt with (#3085)
+        """A dict containing the observation thresholds."""
 
     config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
@@ -90,9 +97,41 @@ class AbstractAgent(BaseModel, ABC):
     def model_post_init(self, __context: Any) -> None:
         """Overwrite the default empty action, observation, and rewards with ones defined through the config."""
         self.action_manager = ActionManager(config=self.config.action_space)
+        self.config.observation_space.options.thresholds = self.config.thresholds
         self.observation_manager = ObservationManager(config=self.config.observation_space)
         self.reward_function = RewardFunction(config=self.config.reward_function)
         return super().model_post_init(__context)
+
+    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
+        """Update the given table with information from given AgentHistoryItem."""
+        node, application = "unknown", "unknown"
+        if (node_id := item.parameters.get("node_id")) is not None:
+            node = self.action_manager.node_names[node_id]
+        if (application_id := item.parameters.get("application_id")) is not None:
+            application = self.action_manager.application_names[node_id][application_id]
+        if (application_name := item.parameters.get("application_name")) is not None:
+            application = application_name
+        table.add_row([item.timestep, item.action, node, application, item.response.status])
+        return table
+
+    def show_history(self, ignored_actions: Optional[list] = None):
+        """
+        Print an agent action provided it's not the DONOTHING action.
+
+        :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
+                                If not provided, defaults to ignore DONOTHING actions.
+        """
+        if not ignored_actions:
+            ignored_actions = ["DONOTHING"]
+        table = PrettyTable()
+        table.field_names = ["Step", "Action", "Node", "Application", "Response"]
+        print(f"Actions for '{self.agent_name}':")
+        for item in self.history:
+            if item.action in ignored_actions:
+                pass
+            else:
+                table = self.add_agent_action(item=item, table=table)
+        print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
         """
@@ -140,12 +179,23 @@ class AbstractAgent(BaseModel, ABC):
         return request
 
     def process_action_response(
-        self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
+        self,
+        timestep: int,
+        action: str,
+        parameters: Dict[str, Any],
+        request: RequestFormat,
+        response: RequestResponse,
+        observation: ObsType,
     ) -> None:
         """Process the response from the most recent action."""
         self.history.append(
             AgentHistoryItem(
-                timestep=timestep, action=action, parameters=parameters, request=request, response=response
+                timestep=timestep,
+                action=action,
+                parameters=parameters,
+                request=request,
+                response=response,
+                observation=observation,
             )
         )
 

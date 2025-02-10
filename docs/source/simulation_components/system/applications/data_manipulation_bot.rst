@@ -77,7 +77,7 @@ Python
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)
     client_1.software_manager.install(DataManipulationBot)
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")
     data_manipulation_bot.run()
 
@@ -98,7 +98,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
           type: red-database-corrupting-agent
 
           observation_space:
-            type: UC2RedObservation
+            type: uc2-red-observation #TODO what
             options:
               nodes:
                 - node_name: client_1

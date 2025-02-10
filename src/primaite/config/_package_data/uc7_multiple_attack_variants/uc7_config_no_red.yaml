@@ -1,0 +1,3210 @@
+##########################################################
+#           USE CASE 7 CONFIGURATION YAML FILE           #
+##########################################################
+
+
+##########################################
+#   PrimAITE Game and Logging Settings   #
+##########################################
+
+
+# PrimAITE I/O Settings #
+
+io_settings:
+  save_agent_actions: True
+  save_step_metadata: True
+  save_pcap_logs: false
+  save_sys_logs: True
+  # save_sys_logs: true
+  write_sys_log_to_terminal: false
+
+
+# PrimAITE Game Settings #
+
+game:
+  max_episode_length: 128
+  ports:
+    - FTP
+    - DNS
+    - HTTP
+    - NTP
+    - POSTGRES_SERVER
+    - SSH
+  protocols:
+    - ICMP
+    - TCP
+    - UDP
+  thresholds:
+    nmne:
+      high: 10
+      medium: 5
+      low: 0
+
+############################################
+#      PrimAITE Use Case 7 Simulation      #
+############################################
+
+##########################################
+# Configuration Variables (Yaml Anchors) #
+##########################################
+
+# External Network Address List #
+
+DNS_SUBNET: &DNS_SUBNET 255.255.255.240 #                         | 8.8.8.0       / 28
+HOME_INTERNET_SUBNET: &HOME_INTERNET_SUBNET 255.255.255.252 #     | 10.1.0.0      / 30
+REMOTE_INTERNET_SUBNET: &REMOTE_INTERNET_SUBNET 255.255.255.252 # | 10.1.10.0     / 30
+SOME_TECH_INTERNET_SUBNET: &ST_INTERNET_SUBNET 255.255.255.252 #  | 10.1.100.0    / 30
+HOME_OFFICE_SUBNET: &HOME_SUBNET 255.255.255.0 #                  | 192.168.1.0   / 26
+REMOTE_SUBNET_DMZ: &REMOTE_SUBNET_DMZ  255.255.255.252 #          | 192.168.10.0  / 30
+REMOTE_SUBNET: &REMOTE_SUBNET 255.255.255.240 #                   | 192.168.20.0  / 28
+
+# SOME_TECH (ST) Network Address List #
+
+SOME_TECH_DMZ_SUBNET: &ST_DMZ_SUBNET 255.255.255.252 #                          | 192.168.100.0 / 30
+SOME_TECH_INTRANET_RT_CR_SUBNET: &ST_INTRA_CR_SUBNET 255.255.255.240 #          | 192.168.150.0 / 28
+SOME_TECH_INTRANET_RT_DR_ONE_SUBNET: &ST_INTRA_DR_ONE_SUBNET 255.255.255.252 #  | 192.168.160.0 / 30
+SOME_TECH_INTRANET_RT_DR_TWO_SUBNET: &ST_INTRA_DR_TWO_SUBNET 255.255.255.252 #  | 192.168.170.0 / 30
+SOME_TECH_HEAD_OFFICE_SUBNET: &ST_HO_SUBNET 255.255.255.248 #                   | 192.168.200.0 / 29
+SOME_TECH_HUMAN_RESOURCES_SUBNET: &ST_HR_SUBNET 255.255.255.248 #               | 192.168.210.0 / 29
+SOME_TECH_DATA_SUBNET: &ST_DATA_SUBNET 255.255.255.248 #                        | 192.168.220.0 / 29
+SOME_TECH_PROJECT_A_SUBNET: &ST_PROJ_A_SUBNET 255.255.255.248 #                 | 192.168.230.0 / 29
+SOME_TECH_PROJECT_B_SUBNET: &ST_PROJ_B_SUBNET 255.255.255.248 #                 | 192.168.240.0 / 29
+SOME_TECH_PROJECT_C_SUBNET: &ST_PROJ_C_SUBNET 255.255.255.248 #                 | 192.168.250.0 / 29
+
+# Host & Server Configurations #
+
+# ST Public Web Server | web-server | ST-DMZ-PUB-SRV-WEB
+SOME_TECH_PUBLIC_SERVER_WEB_IP_ADDRESS: &ST_PUB_SRV_WEB_IP 192.168.100.2
+SOME_TECH_PUBLIC_SERVER_WEB_CONFIG: &ST_SRV_WEB_CONFIG #
+  - type: web-server
+
+# ISP Public DNS | dns-server | ISP-PUB-SRV-DNS
+PUBLIC_DNS_IP_ADDRESS: &PUBLIC_DNS_IP 8.8.8.8
+PUBLIC_DNS_CONFIG: &PUBLIC_DNS_CONFIG #
+  - type: dns-server
+    options:
+      domain_mapping:
+        some_tech.com: *ST_PUB_SRV_WEB_IP
+
+# ST Private Storage Server | ftp-server | ST-DATA-PRV-SRV-STORAGE
+SOME_TECH_PRIVATE_SERVER_STORAGE_IP: &ST_SRV_STORAGE_IP 192.168.220.2
+SOME_TECH_PRIVATE_SERVER_STORAGE_CONFIG: &ST_SRV_STORAGE_CONFIG
+  - type: ftp-server
+
+# ST Private Database Server | database-client & ftp-client | ST-DATA-PRV-SRV-DB
+SOME_TECH_PRIVATE_SERVER_DATABASE_IP: &ST_SRV_DB_IP 192.168.220.3
+SOME_TECH_PRIVATE_SERVER_DATABASE_CONFIG: &ST_SRV_DB_CONFIG
+  - type: database-service
+    options:
+      backup_server_ip: *ST_SRV_STORAGE_IP
+  - type: ftp-client
+
+# Default PC Configuration | Database Client & Web Server
+PERSONAL_COMPUTER_DEFAULT_CONFIG: &PC_DEFAULT_CONFIG
+  - type: database-client
+    options:
+      db_server_ip: *ST_SRV_DB_IP
+  - type: web-browser
+    options:
+      target_url: http://some_tech.com
+
+
+##############################
+#  Simulation Configuration  #
+##############################
+
+simulation:
+  defaults:
+    folder_scan_duration: 0
+    folder_restore_duration: 3
+    service_fix_duration: 2
+    service_restart_duration: 2
+    software_install_duration: 0
+    node_start_up_duration: 3
+    node_shut_down_duration: 3
+    node_scan_duration: 8
+  network:
+    nmne_config:
+      capture_nmne: true
+      nmne_capture_keywords:
+        - DELETE
+        - ENCRYPT
+    nodes:
+        ######################
+        # HOME OFFICE SUBNET #
+        ######################
+        - hostname: HOME-PUB-RT-DR
+          type: router
+          default_gateway: 10.1.0.1
+          ports:
+            1:
+              ip_address: 192.168.1.1
+              subnet_mask: *HOME_SUBNET
+            2:
+              ip_address: 10.1.0.2
+              subnet_mask: *HOME_INTERNET_SUBNET
+          default_route:
+            next_hop_ip_address: 10.1.0.1
+          acl:
+            5:
+              action: PERMIT
+
+        - hostname: HOME-PUB-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: HOME-PUB-PC-1
+          type: computer
+          ip_address: 192.168.1.2
+          default_gateway: 192.168.1.1
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: HOME-PUB-PC-2
+          type: computer
+          ip_address: 192.168.1.3
+          default_gateway: 192.168.1.1
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: HOME-PUB-SRV
+          type: server
+          ip_address: 192.168.1.4
+          default_gateway: 192.168.1.1
+          dns_server: *PUBLIC_DNS_IP
+
+        ######################
+        #  INTERNET  SUBNET  #
+        ######################
+        - hostname: ISP-PUB-RT-BR
+          type: router
+          ports:
+            1:
+              ip_address: 10.1.0.1
+              subnet_mask: *HOME_INTERNET_SUBNET
+            2:
+              ip_address: 8.8.8.1
+              subnet_mask: *DNS_SUBNET
+            3:
+              ip_address: 10.1.10.1
+              subnet_mask: *REMOTE_INTERNET_SUBNET
+            4:
+              ip_address: 10.1.100.1
+              subnet_mask: *ST_INTERNET_SUBNET
+          routes:
+           - address: 192.168.1.0
+             subnet_mask: *HOME_SUBNET
+             next_hop_ip_address: 10.1.0.2
+
+           - address: 8.8.8.0
+             subnet_mask: *DNS_SUBNET
+             next_hop_ip_address: 8.8.8.8
+
+           - address: 192.168.10.0
+             subnet_mask: *REMOTE_SUBNET_DMZ
+             next_hop_ip_address: 10.1.10.2
+
+           - address: 192.168.20.0
+             subnet_mask: *REMOTE_SUBNET
+             next_hop_ip_address: 10.1.10.2
+
+          default_route:
+            next_hop_ip_address: 10.1.100.2 # SOME_TECH Firewall
+
+          acl:
+            5:
+              action: PERMIT
+
+        ################
+        #  DNS SUBNET  #
+        ################
+        - hostname: ISP-PUB-SRV-DNS
+          type: server
+          ip_address: 8.8.8.8
+          subnet_mask: *DNS_SUBNET
+          default_gateway: 8.8.8.1
+          services:
+            *PUBLIC_DNS_CONFIG
+          applications:
+            - type: c2-server # Represents the external internet.
+              options:
+                listen_on_ports:
+                  - 80
+                  - 53
+                  - 21
+        ########################
+        #  REMOTE SITE SUBNET  #
+        ########################
+        - hostname: REM-PUB-FW
+          type: firewall
+          ports:
+            external_port: # Public Internet facing
+              ip_address: 10.1.10.2
+              subnet_mask: *REMOTE_INTERNET_SUBNET
+            internal_port: # Remote Site (DMZ Subnet) facing
+              ip_address: 192.168.10.1
+              subnet_mask: *REMOTE_SUBNET_DMZ
+          routes:
+            - address: 192.168.20.0 # Remote Site Network
+              subnet_mask: *REMOTE_SUBNET
+              next_hop_ip_address: 192.168.10.2
+          default_route:
+            next_hop_ip_address: 10.1.10.1 # Forward to internet router port 3
+          acl: # TODO: Expand on this (For now permit all)
+            internal_inbound_acl:
+              1:
+                action: PERMIT
+            internal_outbound_acl:
+              1:
+                action: PERMIT
+            dmz_inbound_acl:
+              1:
+                action: PERMIT
+            dmz_outbound_acl:
+              1:
+                action: PERMIT
+            external_inbound_acl:
+              1:
+                action: PERMIT
+            external_inbound_acl:
+              1:
+                action: PERMIT
+
+        - hostname: REM-PUB-RT-DR
+          type: router
+          default_gateway: 192.168.10.1
+          ports:
+            1:
+              ip_address: 192.168.10.2
+              subnet_mask: *REMOTE_SUBNET_DMZ
+            2:
+              ip_address: 192.168.20.1
+              subnet_mask: *REMOTE_SUBNET
+          default_route:
+            next_hop_ip_address: 192.168.10.1
+          acl:
+            5:
+              action: PERMIT
+
+        - hostname: REM-PUB-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: REM-PUB-PC-1
+          type: computer
+          ip_address: 192.168.20.2
+          default_gateway: 192.168.20.1
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: REM-PUB-PC-2
+          type: computer
+          ip_address: 192.168.20.3
+          default_gateway: 192.168.20.1
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: REM-PUB-SRV
+          type: server
+          ip_address: 192.168.20.4
+          default_gateway: 192.168.20.1
+          dns_server: *PUBLIC_DNS_IP
+
+
+        ########################
+        # SOME_TECH DMZ SUBNET #
+        ########################
+
+        - hostname: ST-PUB-FW
+          type: firewall
+          ports:
+            external_port: # Public Internet Facing Port
+              ip_address: 10.1.100.2
+              subnet_mask: *ST_INTERNET_SUBNET
+            internal_port: # SOME_TECH Intranet Port
+              ip_address: 192.168.150.1
+              subnet_mask: *ST_INTRA_CR_SUBNET
+            dmz_port: # SOME_TECH Port Facing Port
+              ip_address: 192.168.100.1
+              subnet_mask: *ST_DMZ_SUBNET
+          acl: # TODO: Expand on this (For now permit all)
+            internal_inbound_acl:
+              5:
+                action: PERMIT
+            internal_outbound_acl:
+              5:
+                action: PERMIT
+            dmz_inbound_acl:
+              5:
+                action: PERMIT
+            dmz_outbound_acl:
+              5:
+                action: PERMIT
+            external_inbound_acl:
+              5:
+                action: PERMIT
+            external_inbound_acl:
+              5:
+                action: PERMIT
+          routes:
+              - address: 10.1.100.0
+                subnet_mask: *ST_INTERNET_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 10.1.10.0
+                subnet_mask: *REMOTE_INTERNET_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 10.1.0.0
+                subnet_mask: *HOME_INTERNET_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 192.168.1.0
+                subnet_mask: *HOME_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 192.168.10.0
+                subnet_mask: *REMOTE_SUBNET_DMZ
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 192.168.20.0
+                subnet_mask: *REMOTE_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+              - address: 8.8.8.0
+                subnet_mask: *DNS_SUBNET
+                next_hop_ip_address: 10.1.100.1
+
+            # - address: 192.168.150.0
+            #   subnet_mask: *ST_INTRA_CR_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.160.0
+            #   subnet_mask: *ST_INTRA_DR_ONE_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.170.0
+            #   subnet_mask: *ST_INTRA_DR_TWO_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.200.0
+            #   subnet_mask: *ST_HO_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.210.0
+            #   subnet_mask: *ST_HR_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.220.0
+            #   subnet_mask: *ST_DATA_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.230.0
+            #   subnet_mask: *ST_PROJ_A_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.240.0
+            #   subnet_mask: *ST_PROJ_B_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+            # - address: 192.168.250.0
+            #   subnet_mask: *ST_PROJ_C_SUBNET
+            #   next_hop_ip_address: 192.168.150.2
+          default_route:
+            #next_hop_ip_address: 10.1.100.1
+            next_hop_ip_address: 192.168.150.2
+
+        - hostname: ST-DMZ-PUB-SRV-WEB
+          type: server
+          ip_address: *ST_PUB_SRV_WEB_IP
+          subnet_mask: *ST_DMZ_SUBNET
+          default_gateway: 192.168.100.1
+          services:
+            *ST_SRV_WEB_CONFIG
+
+        #############################
+        # SOME_TECH INTRANET SUBNET #
+        #############################
+
+        - hostname: ST-INTRA-PRV-RT-CR
+          type: router
+          ports:
+            1:
+              ip_address: 192.168.150.2
+              subnet_mask: *ST_INTRA_CR_SUBNET
+            2:
+              ip_address: 192.168.160.1
+              subnet_mask: *ST_INTRA_DR_ONE_SUBNET
+            3:
+              ip_address: 192.168.170.1
+              subnet_mask: *ST_INTRA_DR_TWO_SUBNET
+            4:
+              ip_address: 192.168.220.1
+              subnet_mask: *ST_DATA_SUBNET
+
+          routes:
+            - address: 192.168.200.0
+              subnet_mask: *ST_HO_SUBNET
+              next_hop_ip_address: 192.168.170.2 # ST Intra Router Two
+            - address: 192.168.210.0
+              subnet_mask: *ST_HR_SUBNET
+              next_hop_ip_address: 192.168.170.2 # ST Intra Router Two
+            - address: 192.168.230.0
+              subnet_mask: *ST_PROJ_A_SUBNET
+              next_hop_ip_address: 192.168.160.2 # ST Intra Router One
+            - address: 192.168.240.0
+              subnet_mask: *ST_PROJ_B_SUBNET
+              next_hop_ip_address: 192.168.160.2 # ST Intra Router One
+            - address: 192.168.250.0
+              subnet_mask: *ST_PROJ_C_SUBNET
+              next_hop_ip_address: 192.168.160.2 # ST Intra Router One
+
+          default_route:
+            next_hop_ip_address: 192.168.150.1 # ST Public Firewall Internal Port
+          acl:
+            5:
+              action: PERMIT
+
+        - hostname: ST-INTRA-PRV-RT-DR-1
+          type: router
+          ports:
+            1:
+              ip_address: 192.168.160.2
+              subnet_mask: *ST_INTRA_DR_ONE_SUBNET
+            2:
+              ip_address: 192.168.230.1
+              subnet_mask: *ST_PROJ_A_SUBNET
+            3:
+              ip_address: 192.168.240.1
+              subnet_mask: *ST_PROJ_B_SUBNET
+            4:
+              ip_address: 192.168.250.1
+              subnet_mask: *ST_PROJ_C_SUBNET
+          default_route:
+              next_hop_ip_address: 192.168.160.1 # ST Intranet CR Router Port 2
+          acl:
+            5:
+              action: PERMIT
+
+        - hostname: ST-INTRA-PRV-RT-DR-2
+          type: router
+          default_gateway: 192.168.170.1
+          ports:
+            1:
+              ip_address: 192.168.170.2
+              subnet_mask: *ST_INTRA_DR_TWO_SUBNET
+            2:
+              ip_address: 192.168.200.1
+              subnet_mask: *ST_HO_SUBNET
+            3:
+              ip_address: 192.168.210.1
+              subnet_mask: *ST_HR_SUBNET
+          default_route:
+            next_hop_ip_address: 192.168.170.1 # ST Intranet CR Router Port 3
+          acl:
+            5:
+              action: PERMIT
+
+        ################################
+        # SOME_TECH HEAD OFFICE SUBNET #
+        ################################
+
+        - hostname: ST-HO-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-HO-PRV-PC-1
+          type: computer
+          ip_address: 192.168.200.2
+          default_gateway: 192.168.200.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-HO-PRV-PC-2
+          type: computer
+          ip_address: 192.168.200.3
+          default_gateway: 192.168.200.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-HO-PRV-PC-3
+          type: computer
+          ip_address: 192.168.200.4
+          default_gateway: 192.168.200.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        ####################################
+        # SOME_TECH HUMAN RESOURCES SUBNET #
+        ####################################
+
+        - hostname: ST-HR-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-HR-PRV-PC-1
+          type: computer
+          ip_address: 192.168.210.2
+          default_gateway: 192.168.210.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-HR-PRV-PC-2
+          type: computer
+          ip_address: 192.168.210.3
+          default_gateway: 192.168.210.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-HR-PRV-PC-3
+          type: computer
+          ip_address: 192.168.210.4
+          default_gateway: 192.168.210.1 # ST-INTRA-PRV-RT-DR-2 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        #########################
+        # SOME_TECH DATA SUBNET #
+        #########################
+
+        - hostname: ST-DATA-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-DATA-PRV-SRV-STORAGE
+          type: server
+          ip_address: *ST_SRV_STORAGE_IP
+          subnet_mask: *ST_DATA_SUBNET
+          default_gateway: 192.168.220.1
+          dns_server: *PUBLIC_DNS_IP
+          services:
+            *ST_SRV_STORAGE_CONFIG
+
+        - hostname: ST-DATA-PRV-SRV-DB
+          type: server
+          ip_address: *ST_SRV_DB_IP
+          subnet_mask: *ST_DATA_SUBNET
+          default_gateway: 192.168.220.1
+          dns_server: *PUBLIC_DNS_IP
+          services:
+            *ST_SRV_DB_CONFIG
+
+        #######################
+        # SOME_TECH PROJECT A #
+        #######################
+
+        - hostname: ST-PROJ-A-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-PROJ-A-PRV-PC-1
+          type: computer
+          ip_address: 192.168.230.2
+          default_gateway: 192.168.230.1 # ST-INTRA-PRV-RT-DR-1 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-A-PRV-PC-2
+          type: computer
+          ip_address: 192.168.230.3
+          default_gateway: 192.168.230.1 # ST-INTRA-PRV-RT-DR-1 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-A-PRV-PC-3
+          type: computer
+          ip_address: 192.168.230.4
+          default_gateway: 192.168.230.1 # ST-INTRA-PRV-RT-DR-1 (Port 2)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        #######################
+        # SOME_TECH PROJECT B #
+        #######################
+
+        - hostname: ST-PROJ-B-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-PROJ-B-PRV-PC-1
+          type: computer
+          ip_address: 192.168.240.2
+          default_gateway: 192.168.240.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-B-PRV-PC-2
+          type: computer
+          ip_address: 192.168.240.3
+          default_gateway: 192.168.240.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-B-PRV-PC-3
+          type: computer
+          ip_address: 192.168.240.4
+          default_gateway: 192.168.240.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        #######################
+        # SOME_TECH PROJECT C #
+        #######################
+
+        - hostname: ST-PROJ-C-PRV-SW-AS
+          type: switch
+          num_ports: 5
+
+        - hostname: ST-PROJ-C-PRV-PC-1
+          type: computer
+          ip_address: 192.168.250.2
+          default_gateway: 192.168.250.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-C-PRV-PC-2
+          type: computer
+          ip_address: 192.168.250.3
+          default_gateway: 192.168.250.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+        - hostname: ST-PROJ-C-PRV-PC-3
+          type: computer
+          ip_address: 192.168.250.4
+          default_gateway: 192.168.250.1 # ST-INTRA-PRV-RT-DR-1 (Port 3)
+          dns_server: *PUBLIC_DNS_IP
+          applications:
+            *PC_DEFAULT_CONFIG
+
+
+  ##############################
+  #  Simulation Network Links  #
+  ##############################
+    links:
+
+    ############################
+    # HOME OFFICE SUBNET LINKS #
+    ############################
+
+    # Home Switch (Port 1) --> Home Router (Port 1)
+    - endpoint_a_hostname: HOME-PUB-SW-AS
+      endpoint_a_port: 1
+      endpoint_b_hostname: HOME-PUB-RT-DR
+      endpoint_b_port: 1
+
+    # Home Switch (Port 2) --> PC 1 (Port 1)
+    - endpoint_a_hostname: HOME-PUB-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: HOME-PUB-PC-1
+      endpoint_b_port: 1
+
+    # Home Switch (Port 3) --> PC 2 (Port 1)
+    - endpoint_a_hostname: HOME-PUB-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: HOME-PUB-PC-2
+      endpoint_b_port: 1
+
+    # Home Switch (Port 4) --> PC SRV (Port 1)
+    - endpoint_a_hostname: HOME-PUB-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: HOME-PUB-SRV
+      endpoint_b_port: 1
+
+    ##################
+    # Internet Links #
+    ##################
+
+    # Internet Router (Port 1) --> Home Router (Port 2)
+    - endpoint_a_hostname: ISP-PUB-RT-BR
+      endpoint_a_port: 1
+      endpoint_b_hostname: HOME-PUB-RT-DR
+      endpoint_b_port: 2
+
+    # Internet Router (Port 2) --> DNS Server (Port 1)
+    - endpoint_a_hostname: ISP-PUB-RT-BR
+      endpoint_a_port: 2
+      endpoint_b_hostname: ISP-PUB-SRV-DNS
+      endpoint_b_port: 1
+
+    # Internet Router (Port 3) --> Remote Firewall (External Port)
+    - endpoint_a_hostname: ISP-PUB-RT-BR
+      endpoint_a_port: 3
+      endpoint_b_hostname: REM-PUB-FW
+      endpoint_b_port: 1
+
+    ####################
+    # Remote DMZ Links #
+    ####################
+
+    # Remote Firewall (Internal Port) --> Remote Site Router (Port 1)
+    - endpoint_a_hostname: REM-PUB-FW
+      endpoint_a_port: 2
+      endpoint_b_hostname: REM-PUB-RT-DR
+      endpoint_b_port: 1
+
+    ####################
+    # Remote Site Link #
+    ####################
+
+    # Remote Site Router (Port 2) --> Remote Site Switch (Port 1)
+    - endpoint_a_hostname: REM-PUB-RT-DR
+      endpoint_a_port: 2
+      endpoint_b_hostname: REM-PUB-SW-AS
+      endpoint_b_port: 1
+
+    # Remote Site Switch (Port 2) --> Remote Site PC 1 (Port 1)
+    - endpoint_a_hostname: REM-PUB-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: REM-PUB-PC-1
+      endpoint_b_port: 1
+
+    # Remote Site Switch (Port 3) --> Remote Site PC 2 (Port 1)
+    - endpoint_a_hostname: REM-PUB-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: REM-PUB-PC-2
+      endpoint_b_port: 1
+
+    # Remote Site Switch (Port 4) --> Remote Site Server (Port 1)
+    - endpoint_a_hostname: REM-PUB-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: REM-PUB-SRV
+      endpoint_b_port: 1
+
+    #######################
+    # SOME_TECH DMZ Links #
+    #######################
+
+    # Internet Router (Port 4) --> Some Tech DMZ Firewall (External Port)
+    - endpoint_a_hostname: ISP-PUB-RT-BR
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-PUB-FW
+      endpoint_b_port: 1
+
+    # Some Tech DMZ Firewall (DMZ Port) --> Some Tech Web Server (Port 1)
+    - endpoint_a_hostname: ST-PUB-FW
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-DMZ-PUB-SRV-WEB
+      endpoint_b_port: 1
+
+    ############################
+    # SOME_TECH INTRANET Links #
+    ############################
+
+    # Some Tech Intranet CR Router (Port 1) --> Some Tech DMZ Firewall (Internal Port)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-CR
+      endpoint_a_port: 1
+      endpoint_b_hostname: ST-PUB-FW
+      endpoint_b_port: 2
+
+    # Some Tech Intranet CR Router (Port 2) --> Some Tech Intranet DR Router 1 (Port 1)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-CR
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-INTRA-PRV-RT-DR-1
+      endpoint_b_port: 1
+
+    # Some Tech Intranet CR Router (Port 3) --> Some Tech Intranet DR Router 2 (Port 2)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-CR
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-INTRA-PRV-RT-DR-2
+      endpoint_b_port: 1
+
+    # Some Tech Intranet Private Router CR (Port 4) --> Some Tech Data Private Switch (Port 1)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-CR
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-DATA-PRV-SW-AS
+      endpoint_b_port: 1
+
+
+    ###############################
+    # SOME_TECH HEAD OFFICE Links #
+    ###############################
+
+    # Some Tech Head Office Switch  (Port 1) --> Some Tech Intranet Private Router DR 2 (Port 2)
+    - endpoint_a_hostname: ST-HO-PRV-SW-AS
+      endpoint_a_port: 1
+      endpoint_b_hostname: ST-INTRA-PRV-RT-DR-2
+      endpoint_b_port: 2
+
+    # Some Tech Head Office Switch  (Port 2) --> Some Tech Head Office PC 1 (Port 1)
+    - endpoint_a_hostname: ST-HO-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-HO-PRV-PC-1
+      endpoint_b_port: 1
+
+    # Some Tech Head Office Switch  (Port 3) --> Some Tech Head Office PC 2 (Port 1)
+    - endpoint_a_hostname: ST-HO-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-HO-PRV-PC-2
+      endpoint_b_port: 1
+
+    # Some Tech Head Office Switch  (Port 4) --> Some Tech Head Office PC 3 (Port 1)
+    - endpoint_a_hostname: ST-HO-PRV-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-HO-PRV-PC-3
+      endpoint_b_port: 1
+
+
+    ###################################
+    # SOME_TECH HUMAN RESOURCES Links #
+    ###################################
+
+    # Some Tech Human Resources Switch (Port 1) --> Some Tech Intranet Private Router DR 2 (Port 3)
+    - endpoint_a_hostname: ST-HR-PRV-SW-AS
+      endpoint_a_port: 1
+      endpoint_b_hostname: ST-INTRA-PRV-RT-DR-2
+      endpoint_b_port: 3
+
+    # Some Tech Human Resources Switch (Port 2) --> Some Tech Human Resources PC 1 (Port 1)
+    - endpoint_a_hostname: ST-HR-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-HR-PRV-PC-1
+      endpoint_b_port: 1
+
+    # Some Tech Human Resources Switch (Port 3) --> Some Tech Human Resources PC 2 (Port 1)
+    - endpoint_a_hostname: ST-HR-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-HR-PRV-PC-2
+      endpoint_b_port: 1
+
+    # Some Tech Human Resources Switch (Port 4) --> Some Tech Human Resources PC 3 (Port 1)
+    - endpoint_a_hostname: ST-HR-PRV-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-HR-PRV-PC-3
+      endpoint_b_port: 1
+
+    ########################
+    # SOME_TECH DATA Links #
+    ########################
+
+    # Some Tech Data Switch (Port 2) --> Some Tech Data Private Storage Server (Port 1)
+    - endpoint_a_hostname: ST-DATA-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-DATA-PRV-SRV-STORAGE
+      endpoint_b_port: 1
+
+    # Some Tech Data Switch (Port 3) --> Some Tech Data Private Database Server (Port 1)
+
+    - endpoint_a_hostname: ST-DATA-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-DATA-PRV-SRV-DB
+      endpoint_b_port: 1
+
+    #############################
+    # SOME_TECH PROJECT A Links #
+    #############################
+
+    # Some Tech Intranet Private Router DR 1 (Port 2) --> Some Tech Private Project A Switch (Port 1)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-DR-1
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-PROJ-A-PRV-SW-AS
+      endpoint_b_port: 1
+
+    # Some Tech Private Project A Switch (Port 2) --> Some Tech Project A PC 1
+    - endpoint_a_hostname: ST-PROJ-A-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-PROJ-A-PRV-PC-1
+      endpoint_b_port: 1
+
+    # Some Tech Private Project A Switch (Port 3) --> Some Tech Project A PC 2
+    - endpoint_a_hostname: ST-PROJ-A-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-PROJ-A-PRV-PC-2
+      endpoint_b_port: 1
+
+    # Some Tech Private Project A Switch (Port 4) --> Some Tech Project A PC 3
+    - endpoint_a_hostname: ST-PROJ-A-PRV-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-PROJ-A-PRV-PC-3
+      endpoint_b_port: 1
+
+    #############################
+    # SOME_TECH PROJECT B Links #
+    #############################
+
+    # Some Tech Intranet Private Router DR 1 (Port 3) --> Some Tech Private Project B Switch (Port 1)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-DR-1
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-PROJ-B-PRV-SW-AS
+      endpoint_b_port: 1
+
+    # Some Tech Private Project B Switch (Port 2) --> Some Tech Project B PC 1
+    - endpoint_a_hostname: ST-PROJ-B-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-PROJ-B-PRV-PC-1
+      endpoint_b_port: 1
+
+    # Some Tech Private Project B Switch (Port 3) --> Some Tech Project B PC 2
+    - endpoint_a_hostname: ST-PROJ-B-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-PROJ-B-PRV-PC-2
+      endpoint_b_port: 1
+
+    # Some Tech Private Project B Switch (Port 4) --> Some Tech Project B PC 3
+    - endpoint_a_hostname: ST-PROJ-B-PRV-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-PROJ-B-PRV-PC-3
+      endpoint_b_port: 1
+
+    #############################
+    # SOME_TECH PROJECT C Links #
+    #############################
+
+    # Some Tech Intranet Private Router DR 1 (Port 4) --> Some Tech Private Project C Switch (Port 1)
+    - endpoint_a_hostname: ST-INTRA-PRV-RT-DR-1
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-PROJ-C-PRV-SW-AS
+      endpoint_b_port: 1
+
+    # Some Tech Private Project C Switch (Port 2) --> Some Tech Project C PC 1
+    - endpoint_a_hostname: ST-PROJ-C-PRV-SW-AS
+      endpoint_a_port: 2
+      endpoint_b_hostname: ST-PROJ-C-PRV-PC-1
+      endpoint_b_port: 1
+
+    # Some Tech Private Project C Switch (Port 3) --> Some Tech Project C PC 2
+    - endpoint_a_hostname: ST-PROJ-C-PRV-SW-AS
+      endpoint_a_port: 3
+      endpoint_b_hostname: ST-PROJ-C-PRV-PC-2
+      endpoint_b_port: 1
+
+    # Some Tech Private Project C Switch (Port 4) --> Some Tech Project C PC 3
+    - endpoint_a_hostname: ST-PROJ-C-PRV-SW-AS
+      endpoint_a_port: 4
+      endpoint_b_hostname: ST-PROJ-C-PRV-PC-3
+      endpoint_b_port: 1
+
+##################################
+#  Use Case 7 Agent YAML Anchors #
+##################################
+
+##############################
+#  Green Agent YAML Anchors  #
+##############################
+
+# Green Agent Reward Impacts Values #
+
+LOW_WEIGHT_IMPACT: &LOW_WEIGHT_IMPACT 0.2
+MEDIUM_WEIGHT_IMPACT: &MEDIUM_WEIGHT_IMPACT 0.5
+HIGH_WEIGHT_IMPACT: &HIGH_WEIGHT_IMPACT 0.95
+
+LOW_WEIGHT_IMPACT_NEGATIVE: &LOW_WEIGHT_IMPACT_NEG -0.2
+MEDIUM_WEIGHT_IMPACT_NEGATIVE: &MEDIUM_WEIGHT_IMPACT_NEG -0.5
+HIGH_WEIGHT_IMPACT_NEGATIVE: &HIGH_WEIGHT_IMPACT_NEG -0.8
+
+# Default Green Agent Action Space Configuration Anchor #
+
+DEFAULT_GREEN_AGENT_MAX_EXECUTIONS: &DEFAULT_GREEN_AGENT_MAX_EXECUTIONS 1000 # Ensures green agent activity through-out an episode
+
+#################################################
+# Probabilistic Green Agent Config Yaml Anchors #
+#################################################
+
+# Probabilistic Green Agent | 20% NODE_APPLICATION_EXECUTE | 80% do-nothing #
+PROBABILISTIC_CONFIG_20_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_20
+      action_probabilities:
+        0: 0.8
+        1: 0.2
+
+# Probabilistic Green Agent | 40% NODE_APPLICATION_EXECUTE | 60% do-nothing #
+PROBABILISTIC_CONFIG_40_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_40
+      action_probabilities:
+        0: 0.6
+        1: 0.4
+
+# Probabilistic Green Agent | 60% NODE_APPLICATION_EXECUTE | 40% do-nothing #
+PROBABILISTIC_CONFIG_20_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_60
+      action_probabilities:
+        0: 0.4
+        1: 0.6
+
+
+# System Green Agent Config UC7 Network Wide Yaml Anchor #
+
+# Lists the IP_Address of all hosts that contain DNS and NTP Service Clients
+UC7_IP_LIST: &UC7_IP_LIST
+  # ====== Home Office ========
+  - 192.168.1.2 # HOME-PUB-PC-1     | ip_id: 2
+  - 192.168.1.3 # HOME-PUB-PC-2     | ip_id: 3
+  - 192.168.1.4 # HOME-PUB-PC-SRV   | ip_id: 4
+  # ====== Remote Site ========
+  - 192.168.20.2 #  REM-PUB-PC-1    | ip_id: 5
+  - 192.168.20.3 #  REM-PUB-PC-2    | ip_id: 6
+  - 192.168.20.4 #  REM-PUB-SRV     | ip_id: 7
+  # ====== ST Public DMZ =======
+  - *ST_PUB_SRV_WEB_IP # 192.168.100.2 (ST-DMZ-PUB-SRV-WEB) | ip_id: 8
+  # ====== ST Head Office =======
+  - 192.168.200.2 # ST-HO-PRV-PC-1  | ip_id: 9
+  - 192.168.200.3 # ST-HO-PRV-PC-2  | ip_id: 10
+  - 192.168.200.4 # ST-HO-PRV-PC-3  | ip_id: 11
+  # ===== ST Human Resources ======
+  - 192.168.210.2 # ST-HR-PRV-PC-1  | ip_id: 12
+  - 192.168.210.3 # ST-HR-PRV-PC-2  | ip_id: 13
+  - 192.168.210.4 # ST-HR-PRV-PC-3  | ip_id: 14
+  # ====== ST DATA Servers =======
+  - *ST_SRV_STORAGE_IP  # 192.168.220.2 (ST-DATA-PRV-SRV-STORAGE) | ip_id: 15
+  - *ST_SRV_DB_IP       # 192.168.220.3 (ST-DATA-PRV-SRV-DB)      | ip_id: 16
+  # ====== ST Project A =======
+  - 192.168.230.2 # PROJ-A-PRV-PC-1 | ip_id: 17
+  - 192.168.230.3 # PROJ-A-PRV-PC-2 | ip_id: 18
+  - 192.168.230.4 # PROJ-A-PRV-PC-3 | ip_id: 19
+  # ====== ST Project B =======
+  - 192.168.240.2 # PROJ-B-PRV-PC-1 | ip_id: 20
+  - 192.168.240.3 # PROJ-B-PRV-PC-2 | ip_id: 21
+  - 192.168.240.4 # PROJ-B-PRV-PC-3 | ip_id: 22
+  # ====== ST Project C =======
+  - 192.168.250.2 # PROJ-C-PRV-PC-1 | ip_id: 23
+  - 192.168.250.3 # PROJ-C-PRV-PC-2 | ip_id: 24
+  - 192.168.250.4 # PROJ-C-PRV-PC-3 | ip_id: 25
+
+############################################
+#  Use Case 7 Agent Configuration Section  #
+############################################
+
+agents:
+  #######################################################
+  #  UC7 Green Agents Path of Life (POL) Configuration  #
+  #######################################################
+
+
+  ####################################
+  #  Home Office Network POL Config  #
+  ####################################
+
+  # Home Office Green Agent Pattern Of Life
+  # ======================================
+  # 1. Three Home workers accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 2. Three Home workers accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: HOME_WORKER-1-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["HOME-PUB-PC-1"]
+      target_application: "database-client"
+      start_step: 4
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: HOME-PUB-PC-1
+
+  - ref: HOME_WORKER-1-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: HOME-PUB-PC-1
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: HOME-PUB-PC-1
+
+  - ref: HOME_WORKER-2-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["HOME-PUB-PC-2"]
+      target_application: "database-client"
+      start_step: 8
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: HOME-PUB-PC-2
+
+  - ref: HOME_WORKER-2-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: HOME-PUB-PC-2
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: HOME-PUB-PC-2
+
+  ####################################
+  #  Remote Site Network POL Config  #
+  ####################################
+
+  # Remote Site Green Agent Pattern Of Life
+  # ======================================
+  # 1. Three Remote workers accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 2. Three Remote workers accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: REMOTE_WORKER-1-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["REM-PUB-PC-1"]
+      target_application: "database-client"
+      start_step: 12
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: REM-PUB-PC-1
+
+  - ref: REMOTE_WORKER-1-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: REM-PUB-PC-1
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: REM-PUB-PC-1
+
+  - ref: REMOTE_WORKER-2-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["REM-PUB-PC-2"]
+      target_application: "database-client"
+      start_step: 16
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: REM-PUB-PC-2
+
+  - ref: REMOTE_WORKER-2-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: REM-PUB-PC-2
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: REM-PUB-PC-2
+
+  ####################################
+  # ST Project A Network POL Config  #
+  ####################################
+
+  # ST Project A Green Agent Pattern Of Life
+  # ========================================
+  # 1. A Senior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 2. A Senior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 3. Two Junior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 4. Two Junior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+
+  - ref: PROJ_A-SENIOR-DEV-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-A-PRV-PC-1"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-A-PRV-PC-1
+
+  - ref: PROJ_A-SENIOR-DEV-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_40
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-A-PRV-PC-1
+
+  - ref: PROJ_A-JUNIOR-DEV-1-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-A-PRV-PC-2"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-A-PRV-PC-2
+
+  - ref: PROJ_A-JUNIOR-DEV-1-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-A-PRV-PC-2
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-A-PRV-PC-2
+
+  - ref: PROJ_A-JUNIOR-DEV-2-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-A-PRV-PC-3"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-A-PRV-PC-3
+
+  - ref: PROJ_A-JUNIOR-DEV-2-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-A-PRV-PC-3
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-A-PRV-PC-3
+
+  ####################################
+  # ST Project B Network POL Config  #
+  ####################################
+
+  # ST Project B Green Agent Pattern Of Life
+  # ========================================
+  # 1. A Senior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 2. A Senior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 3. Two Junior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 4. Two Junior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: PROJ_B-SENIOR-DEV-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-B-PRV-PC-1"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-B-PRV-PC-1
+
+  - ref: PROJ_B-SENIOR-DEV-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-B-PRV-PC-1
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_40
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-B-PRV-PC-1
+
+  - ref: PROJ_B-JUNIOR-DEV-1-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-B-PRV-PC-2"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-B-PRV-PC-2
+
+  - ref: PROJ_B-JUNIOR-DEV-1-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-B-PRV-PC-2
+
+  - ref: PROJ_B-JUNIOR-DEV-2-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-B-PRV-PC-3"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-B-PRV-PC-3
+
+  - ref: PROJ_B-JUNIOR-DEV-2-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-B-PRV-PC-3
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-B-PRV-PC-3
+
+  ####################################
+  # ST Project C Network POL Config  #
+  ####################################
+
+  # ST Project C Green Agent Pattern Of Life
+  # ========================================
+  # 1. A Senior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 2. A Senior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 3. Two Junior Developer accessing the SOME_TECH Private Database (ST-DATA-PRV-SRV-DB)
+  # 4. Two Junior Developer accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: PROJ_C-SENIOR-DEV-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-C-PRV-PC-1"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-C-PRV-PC-1
+
+  - ref: PROJ_C-SENIOR-DEV-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-C-PRV-PC-1
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_40
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-C-PRV-PC-1
+
+  - ref: PROJ_C-JUNIOR-DEV-1-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-C-PRV-PC-2"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-C-PRV-PC-2
+
+  - ref: PROJ_C-JUNIOR-DEV-1-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-C-PRV-PC-2
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-C-PRV-PC-2
+
+  - ref: PROJ_C-JUNIOR-DEV-2-DB
+    team: GREEN
+    type: periodic-agent
+    observation_space: {}
+    observation_space: {}
+    agent_settings:
+      possible_start_nodes: ["ST-PROJ-C-PRV-PC-3"]
+      target_application: "database-client"
+      start_step: 1
+      start_variance: 1
+      max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+      frequency: 4
+      variance: 1
+    reward_function:
+      reward_components:
+      - type: green-admin-database-unreachable-penalty
+        weight: *MEDIUM_WEIGHT_IMPACT
+        options:
+          node_hostname: ST-PROJ-C-PRV-PC-3
+
+  - ref: PROJ_C-JUNIOR-DEV-2-WEB
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            application_name: web-browser
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_20
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *LOW_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-PROJ-C-PRV-PC-3
+
+  ######################################
+  # ST Head Office Network POL Config  #
+  ######################################
+
+  # ST Head Office Green Agent Pattern Of Life
+  # ==========================================
+  # 1. The ST CEO accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 2. The ST CTO accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 3. The ST CFO accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: CEO
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HO-PRV-PC-1
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *HIGH_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HO-PRV-PC-1
+
+  - ref: CTO
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HO-PRV-PC-2
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *MEDIUM_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HO-PRV-PC-2
+
+  - ref: CFO
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HO-PRV-PC-3
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *MEDIUM_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HO-PRV-PC-3
+
+  ##########################################
+  # ST Human Resources Network POL Config  #
+  ##########################################
+
+  # ST Head Office Green Agent Pattern Of Life
+  # ==========================================
+  # 1. A senior HR staff accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+  # 2. Two junior HR staff accessing the SOME_TECH Public web-server (ST-DMZ-PUB-SRV-WEB)
+
+  - ref: SENIOR_HR
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HR-PRV-PC-1
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *MEDIUM_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HR-PRV-PC-1
+
+  - ref: JUNIOR_HR-1
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HR-PRV-PC-2
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *MEDIUM_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HR-PRV-PC-2
+
+  - ref: JUNIOR_HR-2
+    team: GREEN
+    type: probabilistic-agent
+    observation_space: {}
+    agent_settings:
+      <<: *GREEN_PROBABILISTIC_60
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_name: ST-HR-PRV-PC-3
+            application_name: web-browser
+    reward_function:
+      reward_components:
+        - type: webpage-unavailable-penalty
+          weight: *MEDIUM_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-HR-PRV-PC-3
+
+  ##########################
+  #  UC7 Red Agent Config  #
+  ##########################
+
+  - *red
+###########################
+#  UC7 Blue Agent Config  #
+###########################
+
+  - ref: defender
+    team: BLUE
+    type: proxy-agent
+    observation_space:
+      type: custom
+      options:
+        components:
+          - type: nodes
+            label: NODES
+            options:
+              hosts:
+              # TAP001 Potential Starting Note | ST-PROJ-A-PRV-PC-1
+                - hostname: ST-PROJ-A-PRV-PC-1
+                  services:
+                    - service_name: ftp-client
+                  applications:
+                    - application_name: ransomware-script
+                    - application_name: database-client
+                  folders:
+                    - folder_name: downloads
+                      files:
+                        - file_name: malware_dropper.ps1
+                    - folder_name: exfiltration_folder
+                      files:
+                        - file_name: database.db
+                # TAP001 Potential Starting Note | ST-PROJ-B-PRV-PC-2
+                - hostname: ST-PROJ-B-PRV-PC-2
+                  services:
+                    - service_name: ftp-client
+                  applications:
+                    - application_name: ransomware-script
+                  folders:
+                    - folder_name: downloads
+                      files:
+                        - file_name: malware_dropper.ps1
+                    - folder_name: exfiltration_folder
+                      files:
+                        - file_name: database.db
+                # TAP001 Potential Starting Note | ST-PROJ-C-PRV-PC-3
+                - hostname: ST-PROJ-C-PRV-PC-3
+                  services:
+                    - service_name: ftp-client
+                  applications:
+                    - application_name: ransomware-script
+                  folders:
+                    - folder_name: downloads
+                      files:
+                        - file_name: malware_dropper.ps1
+                    - folder_name: exfiltration_folder
+                      files:
+                        - file_name: database.db
+                # ST DATA Server Database
+                - hostname: ST-DATA-PRV-SRV-DB
+                  folders:
+                    - folder_name: database
+                      files:
+                        - file_name: database.db
+              routers:
+                - hostname: ST-INTRA-PRV-RT-CR   # TAP003 Malicious ACL Target | ROUTER0
+                - hostname: ST-INTRA-PRV-RT-DR-1 # TAP003 Malicious ACL Target | ROUTER1
+                - hostname: REM-PUB-RT-DR        # TAP003 Malicious ACL Target | ROUTER2
+              num_ports: 5
+              num_services: 2
+              num_applications: 2
+              num_folders: 2
+              num_files: 1
+              num_nics: 1
+              ip_list:
+                #  ip_list is indexed at 2:
+                #  0 reserved for padding to align with observations
+                #  1 reserved for ALL ips
+                *UC7_IP_LIST
+              wildcard_list:
+                - 0.0.0.1      # 0
+                - 0.0.0.255    # 1
+                - 0.0.255.255  # 2
+              port_list:
+                                        # 0 is a padding placeholder
+                                        # 1 means ALL ports
+                - FTP                   # 2
+                - DNS                   # 3
+                - HTTP                  # 4
+                - NTP                   # 5
+                - POSTGRES_SERVER       # 6
+                - SSH                   # 7
+
+              protocol_list:
+                        # 0 is padding placeholder
+                        # 1 means ALL protocols
+                - ICMP    # 2
+                - TCP     # 3
+                - UDP     # 4
+              num_rules: 5
+              include_num_access: true
+              include_nmne: true
+              monitored_traffic:
+                tcp:
+                  - HTTP
+                  - POSTGRES_SERVER
+                icmp:
+                  - NONE
+          - type: links
+            label: LINKS
+            options:
+              link_references:
+                # HOME OFFICE SUBNET LINKS
+                - HOME-PUB-SW-AS:eth-1<->HOME-PUB-RT-DR:eth-1                # 1
+                - HOME-PUB-SW-AS:eth-1<->HOME-PUB-PC-1:eth-1                 # 2
+                - HOME-PUB-SW-AS:eth-1<->HOME-PUB-PC-2:eth-1                 # 3
+                - HOME-PUB-SW-AS:eth-1<->HOME-PUB-SRV:eth-1                  # 4
+                # Internet LINKS
+                - ISP-PUB-RT-BR:eth-1<->HOME-PUB-RT-DR:eth-2                 # 5
+                - ISP-PUB-RT-BR:eth-2<->ISP-PUB-SRV-DNS:eth-1                # 6
+                - ISP-PUB-RT-BR:eth-3<->REM-PUB-FW:eth-1                     # 7
+                # Remote DMZ Links
+                - REM-PUB-FW:eth-2<->REM-PUB-RT-DR:eth-1                     # 8
+                # Remote Site Links
+                - REM-PUB-RT-DR:eth-2<->REM-PUB-SW-AS:eth-1                  # 9
+                - REM-PUB-SW-AS:eth-2<->REM-PUB-PC-1:eth-1                   # 10
+                - REM-PUB-SW-AS:eth-3<->REM-PUB-PC-2:eth-1                   # 11
+                - REM-PUB-SW-AS:eth-4<->REM-PUB-SRV:eth-1                    # 12
+                # SOME_TECH DMZ
+                - ISP-PUB-RT-BR:eth-4<->ST-PUB-FW:eth-1                      # 13
+                - ST-PUB-FW:eth-3<->ST-DMZ-PUB-SRV-WEB:eth-1                 # 14
+                # SOME_TECH Intranet
+                - ST-INTRA-PRV-RT-CR:eth-1<->ST-PUB-FW:eth-2                 # 15
+                - ST-INTRA-PRV-RT-CR:eth-2<->ST-INTRA-PRV-RT-DR-1:eth-1      # 16
+                - ST-INTRA-PRV-RT-CR:eth-3<->ST-INTRA-PRV-RT-DR-2:eth-1      # 17
+                - ST-INTRA-PRV-RT-CR:eth-4<->ST-DATA-PRV-SW-AS:eth-1         # 18
+                # SOME_TECH Head Office
+                - ST-HO-PRV-SW-AS:eth-1<->ST-INTRA-PRV-RT-DR-2:eth-2         # 19
+                - ST-HO-PRV-SW-AS:eth-2<->ST-HO-PRV-PC-1:eth-1               # 20
+                - ST-HO-PRV-SW-AS:eth-3<->ST-HO-PRV-PC-2:eth-1               # 21
+                - ST-HO-PRV-SW-AS:eth-4<->ST-HO-PRV-PC-3:eth-1               # 22
+                # SOME_TECH Human Resources
+                - ST-HR-PRV-SW-AS:eth-1<->ST-INTRA-PRV-RT-DR-2:eth-3         # 23
+                - ST-HR-PRV-SW-AS:eth-2<->ST-HR-PRV-PC-1:eth-1               # 24
+                - ST-HR-PRV-SW-AS:eth-3<->ST-HR-PRV-PC-2:eth-1               # 25
+                - ST-HR-PRV-SW-AS:eth-4<->ST-HR-PRV-PC-3:eth-1               # 26
+                # SOME_TECH Data Links
+                - ST-DATA-PRV-SW-AS:eth-2<->ST-DATA-PRV-SRV-STORAGE:eth-1    # 27
+                - ST-DATA-PRV-SW-AS:eth-3<->ST-DATA-PRV-SRV-DB:eth-1         # 28
+                # SOME_TECH Project A Links
+                - ST-INTRA-PRV-RT-DR-1:eth-2<->ST-PROJ-A-PRV-SW-AS:eth-1     # 29
+                - ST-PROJ-A-PRV-SW-AS:eth2<->ST-PROJ-A-PRV-PC-1:eth-1        # 31
+                - ST-PROJ-A-PRV-SW-AS:eth3<->ST-PROJ-A-PRV-PC-2:eth-1        # 32
+                - ST-PROJ-A-PRV-SW-AS:eth4<->ST-PROJ-A-PRV-PC-3:eth-1        # 33
+                # SOME_TECH Project B Links
+                - ST-INTRA-PRV-RT-DR-1:eth-3<->ST-PROJ-B-PRV-SW-AS:eth-1     # 34
+                - ST-PROJ-B-PRV-SW-AS:eth2<->ST-PROJ-B-PRV-PC-1:eth-1        # 35
+                - ST-PROJ-B-PRV-SW-AS:eth3<->ST-PROJ-B-PRV-PC-2:eth-1        # 36
+                - ST-PROJ-B-PRV-SW-AS:eth4<->ST-PROJ-B-PRV-PC-3:eth-1        # 37
+                # SOME_TECH Project C Links
+                - ST-INTRA-PRV-RT-DR-1:eth-4<->ST-PROJ-C-PRV-SW-AS:eth-1     # 38
+                - ST-PROJ-A-PRV-SW-AS:eth2<->ST-PROJ-C-PRV-PC-1:eth-1        # 39
+                - ST-PROJ-A-PRV-SW-AS:eth3<->ST-PROJ-C-PRV-PC-2:eth-1        # 40
+                - ST-PROJ-A-PRV-SW-AS:eth4<->ST-PROJ-C-PRV-PC-3:eth-1        # 41
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+
+        # |======================================|
+        # |          ST-PROJ-A-PRV-PC-1          |
+        # |======================================|
+
+        # ST-PROJ-A-PRV-PC-1 | node-os-scan
+        1:
+          action: node-os-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+        # ST-PROJ-A-PRV-PC-1 | node-shutdown
+        2:
+          action: node-shutdown
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+        # ST-PROJ-A-PRV-PC-1 | node-startup
+        3:
+          action: node-startup
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+        # ST-PROJ-A-PRV-PC-1 | node-reset
+        4:
+          action: node-reset
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+        # ST-PROJ-A-PRV-PC-1 | host-nic-disable
+        5:
+          action: host-nic-disable
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            nic_num: 0
+        # ST-PROJ-A-PRV-PC-1 | host-nic-enable
+        6:
+          action: host-nic-enable
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            nic_num: 0
+        # ST-PROJ-A-PRV-PC-1 | node-application-close | database-client
+        7:
+          action: node-application-close
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            application_name: database-client
+
+        # ST-PROJ-A-PRV-PC-1 | node-application-scan | database-client
+        8:
+          action: node-application-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            application_name: database-client
+
+        # ST-PROJ-A-PRV-PC-1 | node-application-fix | database-client
+        9:
+          action: node-application-fix
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            application_name: database-client
+
+          # ST-PROJ-A-PRV-PC-1 | node-application-remove | database-client
+        10:
+          action: node-application-remove
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            application_name: database-client
+
+
+        # ST-PROJ-A-PRV-PC-1 | node-file-scan | downloads/malware_dropper.ps1
+        11:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            folder_name: downloads
+            file_name: malware_dropper.ps1
+
+        # ST-PROJ-A-PRV-PC-1 | node-file-scan | exfiltration_folder/database.db
+        12:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            folder_name: exfiltration_folder
+            file_name: database.db
+
+        # ST-PROJ-A-PRV-PC-1 | node-folder-scan | downloads/
+        13:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            folder_name: downloads
+
+        # ST-PROJ-A-PRV-PC-1 | node-folder-scan | exfiltration_folder/
+        14:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-A-PRV-PC-1
+            folder_name: exfiltration_folder
+
+        # |======================================|
+        # |          ST-PROJ-B-PRV-PC-2          |
+        # |======================================|
+
+        # ST-PROJ-B-PRV-PC-2 | node-os-scan
+        15:
+          action: node-os-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+
+        # ST-PROJ-B-PRV-PC-2 | node-shutdown
+        16:
+          action: node-shutdown
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+
+        # ST-PROJ-B-PRV-PC-2 | node-startup
+        17:
+          action: node-startup
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+
+        # ST-PROJ-B-PRV-PC-2 | node-reset
+        18:
+          action: node-reset
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+
+        # ST-PROJ-B-PRV-PC-2 | host-nic-disable
+        19:
+          action: host-nic-disable
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            nic_num: 0
+
+        # ST-PROJ-B-PRV-PC-2 | host-nic-enable
+        20:
+          action: host-nic-enable
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            nic_num: 0
+
+        # ST-PROJ-B-PRV-PC-2 | node-application-close | database-client
+        21:
+          action: node-application-close
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            application_name: database-client
+
+        # ST-PROJ-B-PRV-PC-2 | node-application-scan | database-client
+        22:
+          action: node-application-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            application_name: database-client
+
+        # ST-PROJ-B-PRV-PC-2 | node-application-fix | database-client
+        23:
+          action: node-application-fix
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            application_name: database-client
+
+        # ST-PROJ-B-PRV-PC-2 | node-application-remove | database-client
+        24:
+          action: node-application-remove
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            application_name: database-client
+
+        # ST-PROJ-B-PRV-PC-2 | node-file-scan | downloads/malware_dropper.ps1
+        25:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            folder_name: downloads
+            file_name: malware_dropper.ps1
+
+        # ST-PROJ-B-PRV-PC-2 | node-file-scan | exfiltration_folder/database.db
+        26:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            folder_name: exfiltration_folder
+            file_name: database.db
+
+        # ST-PROJ-B-PRV-PC-2 | node-folder-scan | downloads/
+        27:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            folder_name: downloads
+
+        # ST-PROJ-B-PRV-PC-2 | node-folder-scan | exfiltration_folder/
+        28:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-B-PRV-PC-2
+            folder_name: exfiltration_folder
+
+        # |======================================|
+        # |          ST-PROJ-C-PRV-PC-3          |
+        # |======================================|
+
+        # ST-PROJ-C-PRV-PC-3 | node-os-scan
+        29:
+          action: node-os-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+
+        # ST-PROJ-C-PRV-PC-3 | node-shutdown
+        30:
+          action: node-shutdown
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+
+        # ST-PROJ-C-PRV-PC-3 | node-startup
+        31:
+          action: node-startup
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+
+        # ST-PROJ-C-PRV-PC-3 | node-reset
+        32:
+          action: node-reset
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+
+        # ST-PROJ-C-PRV-PC-3 | host-nic-disable
+        33:
+          action: host-nic-disable
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            nic_num: 0
+
+        # ST-PROJ-C-PRV-PC-3 | host-nic-enable
+        34:
+          action: host-nic-enable
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            nic_num: 0
+
+        # ST-PROJ-C-PRV-PC-3 | node-application-close | database-client
+        35:
+          action: node-application-close
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            application_name: database-client
+
+        # ST-PROJ-C-PRV-PC-3 | node-application-scan | database-client
+        36:
+          action: node-application-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            application_name: database-client
+
+        # ST-PROJ-C-PRV-PC-3 | node-application-fix | database-client
+        37:
+          action: node-application-fix
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            application_name: database-client
+
+          # ST-PROJ-C-PRV-PC-3 | node-application-remove | database-client
+        38:
+          action: node-application-remove
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            application_name: database-client
+
+        # ST-PROJ-C-PRV-PC-3 | node-file-scan | downloads/malware_dropper.ps1
+        39:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            folder_name: downloads
+            file_name: malware_dropper.ps1
+
+        # ST-PROJ-C-PRV-PC-3 | node-file-scan | exfiltration_folder/database.db
+        40:
+          action: node-file-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            folder_name: exfiltration_folder
+            file_name: database.db
+
+        # ST-PROJ-C-PRV-PC-3 | node-folder-scan | downloads/
+        41:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            folder_name: downloads
+
+        # ST-PROJ-C-PRV-PC-3 | node-folder-scan | exfiltration_folder/
+        42:
+          action: node-folder-scan
+          options:
+            node_name: ST-PROJ-C-PRV-PC-3
+            folder_name: exfiltration_folder
+
+        # |======================================|
+        # |          ST-INTRA-PRV-RT-CR          |
+        # |======================================|
+
+        # ST-INTRA-PRV-RT-CR | router-acl-add-rule | P2: ST-PROJ-A-PRV-PC-1 !==> ST-DATA-PRV-SRV-DB (TCP:POSTGRES_SERVER)
+        43:
+          action: router-acl-add-rule
+          options:
+            target_router: ST-INTRA-PRV-RT-CR
+            position: 1
+            permission: DENY
+            src_ip: 192.168.230.2 # (ST-PROJ-A-PRV-PC-1)
+            src_wildcard: 0.0.255.255
+            src_port: POSTGRES_SERVER
+            dst_ip: 192.168.220.3 # (ST-DATA-PRV-SRV-DB)
+            dst_wildcard: 0.0.255.255
+            dst_port: POSTGRES_SERVER
+            protocol_name: TCP
+
+        # ST-INTRA-PRV-RT-CR | REMOVE_ACL_ADDRULE | Removes a given ACL at position 1
+        44:
+            action: router-acl-remove-rule
+            options:
+              target_router: ST-INTRA-PRV-RT-CR
+              position: 1
+
+        # ST-INTRA-PRV-RT-CR | router-acl-add-rule | P3: ST-PROJ-B-PRV-PC-2 !==> ST-DATA-PRV-SRV-DB (TCP:POSTGRES_SERVER)
+        45:
+          action: router-acl-add-rule
+          options:
+            target_router: ST-INTRA-PRV-RT-CR
+            position: 2
+            permission: DENY
+            src_ip: 192.168.240.3 # (ST-PROJ-B-PRV-PC-2)
+            src_wildcard: 0.0.255.255
+            src_port: POSTGRES_SERVER
+            dst_ip: 192.168.220.3 # (ST-DATA-PRV-SRV-DB)
+            dst_wildcard: 0.0.255.255
+            dst_port: POSTGRES_SERVER
+            protocol_name: TCP
+        # ST-INTRA-PRV-RT-CR | REMOVE_ACL_ADDRULE | Removes a given ACL at position 2
+        46:
+            action: router-acl-remove-rule
+            options:
+              target_router: ST-INTRA-PRV-RT-CR
+              position: 2
+
+        # ST-INTRA-PRV-RT-CR | router-acl-add-rule | P4: ST-PROJ-C-PRV-PC-3 !==> ST-DATA-PRV-SRV-DB (TCP:POSTGRES_SERVER)
+        47:
+          action: router-acl-add-rule
+          options:
+            target_router: ST-INTRA-PRV-RT-CR
+            position: 3
+            permission: DENY
+            src_ip: 192.168.250.4 # (ST-PROJ-C-PRV-PC-3)
+            src_wildcard: 0.0.255.255
+            src_port: POSTGRES_SERVER
+            dst_ip: 192.168.220.3 # (ST-DATA-PRV-SRV-DB)
+            dst_wildcard: 0.0.255.255
+            dst_port: POSTGRES_SERVER
+            protocol_name: TCP
+
+        # ST-INTRA-PRV-RT-CR | REMOVE_ACL_ADDRULE | Removes a given ACL at position 3
+        48:
+            action: router-acl-remove-rule
+            options:
+              target_router: ST-INTRA-PRV-RT-CR
+              position: 3
+
+        # |======================================|
+        # |          ST-DATA-PRV-SRV-DB          |
+        # |======================================|
+
+        # ST-DATA-PRV-SRV-DB | node-file-scan | Scans the database.db file (health status)
+        49:
+          action: node-file-scan
+          options:
+            node_name: ST-DATA-PRV-SRV-DB
+            folder_name: database
+            file_name: database.db
+
+        # ST-DATA-PRV-SRV-DB | node-account-change-password | Changes the password of a user account
+        50:
+          action: node-account-change-password
+          options:
+            node_name: ST-DATA-PRV-SRV-DB
+            username: admin   # default account
+            current_password: admin   # default password
+            new_password: thr33_alert_wolv3z # A more 'secure' password
+
+        # |======================================|
+        # |           ST-INTRA-PRV-RT-DR-1       |
+        # |======================================|
+
+        # ST-INTRA-PRV-RT-DR-1 | router-acl-add-rule | P1: ST-INTRA-PRV-RT-DR-1 !==> ANY (TCP:SSH)
+        51:
+          action: router-acl-add-rule
+          options:
+            target_router: ST-INTRA-PRV-RT-DR-1
+            position: 1
+            permission: DENY
+            src_ip: 192.168.230.2 # (ST-PROJ-A-PRV-PC-1)
+            src_wildcard: 0.0.255.255
+            src_port: SSH
+            dst_ip: ALL
+            dst_wildcard: 0.0.255.255
+            dst_port: SSH
+            protocol_name: TCP
+
+        # ST-INTRA-PRV-RT-DR-1 | node-account-change-password
+        52:
+          action: node-account-change-password
+          options:
+            node_name: ST-INTRA-PRV-RT-DR-1
+            username: admin
+            current_password: admin
+            new_password: secure_password
+
+        # ST-INTRA-PRV-RT-DR-1 | router-acl-remove-rule | Removes the given ACL at position 1
+        53:
+            action: router-acl-remove-rule
+            options:
+              target_router: ST-INTRA-PRV-RT-DR-1
+              position: 1
+
+        # |======================================|
+        # |            REM-PUB-RT-DR             |
+        # |======================================|
+
+        # REM-PUB-RT-DR | node-account-change-password
+        54:
+          action: node-account-change-password
+          options:
+            node_name: REM-PUB-RT-DR
+            username: admin
+            current_password: admin
+            new_password: secure_password
+
+        # REM-PUB-RT-DR | router-acl-remove-rule | Removes the given ACL at position 1
+        55:
+            action: router-acl-remove-rule
+            options:
+              target_router: REM-PUB-RT-DR
+              position: 1
+
+    reward_function:
+      reward_components:
+        - type: database-file-integrity
+          weight: *HIGH_WEIGHT_IMPACT
+          options:
+            node_hostname: ST-DATA-PRV-SRV-DB
+            folder_name: database
+            file_name: database.db
+
+        # Home Site Green Agents (32 Green Agents each contributing 0.03125 of blue reward)
+
+        # Blue Shared Reward | HOME_WORKER-1-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: HOME_WORKER-1-DB
+
+        # Blue Shared Reward | HOME_WORKER-1-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: HOME_WORKER-1-WEB
+
+        # Blue Shared Reward | HOME_WORKER-2-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: HOME_WORKER-2-DB
+
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: HOME_WORKER-2-WEB
+
+        # Remote Site Green Agents
+
+        # Blue Shared Reward | REMOTE_WORKER-1-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: REMOTE_WORKER-1-DB
+
+        # Blue Shared Reward | REMOTE_WORKER-1-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: REMOTE_WORKER-1-WEB
+
+        # Blue Shared Reward | REMOTE_WORKER-2-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: REMOTE_WORKER-2-DB
+
+        # Blue Shared Reward | REMOTE_WORKER-2-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: REMOTE_WORKER-2-WEB
+
+        # ST Project A Green Agents
+
+        # Blue Shared Reward | PROJ_A-SENIOR-DEV-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-SENIOR-DEV-DB
+
+        # Blue Shared Reward | PROJ_A-SENIOR-DEV-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-SENIOR-DEV-WEB
+
+        # Blue Shared Reward | PROJ_A-JUNIOR-DEV-1-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-JUNIOR-DEV-1-DB
+
+        # Blue Shared Reward | PROJ_A-JUNIOR-DEV-1-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-JUNIOR-DEV-1-WEB
+
+        # Blue Shared Reward | PROJ_A-JUNIOR-DEV-2-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-JUNIOR-DEV-2-DB
+
+        # Blue Shared Reward | PROJ_A-JUNIOR-DEV-2-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_A-JUNIOR-DEV-2-WEB
+
+        # ST Project B Green Agents
+
+        # Blue Shared Reward | PROJ_B-SENIOR-DEV-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-SENIOR-DEV-DB
+
+        # Blue Shared Reward | PROJ_B-SENIOR-DEV-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-SENIOR-DEV-WEB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-1-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-1-DB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-1-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-1-WEB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-2-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-2-DB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-2-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-2-WEB
+
+        # ST Project C Green Agents
+
+        # Blue Shared Reward | PROJ_B-SENIOR-DEV-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-SENIOR-DEV-DB
+
+        # Blue Shared Reward | PROJ_B-SENIOR-DEV-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-SENIOR-DEV-WEB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-1-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-1-DB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-1-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-1-WEB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-2-DB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-2-DB
+
+        # Blue Shared Reward | PROJ_B-JUNIOR-DEV-2-WEB
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: PROJ_B-JUNIOR-DEV-2-WEB
+
+        # ST Head Office Green Agents (CEO/CFO/CTO)
+
+        # Blue Shared Reward | CEO
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: CEO
+
+        # Blue Shared Reward | CFO
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: CFO
+
+        # Blue Shared Reward | CTO
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: CTO
+
+        # ST Human Resources Green Agents
+
+        # Blue Shared Reward | SENIOR_HR
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: SENIOR_HR
+
+        # Blue Shared Reward | SENIOR_HR
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: JUNIOR_HR-1
+
+        # Blue Shared Reward | SENIOR_HR
+        - type: shared-reward
+          weight: 0.03125
+          options:
+            agent_name: JUNIOR_HR-2
+
+    agent_settings:
+      flatten_obs: False
+
+
+
+  # #######################################
+  # # UC7 Network Wide System POL Config  #
+  # #######################################
+
+  # # UC7 Network Wide System Pattern Of Life
+  # # ==========================================
+  # # 1. All NTP Clients perform periodic NTP Server transactions.
+  # # 2. Periodic Database (ST-DATA-PRV-SRV-DB) FTP backups (ST-DATA-PRV-SRV-STORAGE)
+  # # 3. All DNS Clients perform periodic DNS Server transactions.
+
+  # # TODO: NTPClient Node Service Start doesn't start a 'Request'
+
+  # # 1. All NTP Clients perform periodic NTP Server transactions.
+
+  # - ref: SYSTEM-NTP
+  #   team: GREEN
+  #   type: probabilistic-agent
+  #   observation_space: null
+  #   action_space:
+  #     action_list:
+  #         - type: do-nothing
+  #         - type: NODE_SERVICE_START
+  #     action_map:
+  #       # ====== Home Office ========
+  #       0:
+  #         action: do-nothing
+  #         options: {}
+  #       1:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 0 # HOME-PUB-PC-1
+  #           service_id: 0 # NTPClient
+  #       2:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 1 # HOME-PUB-PC-2
+  #           service_id: 0
+  #       3:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 2 # HOME-PUB-PC-SRV
+  #           service_id: 0
+  #       # ====== Remote Site ========
+  #       4:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 3 # REM-PUB-PC-1
+  #           service_id: 0
+  #       5:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 4 # REM-PUB-PC-2
+  #           service_id: 0
+  #       6:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 5 # REM-PUB-SRV
+  #           service_id: 0
+  #       # ====== ST Public DMZ =======
+  #       7:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 6 # ST-DMZ-PUB-SRV-WEB
+  #           service_id: 0
+  #       # ====== ST Head Office =======
+  #       8:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 7 # ST-HO-PRV-PC-1
+  #           service_id: 0
+  #       9:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 8 # ST-HO-PRV-PC-2
+  #           service_id: 0
+  #       10:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 9 # ST-HO-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Human Resources =======
+  #       11:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 10 # ST-HR-PRV-PC-1
+  #           service_id: 0
+  #       12:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 11 # ST-HR-PRV-PC-2
+  #           service_id: 0
+  #       13:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 12 # ST-HR-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST DATA Servers =======
+  #       14:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 13 # ST-DATA-PRV-SRV-STORAGE
+  #           service_id: 0
+  #       15:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 14 # ST-DATA-PRV-SRV-DB
+  #           service_id: 0
+  #       # ====== ST Project A =======
+  #       16:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 15 # PROJ-A-PRV-PC-1
+  #           service_id: 0
+  #       17:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 16 # PROJ-A-PRV-PC-2
+  #           service_id: 0
+  #       18:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 17 # PROJ-A-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Project B =======
+  #       19:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 18 # PROJ-B-PRV-PC-1
+  #           service_id: 0
+  #       20:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 19 # PROJ-B-PRV-PC-2
+  #           service_id: 0
+  #       21:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 20 # PROJ-B-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Project C =======
+  #       22:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 21 # PROJ-C-PRV-PC-1
+  #           service_id: 0
+  #       23:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 22 # PROJ-C-PRV-PC-2
+  #           service_id: 0
+  #       24:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 23 # PROJ-C-PRV-PC-3
+  #           service_id: 0
+  #     options:
+  #       nodes:
+  #       # ====== Home Office ========
+  #       - node_name: HOME-PUB-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: HOME-PUB-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: HOME-PUB-SRV
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== Remote Site ========
+  #       - node_name: REM-PUB-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: REM-PUB-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: REM-PUB-SRV
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST Public DMZ =======
+  #       - node_name: ST-DMZ-PUB-SRV-WEB
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST Head Office =======
+  #       - node_name: ST-HO-PRV-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: ST-HO-PRV-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: ST-HO-PRV-PC-3
+  #         services:
+  #           - service_name: NTPClient
+  #       # ===== ST Human Resources ======
+  #       - node_name: ST-HR-PRV-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: ST-HR-PRV-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: ST-HR-PRV-PC-3
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST DATA Servers =======
+  #       - node_name: ST-DATA-PRV-SRV-STORAGE
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: ST-DATA-PRV-SRV-DB
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST Project A =======
+  #       - node_name: PROJ-A-PRV-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-A-PRV-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-A-PRV-PC-3
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST Project B =======
+  #       - node_name: PROJ-B-PRV-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-B-PRV-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-B-PRV-PC-3
+  #         services:
+  #           - service_name: NTPClient
+  #       # ====== ST Project C =======
+  #       - node_name: PROJ-C-PRV-PC-1
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-C-PRV-PC-2
+  #         services:
+  #           - service_name: NTPClient
+  #       - node_name: PROJ-C-PRV-PC-3
+  #         services:
+  #           - service_name: NTPClient
+  #       ip_list:
+  #         *UC7_IP_LIST
+  #       max_folders_per_node: 1
+  #       max_files_per_folder: 1
+  #       max_services_per_node: 1
+  #       max_applications_per_node: 1
+  #   settings:
+  #     start_step: 1
+  #     start_variance: 0
+  #     max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+  #     frequency: 1
+  #     variance: 0
+  #   reward_function:
+  #     reward_components:
+  #       - type: DUMMY
+
+  # # 2. Periodic Database (ST-DATA-PRV-SRV-DB) FTP backups (ST-DATA-PRV-SRV-STORAGE)
+
+  # - ref: SYSTEM-FTP
+  #   team: GREEN
+  #   type: probabilistic-agent
+  #   observation_space: null
+  #   action_space:
+  #     action_list:
+  #         - type: do-nothing
+  #         - type: NODE_SERVICE_FIX
+  #     action_map:
+  #       0:
+  #         action: do-nothing
+  #         options: {}
+  #       1:
+  #         action: NODE_SERVICE_FIX
+  #         options:
+  #           node_id: 0
+  #           service_id: 0
+  #     options:
+  #       nodes:
+  #       - node_name: ST-DATA-PRV-SRV-DB
+  #         applications:
+  #           - application_name: database-client
+  #       ip_list:
+  #         - *ST_SRV_DB_IP
+  #       max_folders_per_node: 1
+  #       max_files_per_folder: 1
+  #       max_services_per_node: 1
+  #       max_applications_per_node: 1
+  #   settings:
+  #     start_step: 4
+  #     start_variance: 0
+  #     max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+  #     frequency: 4
+  #     variance: 0
+  #   reward_function:
+  #     reward_components:
+  #       - type: DUMMY
+
+  # # 3. All DNS Clients perform periodic DNS Server transactions.
+
+  # # TODO: Address issue where dns-clients can't be started directly via agents
+  # - ref: SYSTEM-DNS
+  #   team: GREEN
+  #   type: probabilistic-agent
+  #   observation_space: null
+  #   action_space:
+  #     action_list:
+  #         - type: do-nothing
+  #         - type: NODE_SERVICE_START
+  #     action_map:
+  #       # ====== Home Office ========
+  #       0:
+  #         action: do-nothing
+  #         options: {}
+  #       1:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 0 # HOME-PUB-PC-1
+  #           service_id: 0 # dns-client
+  #       2:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 1 # HOME-PUB-PC-2
+  #           service_id: 0
+  #       3:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 2 # HOME-PUB-PC-SRV
+  #           service_id: 0
+  #       # ====== Remote Site ========
+  #       4:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 3 # REM-PUB-PC-1
+  #           service_id: 0
+  #       5:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 4 # REM-PUB-PC-2
+  #           service_id: 0
+  #       6:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 5 # REM-PUB-SRV
+  #           service_id: 0
+  #       # ====== ST Public DMZ =======
+  #       7:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 6 # ST-DMZ-PUB-SRV-WEB
+  #           service_id: 0
+  #       # ====== ST Head Office =======
+  #       8:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 7 # ST-HO-PRV-PC-1
+  #           service_id: 0
+  #       9:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 8 # ST-HO-PRV-PC-2
+  #           service_id: 0
+  #       10:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 9 # ST-HO-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Human Resources =======
+  #       11:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 10 # ST-HR-PRV-PC-1
+  #           service_id: 0
+  #       12:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 11 # ST-HR-PRV-PC-2
+  #           service_id: 0
+  #       13:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 12 # ST-HR-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST DATA Servers =======
+  #       14:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 13 # ST-DATA-PRV-SRV-STORAGE
+  #           service_id: 0
+  #       15:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 14 # ST-DATA-PRV-SRV-DB
+  #           service_id: 0
+  #       # ====== ST Project A =======
+  #       16:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 15 # PROJ-A-PRV-PC-1
+  #           service_id: 0
+  #       17:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 16 # PROJ-A-PRV-PC-2
+  #           service_id: 0
+  #       18:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 17 # PROJ-A-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Project B =======
+  #       19:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 18 # PROJ-B-PRV-PC-1
+  #           service_id: 0
+  #       20:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 19 # PROJ-B-PRV-PC-2
+  #           service_id: 0
+  #       21:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 20 # PROJ-B-PRV-PC-3
+  #           service_id: 0
+  #       # ====== ST Project C =======
+  #       22:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 21 # PROJ-C-PRV-PC-1
+  #           service_id: 0
+  #       23:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 22 # PROJ-C-PRV-PC-2
+  #           service_id: 0
+  #       24:
+  #         action: NODE_SERVICE_START
+  #         options:
+  #           node_id: 23 # PROJ-C-PRV-PC-3
+  #           service_id: 0
+  #     options:
+  #       nodes:
+  #       # ====== Home Office ========
+  #       - node_name: HOME-PUB-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: HOME-PUB-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: HOME-PUB-SRV
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== Remote Site ========
+  #       - node_name: REM-PUB-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: REM-PUB-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: REM-PUB-SRV
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST Public DMZ =======
+  #       - node_name: ST-DMZ-PUB-SRV-WEB
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST Head Office =======
+  #       - node_name: ST-HO-PRV-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: ST-HO-PRV-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: ST-HO-PRV-PC-3
+  #         services:
+  #           - service_name: dns-client
+  #       # ===== ST Human Resources ======
+  #       - node_name: ST-HR-PRV-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: ST-HR-PRV-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: ST-HR-PRV-PC-3
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST DATA Servers =======
+  #       - node_name: ST-DATA-PRV-SRV-STORAGE
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: ST-DATA-PRV-SRV-DB
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST Project A =======
+  #       - node_name: PROJ-A-PRV-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-A-PRV-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-A-PRV-PC-3
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST Project B =======
+  #       - node_name: PROJ-B-PRV-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-B-PRV-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-B-PRV-PC-3
+  #         services:
+  #           - service_name: dns-client
+  #       # ====== ST Project C =======
+  #       - node_name: PROJ-C-PRV-PC-1
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-C-PRV-PC-2
+  #         services:
+  #           - service_name: dns-client
+  #       - node_name: PROJ-C-PRV-PC-3
+  #         services:
+  #           - service_name: dns-client
+  #       ip_list:
+  #         *UC7_IP_LIST
+  #       max_folders_per_node: 1
+  #       max_files_per_folder: 1
+  #       max_services_per_node: 1
+  #       max_applications_per_node: 1
+  #   settings:
+  #     start_step: 1
+  #     start_variance: 0
+  #     max_executions: *DEFAULT_GREEN_AGENT_MAX_EXECUTIONS
+  #     frequency: 1
+  #     variance: 0
+  #   reward_function:
+  #     reward_components:
+  #       - type: DUMMY

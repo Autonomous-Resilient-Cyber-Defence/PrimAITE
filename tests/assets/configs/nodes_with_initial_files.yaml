@@ -1,0 +1,226 @@
+#  Basic Switched network
+#
+#  --------------      --------------      --------------
+#  |  client_1  |------|  switch_1  |------|  client_2  |
+#  --------------      --------------      --------------
+#
+io_settings:
+  save_step_metadata: false
+  save_pcap_logs: true
+  save_sys_logs: true
+  sys_log_level: WARNING
+  agent_log_level: INFO
+  save_agent_logs: true
+  write_agent_log_to_terminal: True
+
+
+game:
+  max_episode_length: 256
+  ports:
+  - ARP
+  - DNS
+  - HTTP
+  - POSTGRES_SERVER
+  protocols:
+  - ICMP
+  - TCP
+  - UDP
+
+agents:
+  - ref: client_2_green_user
+    team: GREEN
+    type: periodic-agent
+    action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
+        1:
+          action: node-application-execute
+          options:
+            node_id: 0
+            application_id: 0
+
+    agent_settings:
+      possible_start_nodes: [client_2,]
+      target_application: web-browser
+      start_step: 5
+      frequency: 4
+      variance: 3
+
+
+
+  - ref: defender
+    team: BLUE
+    type: proxy-agent
+
+    observation_space:
+      type: custom
+      options:
+        components:
+          - type: nodes
+            label: NODES
+            options:
+              hosts:
+                - hostname: client_1
+                - hostname: client_2
+                - hostname: client_3
+              num_services: 1
+              num_applications: 0
+              num_folders: 1
+              num_files: 1
+              num_nics: 2
+              include_num_access: false
+              monitored_traffic:
+                icmp:
+                    - NONE
+                tcp:
+                    - DNS
+              include_nmne: false
+              routers:
+                - hostname: router_1
+              num_ports: 0
+              ip_list:
+                - 192.168.10.21
+                - 192.168.10.22
+                - 192.168.10.23
+              wildcard_list:
+                - 0.0.0.1
+              port_list:
+                - 80
+                - 5432
+              protocol_list:
+                - ICMP
+                - TCP
+                - UDP
+              num_rules: 10
+
+          - type: links
+            label: LINKS
+            options:
+              link_references:
+                - switch_1:eth-1<->client_1:eth-1
+                - switch_1:eth-2<->client_2:eth-1
+          - type: none
+            label: ICS
+            options: {}
+
+    action_space:
+      action_map:
+          0:
+            action: do-nothing
+            options: {}
+
+    reward_function:
+      reward_components:
+        - type: database-file-integrity
+          weight: 0.5
+          options:
+            node_hostname: database_server
+            folder_name: database
+            file_name: database.db
+
+        - type: web-server-404-penalty
+          weight: 0.5
+          options:
+            node_hostname: web_server
+            service_name: web_server_web_service
+
+
+    agent_settings:
+      flatten_obs: true
+
+simulation:
+  network:
+    nodes:
+
+    - type: switch
+      hostname: switch_1
+      num_ports: 8
+
+    - hostname: client_1
+      type: computer
+      ip_address: 192.168.10.21
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      applications:
+      - type: ransomware-script
+      - type: web-browser
+        options:
+          target_url: http://arcd.com/users/
+      - type: database-client
+        options:
+          db_server_ip: 192.168.1.10
+          server_password: arcd
+      - type: data-manipulation-bot
+        options:
+          port_scan_p_of_success: 0.8
+          data_manipulation_p_of_success: 0.8
+          payload: "DELETE"
+          server_ip: 192.168.1.21
+          server_password: arcd
+      - type: dos-bot
+        options:
+          target_ip_address: 192.168.10.21
+          payload: SPOOF DATA
+          port_scan_p_of_success: 0.8
+      services:
+      - type: dns-client
+        options:
+          dns_server: 192.168.1.10
+      - type: dns-server
+        options:
+          domain_mapping:
+            arcd.com: 192.168.1.10
+      - type: database-service
+        options:
+          backup_server_ip: 192.168.1.10
+      - type: web-server
+      - type: ftp-server
+        options:
+          server_password: arcd
+      - type: ntp-client
+        options:
+          ntp_server_ip: 192.168.1.10
+      - type: ntp-server
+    - hostname: client_2
+      type: computer
+      ip_address: 192.168.10.22
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      folders:
+        - folder_name: empty_folder
+        - folder_name: downloads
+          files:
+            - file_name: "test.txt"
+            - file_name: "another_file.pwtwoti"
+        - folder_name: root
+          files:
+            - file_name: passwords
+              size: 663
+              type: TXT
+      # pre installed services and applications
+    - hostname: client_3
+      type: computer
+      ip_address: 192.168.10.23
+      subnet_mask: 255.255.255.0
+      default_gateway: 192.168.10.1
+      dns_server: 192.168.1.10
+      start_up_duration: 0
+      shut_down_duration: 0
+      operating_state: "OFF"
+      # pre installed services and applications
+
+    links:
+    - endpoint_a_hostname: switch_1
+      endpoint_a_port: 1
+      endpoint_b_hostname: client_1
+      endpoint_b_port: 1
+      bandwidth: 200
+    - endpoint_a_hostname: switch_1
+      endpoint_a_port: 2
+      endpoint_b_hostname: client_2
+      endpoint_b_port: 1
+      bandwidth: 200

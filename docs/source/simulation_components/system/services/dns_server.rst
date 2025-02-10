@@ -53,7 +53,7 @@ Python
 
     # Install DNSServer on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     dns_server.start()
 
     # configure DatabaseService

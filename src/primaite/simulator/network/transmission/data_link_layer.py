@@ -163,7 +163,7 @@ class Frame(BaseModel):
         """
         Checks if the Frame is an ARP (Address Resolution Protocol) packet.
 
-        This is determined by checking if the destination port of the TCP header is equal to the ARP port.
+        This is determined by checking if the destination and source port of the UDP header is equal to the ARP port.
 
         :return: True if the Frame is an ARP packet, otherwise False.
         """
