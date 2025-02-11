@@ -52,4 +52,4 @@ class Router(NetworkNode, identifier="router"):
 Changes to YAML file.
 =====================
 
-While effort has been made to ensure that nodes defined within configuration YAML files for use with PrimAITE 3.X remain compatible with PrimAITE v4+, it is encouraged to review for minor changes needed. 
+While effort has been made to ensure that nodes defined within configuration YAML files for use with PrimAITE 3.X remain compatible with PrimAITE v4+, it is encouraged to review for minor changes needed.
