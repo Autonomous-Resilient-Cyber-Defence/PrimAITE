@@ -1,3 +1,5 @@
+version: 3.0
+
 io_settings:
   save_agent_actions: true
   save_step_metadata: false
