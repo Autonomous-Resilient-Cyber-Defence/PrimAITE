@@ -1,4 +1,5 @@
-version: 3.0
+metadata:
+    version: 3.0
 
 io_settings:
   save_agent_actions: true

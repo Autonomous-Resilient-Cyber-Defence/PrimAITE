@@ -30,7 +30,8 @@
 #                        |  external_computer  |------|  switch_3  |------|  external_server  |
 #                        -----------------------      --------------      ---------------------
 #
-version: 3.0
+metadata:
+    version: 3.0
 
 io_settings:
   save_step_metadata: false
