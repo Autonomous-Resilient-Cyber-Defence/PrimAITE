@@ -20,7 +20,6 @@ from primaite.utils.validation.port import Port
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.software_manager import SoftwareManager
-    from primaite.simulator.network.hardware.base import Node
 
 
 class SoftwareType(Enum):

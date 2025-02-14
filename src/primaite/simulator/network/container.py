@@ -163,7 +163,6 @@ class Network(SimComponent):
         :param links: Include link details in the output. Defaults to True.
         :param markdown: Use Markdown style in table output. Defaults to False.
         """
-
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
             if markdown:
@@ -192,8 +191,8 @@ class Network(SimComponent):
                                     port.ip_address,
                                     port.subnet_mask,
                                     node.config.default_gateway,
-                                    ]
-                                )
+                                ]
+                            )
             print(table)
 
         if links:

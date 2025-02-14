@@ -4,7 +4,7 @@ from primaite.game.agent.scripted_agents.random_agent import RandomAgent
 
 
 def test_creating_empty_agent():
-    agent = RandomAgent(config={"ref" :"Empty Agent"})
+    agent = RandomAgent(config={"ref": "Empty Agent"})
     assert len(agent.action_manager.action_map) == 0
     assert isinstance(agent.observation_manager.obs, NullObservation)
     assert len(agent.reward_function.reward_components) == 0
