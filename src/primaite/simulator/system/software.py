@@ -20,6 +20,7 @@ from primaite.utils.validation.port import Port
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.software_manager import SoftwareManager
+    from primaite.simulator.network.hardware.base import Node
 
 
 class SoftwareType(Enum):
@@ -110,6 +111,7 @@ class Software(SimComponent, ABC):
     "The folder on the file system the Software uses."
     _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
+    # parent: Optional[Node] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

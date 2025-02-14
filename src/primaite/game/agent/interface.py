@@ -80,7 +80,7 @@ class AbstractAgent(BaseModel, ABC):
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
 
     def __init__(self, **kwargs):
-        """init"""
+        """Initialise and setup agent logger"""
 
         super().__init__(**kwargs)
         self.logger: AgentLog = AgentLog(agent_name=kwargs["config"]["ref"])
