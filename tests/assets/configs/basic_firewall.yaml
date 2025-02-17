@@ -4,6 +4,8 @@
 #  |  client_1  |------|  switch_1  |------|  client_2  |
 #  --------------      --------------      --------------
 #
+metadata:
+    version: 3.0
 
 io_settings:
   save_step_metadata: false
