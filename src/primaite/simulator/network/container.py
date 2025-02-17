@@ -163,16 +163,6 @@ class Network(SimComponent):
         :param links: Include link details in the output. Defaults to True.
         :param markdown: Use Markdown style in table output. Defaults to False.
         """
-        nodes_type_map = {
-            "Router": self.router_nodes,
-            "Firewall": self.firewall_nodes,
-            "Switch": self.switch_nodes,
-            "Server": self.server_nodes,
-            "Computer": self.computer_nodes,
-            "Printer": self.printer_nodes,
-            "Wireless Router": self.wireless_router_nodes,
-        }
-
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
             if markdown:
@@ -189,21 +179,20 @@ class Network(SimComponent):
                 table.set_style(MARKDOWN)
             table.align = "l"
             table.title = "IP Addresses"
-            for nodes in nodes_type_map.values():
-                for node in nodes:
-                    for i, port in node.network_interface.items():
-                        if hasattr(port, "ip_address"):
-                            if port.ip_address != IPv4Address("127.0.0.1"):
-                                port_str = port.port_name if port.port_name else port.port_num
-                                table.add_row(
-                                    [
-                                        node.config.hostname,
-                                        port_str,
-                                        port.ip_address,
-                                        port.subnet_mask,
-                                        node.config.default_gateway,
-                                    ]
-                                )
+            for node in self.nodes.values():
+                for i, port in node.network_interface.items():
+                    if hasattr(port, "ip_address"):
+                        if port.ip_address != IPv4Address("127.0.0.1"):
+                            port_str = port.port_name if port.port_name else port.port_num
+                            table.add_row(
+                                [
+                                    node.config.hostname,
+                                    port_str,
+                                    port.ip_address,
+                                    port.subnet_mask,
+                                    node.config.default_gateway,
+                                ]
+                            )
             print(table)
 
         if links:
@@ -215,22 +204,21 @@ class Network(SimComponent):
             table.align = "l"
             table.title = "Links"
             links = list(self.links.values())
-            for nodes in nodes_type_map.values():
-                for node in nodes:
-                    for link in links[::-1]:
-                        if node in [link.endpoint_a.parent, link.endpoint_b.parent]:
-                            table.add_row(
-                                [
-                                    link.endpoint_a.parent.config.hostname,
-                                    str(link.endpoint_a),
-                                    link.endpoint_b.parent.config.hostname,
-                                    str(link.endpoint_b),
-                                    link.is_up,
-                                    link.bandwidth,
-                                    link.current_load_percent,
-                                ]
-                            )
-                            links.remove(link)
+            for node in self.nodes.values():
+                for link in links[::-1]:
+                    if node in [link.endpoint_a.parent, link.endpoint_b.parent]:
+                        table.add_row(
+                            [
+                                link.endpoint_a.parent.config.hostname,
+                                str(link.endpoint_a),
+                                link.endpoint_b.parent.config.hostname,
+                                str(link.endpoint_b),
+                                link.is_up,
+                                link.bandwidth,
+                                link.current_load_percent,
+                            ]
+                        )
+                        links.remove(link)
             print(table)
 
     def clear_links(self):
