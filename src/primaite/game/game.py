@@ -247,13 +247,6 @@ class PrimaiteGame:
         game.options = PrimaiteGameOptions(**cfg["game"])
         game.save_step_metadata = cfg.get("io_settings", {}).get("save_step_metadata") or False
 
-        config_version = cfg.get("version", {})
-
-        # TODO: Future YAML config should specify the PrimAITE version they are written for.
-        #       For now, we warn that if it is missing, pending a mechanism to handle variations.
-        if not isinstance(config_version, int):
-            _LOGGER.warning("Version definition is missing from provided configuration. ")
-
         # 1. create simulation
         sim = game.simulation
         net = sim.network
