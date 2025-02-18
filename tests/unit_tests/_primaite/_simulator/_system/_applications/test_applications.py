@@ -18,7 +18,7 @@ def test_scan(application):
 
 def test_run_application(application):
     assert application.operating_state == ApplicationOperatingState.CLOSED
-    assert application.health_state_actual == SoftwareHealthState.UNUSED
+    assert application.health_state_actual == SoftwareHealthState.GOOD
 
     application.run()
     assert application.operating_state == ApplicationOperatingState.RUNNING
@@ -37,9 +37,9 @@ def test_close_application(application):
 
 def test_application_describe_states(application):
     assert application.operating_state == ApplicationOperatingState.CLOSED
-    assert application.health_state_actual == SoftwareHealthState.UNUSED
+    assert application.health_state_actual == SoftwareHealthState.GOOD
 
-    assert SoftwareHealthState.UNUSED.value == application.describe_state().get("health_state_actual")
+    assert SoftwareHealthState.GOOD.value == application.describe_state().get("health_state_actual")
 
     application.run()
     assert SoftwareHealthState.GOOD.value == application.describe_state().get("health_state_actual")
