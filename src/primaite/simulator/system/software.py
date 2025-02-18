@@ -110,7 +110,6 @@ class Software(SimComponent, ABC):
     "The folder on the file system the Software uses."
     _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
-    # parent: Optional[Node] = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
