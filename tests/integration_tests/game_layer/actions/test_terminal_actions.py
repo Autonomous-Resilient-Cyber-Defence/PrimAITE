@@ -106,7 +106,6 @@ def test_remote_login_change_password(game_and_agent_fixture: Tuple[PrimaiteGame
             "username": "user123",
             "current_password": "password",
             "new_password": "different_password",
-            "remote_ip": str(server_1.network_interface[1].ip_address),
         },
     )
     agent.store_action(action)
@@ -146,7 +145,6 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
             "username": "user123",
             "current_password": "password",
             "new_password": "different_password",
-            "remote_ip": str(server_1.network_interface[1].ip_address),
         },
     )
     agent.store_action(action)
