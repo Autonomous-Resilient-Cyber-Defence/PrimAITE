@@ -37,10 +37,10 @@ agents:
     action_space:
       action_map:
         0:
-          action: do_nothing
+          action: do-nothing
           options: {}
         1:
-          action: node_application_execute
+          action: node-application-execute
           options:
             node_name: client_2
             application_name: web-browser
