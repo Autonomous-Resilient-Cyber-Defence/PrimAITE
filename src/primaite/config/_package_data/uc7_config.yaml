@@ -14,8 +14,8 @@ io_settings:
   save_agent_actions: false
   save_step_metadata: false
   save_pcap_logs: false
-  save_sys_logs: True
-  # save_sys_logs: true
+  save_sys_logs: false
+  save_agent_logs: false
   write_sys_log_to_terminal: false
 
 
@@ -1924,6 +1924,7 @@ agents:
                     - service_name: ftp-client
                   applications:
                     - application_name: ransomware-script
+                    - application_name: database-client
                   folders:
                     - folder_name: downloads
                       files:
@@ -1937,6 +1938,7 @@ agents:
                     - service_name: ftp-client
                   applications:
                     - application_name: ransomware-script
+                    - application_name: database-client
                   folders:
                     - folder_name: downloads
                       files:
