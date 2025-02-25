@@ -334,7 +334,7 @@ class HostNode(Node, discriminator="host-node"):
     class ConfigSchema(Node.ConfigSchema):
         """Configuration Schema for HostNode class."""
 
-        type: Literal["host-node"]
+        type: Literal["host-node"] = "host-node"
         hostname: str = "HostNode"
         subnet_mask: IPV4Address = "255.255.255.0"
         ip_address: IPV4Address
@@ -388,7 +388,7 @@ class HostNode(Node, discriminator="host-node"):
         This method is invoked to ensure the host node can communicate with its default gateway, primarily to confirm
         network connectivity and populate the ARP cache with the gateway's MAC address.
         """
-        if self.operating_state == NodeOperatingState.ON and self.default_gateway:
+        if self.operating_state == NodeOperatingState.ON and self.config.default_gateway:
             self.software_manager.arp.get_default_gateway_mac_address()
 
     def receive_frame(self, frame: Frame, from_network_interface: NIC):

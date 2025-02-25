@@ -449,10 +449,8 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
         """
         super().enable()
-        try:
+        if hasattr(self._connected_node, "default_gateway_hello"):
             self._connected_node.default_gateway_hello()
-        except AttributeError:
-            pass
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:

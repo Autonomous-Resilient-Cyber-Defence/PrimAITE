@@ -39,6 +39,6 @@ def test_software_creation(software):
 
 
 def test_software_set_health_state(software):
-    assert software.health_state_actual == SoftwareHealthState.UNUSED
-    software.set_health_state(SoftwareHealthState.GOOD)
     assert software.health_state_actual == SoftwareHealthState.GOOD
+    software.set_health_state(SoftwareHealthState.COMPROMISED)
+    assert software.health_state_actual == SoftwareHealthState.COMPROMISED

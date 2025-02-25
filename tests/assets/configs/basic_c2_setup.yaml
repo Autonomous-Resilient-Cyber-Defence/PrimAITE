@@ -4,6 +4,9 @@
 #  |  node_a  |------|  switch_1  |------|  node_b  |
 #  --------------      --------------      --------------
 #
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: true

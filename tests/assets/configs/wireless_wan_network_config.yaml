@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 game:
   max_episode_length: 256
   ports:

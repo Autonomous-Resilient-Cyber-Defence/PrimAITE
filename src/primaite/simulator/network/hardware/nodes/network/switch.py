@@ -103,8 +103,8 @@ class Switch(NetworkNode, discriminator="switch"):
 
         type: Literal["switch"] = "switch"
         hostname: str = "Switch"
-        num_ports: int = 24
-        "The number of ports on the switch. Default is 24."
+        num_ports: int = 8
+        "The number of ports on the switch."
 
     config: ConfigSchema = Field(default_factory=lambda: Switch.ConfigSchema())
 
@@ -139,7 +139,6 @@ class Switch(NetworkNode, discriminator="switch"):
         """
         state = super().describe_state()
         state["ports"] = {port_num: port.describe_state() for port_num, port in self.network_interface.items()}
-        state["num_ports"] = self.config.num_ports  # redundant?
         state["mac_address_table"] = {mac: port.port_num for mac, port in self.mac_address_table.items()}
         return state
 
