@@ -379,35 +379,7 @@ simulation:
                 subnet_mask: *DNS_SUBNET
                 next_hop_ip_address: 10.1.100.1
 
-            # - address: 192.168.150.0
-            #   subnet_mask: *ST_INTRA_CR_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.160.0
-            #   subnet_mask: *ST_INTRA_DR_ONE_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.170.0
-            #   subnet_mask: *ST_INTRA_DR_TWO_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.200.0
-            #   subnet_mask: *ST_HO_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.210.0
-            #   subnet_mask: *ST_HR_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.220.0
-            #   subnet_mask: *ST_DATA_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.230.0
-            #   subnet_mask: *ST_PROJ_A_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.240.0
-            #   subnet_mask: *ST_PROJ_B_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
-            # - address: 192.168.250.0
-            #   subnet_mask: *ST_PROJ_C_SUBNET
-            #   next_hop_ip_address: 192.168.150.2
           default_route:
-            #next_hop_ip_address: 10.1.100.1
             next_hop_ip_address: 192.168.150.2
 
         - hostname: ST_DMZ-PUB-SRV-WEB
@@ -1869,8 +1841,6 @@ agents:
             - 192.168.230.0/29 # ST Project A
             - 192.168.10.0/26  # Remote Site
             - 192.168.20.0/30  # Remote DMZ
-            # - 192.168.240.0/29 # ST Project B
-            # - 192.168.250.0/29 # ST Project C
             - 192.168.220.0/29 # ST Data (Contains Target)
         COMMAND_AND_CONTROL:
           probability: 1

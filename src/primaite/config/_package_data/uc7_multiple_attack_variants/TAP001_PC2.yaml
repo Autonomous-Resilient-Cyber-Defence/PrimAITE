@@ -10,7 +10,6 @@ red: &red
       repeat_kill_chain_stages: true
       default_target_ip: 192.168.220.3
       default_starting_node: "ST_PROJ-B-PRV-PC-2"
-      # starting_nodes: ["ST_PROJ-A-PRV-PC-1", "ST_PROJ-B-PRV-PC-2", "ST_PROJ-C-PRV-PC-3"]
       starting_nodes:
       kill_chain:
         ACTIVATE:
@@ -20,11 +19,9 @@ red: &red
           scan_attempts: 20
           repeat_scan: false
           network_addresses:
-            - 192.168.230.0/29 # ST Project A
+            - 192.168.240.0/29 # ST Project B
             - 192.168.10.0/26  # Remote Site
             - 192.168.20.0/30  # Remote DMZ
-            # - 192.168.240.0/29 # ST Project B
-            # - 192.168.250.0/29 # ST Project C
             - 192.168.220.0/29 # ST Data (Contains Target)
         COMMAND_AND_CONTROL:
           probability: 1
