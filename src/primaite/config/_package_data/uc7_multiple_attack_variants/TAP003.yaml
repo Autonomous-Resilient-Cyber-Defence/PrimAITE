@@ -10,28 +10,28 @@ red: &red
       variance: 0
       repeat_kill_chain: false
       repeat_kill_chain_stages: true
-      default_starting_node: "ST-PROJ-A-PRV-PC-1"
+      default_starting_node: "ST_PROJ-A-PRV-PC-1"
       starting_nodes:
-      # starting_nodes: ["ST-PROJ-A-PRV-PC-1", "ST-PROJ-B-PRV-PC-2", "ST-PROJ-C-PRV-PC-3"]
+      # starting_nodes: ["ST_PROJ-A-PRV-PC-1", "ST_PROJ-B-PRV-PC-2", "ST_PROJ-C-PRV-PC-3"]
       kill_chain:
         PLANNING:
           probability: 1
           starting_network_knowledge:
             credentials:
-              ST-PROJ-A-PRV-PC-1:
+              ST_PROJ-A-PRV-PC-1:
                 username: admin
                 password: admin
-              ST-PROJ-B-PRV-PC-2:
+              ST_PROJ-B-PRV-PC-2:
                 username: admin
                 password: admin
-              ST-PROJ-C-PRV-PC-3:
+              ST_PROJ-C-PRV-PC-3:
                 username: admin
                 password: admin
-              ST-INTRA-PRV-RT-DR-1:
+              ST_INTRA-PRV-RT-DR-1:
                 ip_address: 192.168.230.1
                 username: admin
                 password: admin
-              ST-INTRA-PRV-RT-CR:
+              ST_INTRA-PRV-RT-CR:
                 ip_address: 192.168.160.1
                 username: admin
                 password: admin
@@ -44,13 +44,13 @@ red: &red
         MANIPULATION:
           probability: 1
           account_changes:
-            - host: ST-INTRA-PRV-RT-DR-1
-              ip_address: 192.168.230.1 # ST-INTRA-PRV-RT-DR-1
+            - host: ST_INTRA-PRV-RT-DR-1
+              ip_address: 192.168.230.1 # ST_INTRA-PRV-RT-DR-1
               action: change_password
               username: admin
               new_password: "red_pass"
-            - host: ST-INTRA-PRV-RT-CR
-              ip_address: 192.168.160.1 # ST-INTRA-PRV-RT-CR
+            - host: ST_INTRA-PRV-RT-CR
+              ip_address: 192.168.160.1 # ST_INTRA-PRV-RT-CR
               action: change_password
               username: "admin"
               new_password: "red_pass"
@@ -62,7 +62,7 @@ red: &red
         EXPLOIT:
           probability: 1
           malicious_acls:
-            - target_router: ST-INTRA-PRV-RT-DR-1
+            - target_router: ST_INTRA-PRV-RT-DR-1
               position: 1
               permission: DENY
               src_ip: ALL
@@ -72,7 +72,7 @@ red: &red
               src_port: POSTGRES_SERVER
               dst_port: POSTGRES_SERVER
               protocol_name: TCP
-            - target_router: ST-INTRA-PRV-RT-CR
+            - target_router: ST_INTRA-PRV-RT-CR
               position: 1
               permission: DENY
               src_ip: ALL

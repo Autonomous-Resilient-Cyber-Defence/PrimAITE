@@ -152,7 +152,7 @@ def test_tap003_kill_chain_stage_manipulation():
     env.step(0)
     env.step(0)
     env.step(0)
-    st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-DR-1")
+    st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
     assert st_intra_prv_rt_dr_1.user_manager.admins["admin"].password == "red_pass"
 
     env.step(0)
@@ -160,7 +160,7 @@ def test_tap003_kill_chain_stage_manipulation():
     env.step(0)
     env.step(0)
     env.step(0)
-    st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-CR")
+    st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
     assert st_intra_prv_rt_cr.user_manager.admins["admin"].password == "red_pass"
 
     env.step(0)
@@ -178,8 +178,8 @@ def test_tap003_kill_chain_stage_exploit():
     env = uc7_tap003_env()
     tap003: TAP003 = env.game.agents["attacker"]
     # The TAP003's Target Router/Firewall
-    st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-DR-1")
-    st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-CR")
+    st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
+    st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
     rem_pub_rt_dr: Router = env.game.simulation.network.get_node_by_hostname("REM-PUB-RT-DR")
     assert tap003.current_kill_chain_stage == BaseKillChain.NOT_STARTED
 

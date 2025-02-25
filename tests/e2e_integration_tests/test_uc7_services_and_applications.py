@@ -139,7 +139,7 @@ def test_remote_office_software(uc7_network):
 def test_dmz_web_server(uc7_network):
     """Asserts that the DMZ WebServer functions as expected"""
     network: Network = uc7_network
-    st_dmz_pub_srv_web: Server = network.get_node_by_hostname("ST-DMZ-PUB-SRV-WEB")
+    st_dmz_pub_srv_web: Server = network.get_node_by_hostname("ST_DMZ-PUB-SRV-WEB")
 
     # Asserting the ST Web Server is working as expected
     st_web_server = st_dmz_pub_srv_web.software_manager.software["web-server"]
@@ -150,7 +150,7 @@ def test_dmz_web_server(uc7_network):
     # Asserting that WebBrowser can actually connect to the WebServer
 
     # SOME TECH Human Resources --> DMZ Web Server
-    st_hr_pc_1: Computer = network.get_node_by_hostname("ST-HR-PRV-PC-1")
+    st_hr_pc_1: Computer = network.get_node_by_hostname("ST_HR-PRV-PC-1")
     st_hr_pc_1_web_browser: WebBrowser = st_hr_pc_1.software_manager.software["web-browser"]
     assert st_hr_pc_1_web_browser.get_webpage("http://some_tech.com")
 
@@ -169,9 +169,9 @@ def test_tech_head_office_software(uc7_network):
     """Asserts that each host on the some_tech_head_office network has the expected services & applications which are operating as expected."""
     network: Network = uc7_network
 
-    st_head_office_private_pc_1: Computer = network.get_node_by_hostname("ST-HO-PRV-PC-1")
-    st_head_office_private_pc_2: Computer = network.get_node_by_hostname("ST-HO-PRV-PC-2")
-    st_head_office_private_pc_3: Computer = network.get_node_by_hostname("ST-HO-PRV-PC-3")
+    st_head_office_private_pc_1: Computer = network.get_node_by_hostname("ST_HO-PRV-PC-1")
+    st_head_office_private_pc_2: Computer = network.get_node_by_hostname("ST_HO-PRV-PC-2")
+    st_head_office_private_pc_3: Computer = network.get_node_by_hostname("ST_HO-PRV-PC-3")
 
     # ST Head Office One
 
@@ -199,9 +199,9 @@ def test_tech_human_resources_office_software(uc7_network):
     """Asserts that each host on the some_tech human_resources network has the expected services & applications which are operating as expected."""
     network: Network = uc7_network
 
-    st_hr_pc_1: Computer = network.get_node_by_hostname("ST-HR-PRV-PC-1")
-    st_hr_pc_2: Computer = network.get_node_by_hostname("ST-HR-PRV-PC-2")
-    st_hr_pc_3: Computer = network.get_node_by_hostname("ST-HR-PRV-PC-3")
+    st_hr_pc_1: Computer = network.get_node_by_hostname("ST_HR-PRV-PC-1")
+    st_hr_pc_2: Computer = network.get_node_by_hostname("ST_HR-PRV-PC-2")
+    st_hr_pc_3: Computer = network.get_node_by_hostname("ST_HR-PRV-PC-3")
 
     # ST Human Resource PC 1
 
@@ -228,9 +228,9 @@ def test_tech_human_resources_office_software(uc7_network):
 def test_tech_data_software(uc7_network):
     """Asserts the database and database storage servers on the some_tech data network are operating as expected."""
     network: Network = uc7_network
-    st_data_database_server: Server = network.get_node_by_hostname("ST-DATA-PRV-SRV-DB")
-    st_data_database_storage: Server = network.get_node_by_hostname("ST-DATA-PRV-SRV-STORAGE")
-    st_proj_a_pc_1: Computer = network.get_node_by_hostname("ST-PROJ-A-PRV-PC-1")
+    st_data_database_server: Server = network.get_node_by_hostname("ST_DATA-PRV-SRV-DB")
+    st_data_database_storage: Server = network.get_node_by_hostname("ST_DATA-PRV-SRV-STORAGE")
+    st_proj_a_pc_1: Computer = network.get_node_by_hostname("ST_PROJ-A-PRV-PC-1")
 
     # Asserting that the database_service is working as expected
     database_service: DatabaseService = st_data_database_server.software_manager.software["database-service"]
@@ -254,9 +254,9 @@ def test_tech_data_software(uc7_network):
 def test_tech_proj_a_software(uc7_network):
     """Asserts that each host on the some_tech project A network has the expected services & applications which are operating as expected."""
     network: Network = uc7_network
-    st_proj_a_pc_1: Computer = network.get_node_by_hostname("ST-PROJ-A-PRV-PC-1")
-    st_proj_a_pc_2: Computer = network.get_node_by_hostname("ST-PROJ-A-PRV-PC-2")
-    st_proj_a_pc_3: Computer = network.get_node_by_hostname("ST-PROJ-A-PRV-PC-3")
+    st_proj_a_pc_1: Computer = network.get_node_by_hostname("ST_PROJ-A-PRV-PC-1")
+    st_proj_a_pc_2: Computer = network.get_node_by_hostname("ST_PROJ-A-PRV-PC-2")
+    st_proj_a_pc_3: Computer = network.get_node_by_hostname("ST_PROJ-A-PRV-PC-3")
 
     # ST Project A - PC 1
 
@@ -283,9 +283,9 @@ def test_tech_proj_a_software(uc7_network):
 def test_tech_proj_b_software(uc7_network):
     """Asserts that each host on the some_tech project A network has the expected services & applications which are operating as expected."""
     network: Network = uc7_network
-    st_proj_b_pc_1: Computer = network.get_node_by_hostname("ST-PROJ-B-PRV-PC-1")
-    st_proj_b_pc_2: Computer = network.get_node_by_hostname("ST-PROJ-B-PRV-PC-2")
-    st_proj_b_pc_3: Computer = network.get_node_by_hostname("ST-PROJ-B-PRV-PC-3")
+    st_proj_b_pc_1: Computer = network.get_node_by_hostname("ST_PROJ-B-PRV-PC-1")
+    st_proj_b_pc_2: Computer = network.get_node_by_hostname("ST_PROJ-B-PRV-PC-2")
+    st_proj_b_pc_3: Computer = network.get_node_by_hostname("ST_PROJ-B-PRV-PC-3")
 
     # ST Project B - PC 1
 
@@ -312,9 +312,9 @@ def test_tech_proj_b_software(uc7_network):
 def test_tech_proj_c_software(uc7_network):
     """Asserts that each host on the some_tech project A network has the expected services & applications which are operating as expected."""
     network: Network = uc7_network
-    st_proj_c_pc_1: Computer = network.get_node_by_hostname("ST-PROJ-C-PRV-PC-1")
-    st_proj_c_pc_2: Computer = network.get_node_by_hostname("ST-PROJ-C-PRV-PC-2")
-    st_proj_c_pc_3: Computer = network.get_node_by_hostname("ST-PROJ-C-PRV-PC-3")
+    st_proj_c_pc_1: Computer = network.get_node_by_hostname("ST_PROJ-C-PRV-PC-1")
+    st_proj_c_pc_2: Computer = network.get_node_by_hostname("ST_PROJ-C-PRV-PC-2")
+    st_proj_c_pc_3: Computer = network.get_node_by_hostname("ST_PROJ-C-PRV-PC-3")
 
     # ST Project C - PC 1
 

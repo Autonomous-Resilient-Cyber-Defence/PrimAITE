@@ -188,7 +188,7 @@ def test_tap001_kill_chain_stage_PAYLOAD():
     tap001: TAP001 = env.game.agents["attacker"]
 
     # The tap001's Target Database
-    target_host = env.game.simulation.network.get_node_by_hostname("ST-DATA-PRV-SRV-DB")
+    target_host = env.game.simulation.network.get_node_by_hostname("ST_DATA-PRV-SRV-DB")
     db_server_service: DatabaseService = target_host.software_manager.software.get("database-service")
 
     # Green agent status requests are tested within the ransomware application tests.

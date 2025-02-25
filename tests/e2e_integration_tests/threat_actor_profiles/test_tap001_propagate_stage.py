@@ -96,7 +96,7 @@ def test_tap001_kill_chain_stage_PROPAGATE_different_starting_node():
         "192.168.240.0/29",
         "192.168.220.0/29",
     ]
-    starting_nodes = ["ST-PROJ-B-PRV-PC-2", "ST-PROJ-C-PRV-PC-3"]
+    starting_nodes = ["ST_PROJ-B-PRV-PC-2", "ST_PROJ-C-PRV-PC-3"]
 
     env = uc7_tap001_env(
         payload=payload, scan_attempts=scan_attempts, network_addresses=network_addresses, starting_nodes=starting_nodes

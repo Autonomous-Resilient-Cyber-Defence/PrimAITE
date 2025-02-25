@@ -24,7 +24,7 @@ def test_threat_actor_profile_load_config():
     assert agent.config.agent_settings.variance == 0
     assert not agent.config.agent_settings.repeat_kill_chain
     assert agent.config.agent_settings.repeat_kill_chain_stages
-    assert agent.config.agent_settings.default_starting_node == "ST-PROJ-A-PRV-PC-1"
+    assert agent.config.agent_settings.default_starting_node == "ST_PROJ-A-PRV-PC-1"
     assert not agent.config.agent_settings.starting_nodes
     assert agent.config.agent_settings.kill_chain.PLANNING.probability == 1
     assert len(agent.config.agent_settings.kill_chain.PLANNING.starting_network_knowledge["credentials"]) == 6

@@ -9,8 +9,8 @@ red: &red
       repeat_kill_chain: false
       repeat_kill_chain_stages: true
       default_target_ip: 192.168.220.3
-      default_starting_node: "ST-PROJ-C-PRV-PC-3"
-      # starting_nodes: ["ST-PROJ-A-PRV-PC-1", "ST-PROJ-B-PRV-PC-2", "ST-PROJ-C-PRV-PC-3"]
+      default_starting_node: "ST_PROJ-C-PRV-PC-3"
+      # starting_nodes: ["ST_PROJ-A-PRV-PC-1", "ST_PROJ-B-PRV-PC-2", "ST_PROJ-C-PRV-PC-3"]
       starting_nodes:
       kill_chain:
         ACTIVATE:

@@ -30,7 +30,7 @@ REPEAT_KILL_CHAIN_STAGES = False  # Should the TAP restart from it's previous st
 KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success'
 RULES = [
     {
-        "target_router": "ST-INTRA-PRV-RT-DR-1",
+        "target_router": "ST_INTRA-PRV-RT-DR-1",
         "position": 1,
         "permission": "DENY",
         "src_ip": "192.168.220.3",
@@ -42,7 +42,7 @@ RULES = [
         "protocol_name": "ALL",
     },
     {
-        "target_router": "ST-INTRA-PRV-RT-DR-2",
+        "target_router": "ST_INTRA-PRV-RT-DR-2",
         "position": 5,
         "permission": "DENY",
         "src_ip": "192.168.220.3",
@@ -54,7 +54,7 @@ RULES = [
         "protocol_name": "ALL",
     },
     {
-        "target_router": "ST-INTRA-PRV-RT-CR",
+        "target_router": "ST_INTRA-PRV-RT-CR",
         "position": 6,
         "permission": "PERMIT",
         "src_ip": "192.168.220.3",
@@ -105,14 +105,14 @@ def uc7_tap003_env(**kwargs) -> PrimaiteGymEnv:
         cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["EXPLOIT"]["malicious_acls"] = RULES
         # Adding the new test target to TAP003's starting knowledge:
         new_target_dict = {
-            "ST-INTRA-PRV-RT-DR-2": {
+            "ST_INTRA-PRV-RT-DR-2": {
                 "ip_address": "192.168.170.2",
                 "username": "admin",
                 "password": "admin",
             }
         }
         new_target_manipulation = {
-            "host": "ST-INTRA-PRV-RT-DR-2",
+            "host": "ST_INTRA-PRV-RT-DR-2",
             "ip_address": "192.168.170.2",
             "action": "change_password",
             "username": "admin",
@@ -150,7 +150,7 @@ def test_tap003_cycling_rules():
         pytest.fail("While testing the cycling of TAP003 rules, the agent unexpectedly didn't execute its attack.")
 
     wait_until_attack()
-    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-DR-1")
+    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
     assert (rule_0 := target_node.acl.acl[1]) is not None
     assert rule_0.action == ACLAction.DENY
     assert rule_0.protocol == None
@@ -161,7 +161,7 @@ def test_tap003_cycling_rules():
     assert rule_0.src_port == None
     assert rule_0.dst_port == None
 
-    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-DR-2")
+    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-2")
     wait_until_attack()
     assert (rule_1 := target_node.acl.acl[5]) is not None
     assert rule_1.action == ACLAction.DENY
@@ -174,7 +174,7 @@ def test_tap003_cycling_rules():
     assert rule_1.dst_port == None
 
     wait_until_attack()
-    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST-INTRA-PRV-RT-CR")
+    target_node: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
     assert (rule_2 := target_node.acl.acl[6]) is not None
     assert rule_2.action == ACLAction.PERMIT
     assert rule_2.protocol == None

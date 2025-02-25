@@ -73,13 +73,13 @@ def test_green_agent_negative_reward(uc7_environment):
     # Purposefully disabling the following services:
 
     # 1. Disabling the web-server
-    st_dmz_pub_srv_web: Server = env.game.simulation.network.get_node_by_hostname("ST-DMZ-PUB-SRV-WEB")
+    st_dmz_pub_srv_web: Server = env.game.simulation.network.get_node_by_hostname("ST_DMZ-PUB-SRV-WEB")
     st_web_server = st_dmz_pub_srv_web.software_manager.software["web-server"]
     st_web_server.operating_state = ServiceOperatingState.DISABLED
     assert st_web_server.operating_state == ServiceOperatingState.DISABLED
 
     # 2. Disabling the DatabaseServer
-    st_data_database_server: Server = env.game.simulation.network.get_node_by_hostname("ST-DATA-PRV-SRV-DB")
+    st_data_database_server: Server = env.game.simulation.network.get_node_by_hostname("ST_DATA-PRV-SRV-DB")
     database_service: DatabaseService = st_data_database_server.software_manager.software["database-service"]
     database_service.operating_state = ServiceOperatingState.DISABLED
     assert database_service.operating_state == ServiceOperatingState.DISABLED
@@ -102,7 +102,7 @@ def test_tap001_default_behaviour(uc7_environment):
     for _ in range(128):
         env.step(0)
 
-    some_tech_proj_a_pc_1: Computer = network.get_node_by_hostname("ST-PROJ-A-PRV-PC-1")
+    some_tech_proj_a_pc_1: Computer = network.get_node_by_hostname("ST_PROJ-A-PRV-PC-1")
 
     # Asserting that the `malware_dropper.ps1` was created.
 
@@ -123,7 +123,7 @@ def test_tap001_default_behaviour(uc7_environment):
     assert c2_beacon.c2_connection_active == True
 
     # Asserting that the target database was successfully corrupted.
-    some_tech_data_server_database: Server = network.get_node_by_hostname("ST-DATA-PRV-SRV-DB")
+    some_tech_data_server_database: Server = network.get_node_by_hostname("ST_DATA-PRV-SRV-DB")
     database_file: File = some_tech_data_server_database.file_system.get_file(
         folder_name="database", file_name="database.db"
     )
@@ -139,8 +139,8 @@ def test_tap003_default_behaviour(uc7_environment):
     def uc7_environment_tap003() -> PrimaiteGymEnv:
         with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
             cfg = yaml.safe_load(uc7_config)
-            cfg["agents"][32]["agent_settings"]["starting_nodes"] = ["ST-PROJ-A-PRV-PC-1"]
-            cfg["agents"][32]["agent_settings"]["default_starting_node"] = "ST-PROJ-A-PRV-PC-1"
+            cfg["agents"][32]["agent_settings"]["starting_nodes"] = ["ST_PROJ-A-PRV-PC-1"]
+            cfg["agents"][32]["agent_settings"]["default_starting_node"] = "ST_PROJ-A-PRV-PC-1"
         env = PrimaiteGymEnv(env_config=cfg)
         return env
 
@@ -151,15 +151,15 @@ def test_tap003_default_behaviour(uc7_environment):
         env.step(0)
     network = env.game.simulation.network
 
-    # Asserting that a malicious ACL has been added to ST-INTRA-PRV-RT-DR-1
-    st_intra_prv_rt_dr_1: Router = network.get_node_by_hostname(hostname="ST-INTRA-PRV-RT-DR-1")
+    # Asserting that a malicious ACL has been added to ST_INTRA-PRV-RT-DR-1
+    st_intra_prv_rt_dr_1: Router = network.get_node_by_hostname(hostname="ST_INTRA-PRV-RT-DR-1")
     assert st_intra_prv_rt_dr_1.acl.acl[1].action == ACLAction.DENY
     assert st_intra_prv_rt_dr_1.acl.acl[1].protocol == "tcp"
     assert st_intra_prv_rt_dr_1.acl.acl[1].src_port == PORT_LOOKUP.get("POSTGRES_SERVER")
     assert st_intra_prv_rt_dr_1.acl.acl[1].dst_port == PORT_LOOKUP.get("POSTGRES_SERVER")
 
-    # Asserting that a malicious ACL has been added to ST-INTRA-PRV-RT-CR
-    st_intra_prv_rt_cr: Router = network.get_node_by_hostname(hostname="ST-INTRA-PRV-RT-CR")
+    # Asserting that a malicious ACL has been added to ST_INTRA-PRV-RT-CR
+    st_intra_prv_rt_cr: Router = network.get_node_by_hostname(hostname="ST_INTRA-PRV-RT-CR")
     assert st_intra_prv_rt_cr.acl.acl[1].action == ACLAction.DENY
     assert st_intra_prv_rt_cr.acl.acl[1].protocol == "tcp"
     assert st_intra_prv_rt_cr.acl.acl[1].src_port == PORT_LOOKUP.get("HTTP")

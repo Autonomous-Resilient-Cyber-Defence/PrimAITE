@@ -103,7 +103,7 @@ def test_abstract_tap_select_start_node():
     env = uc7_tap003_env(repeat_kill_chain=True, repeat_kill_chain_stages=True)  # Using TAP003 for PyTests.
     tap: TAP003 = env.game.agents["attacker"]
 
-    assert tap.starting_node == "ST-PROJ-A-PRV-PC-1"
+    assert tap.starting_node == "ST_PROJ-A-PRV-PC-1"
     assert tap.current_host == tap.starting_node
 
 
