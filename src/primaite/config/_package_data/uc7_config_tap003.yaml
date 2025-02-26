@@ -14,7 +14,8 @@ io_settings:
   save_agent_actions: false
   save_step_metadata: false
   save_pcap_logs: false
-  save_sys_logs: True
+  save_sys_logs: false
+  save_agent_logs: false
   # save_sys_logs: true
   write_sys_log_to_terminal: false
 
@@ -268,7 +269,7 @@ simulation:
             external_inbound_acl:
               1:
                 action: PERMIT
-            external_inbound_acl:
+            external_outbound_acl:
               1:
                 action: PERMIT
 
@@ -347,7 +348,7 @@ simulation:
             external_inbound_acl:
               5:
                 action: PERMIT
-            external_inbound_acl:
+            external_outbound_acl:
               5:
                 action: PERMIT
           routes:
@@ -995,7 +996,7 @@ PROBABILISTIC_CONFIG_40_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_40
         1: 0.4
 
 # Probabilistic Green Agent | 60% NODE_APPLICATION_EXECUTE | 40% do-nothing #
-PROBABILISTIC_CONFIG_20_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_60
+PROBABILISTIC_CONFIG_60_PERCENTAGE_PROBABILITY: &GREEN_PROBABILISTIC_60
       action_probabilities:
         0: 0.4
         1: 0.6
@@ -1061,7 +1062,6 @@ agents:
   - ref: HOME_WORKER-1-DB
     team: GREEN
     type: periodic-agent
-    observation_space: {}
     observation_space: {}
     agent_settings:
       possible_start_nodes: ["HOME-PUB-PC-1"]
@@ -1156,7 +1156,6 @@ agents:
     team: GREEN
     type: periodic-agent
     observation_space: {}
-    observation_space: {}
     agent_settings:
       possible_start_nodes: ["REM-PUB-PC-1"]
       target_application: "database-client"
@@ -1198,7 +1197,6 @@ agents:
   - ref: REMOTE_WORKER-2-DB
     team: GREEN
     type: periodic-agent
-    observation_space: {}
     observation_space: {}
     agent_settings:
       possible_start_nodes: ["REM-PUB-PC-2"]
@@ -1254,7 +1252,6 @@ agents:
     team: GREEN
     type: periodic-agent
     observation_space: {}
-    observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-A-PRV-PC-1"]
       target_application: "database-client"
@@ -1297,7 +1294,6 @@ agents:
     team: GREEN
     type: periodic-agent
     observation_space: {}
-    observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-A-PRV-PC-2"]
       target_application: "database-client"
@@ -1339,7 +1335,6 @@ agents:
   - ref: PROJ_A-JUNIOR-DEV-2-DB
     team: GREEN
     type: periodic-agent
-    observation_space: {}
     observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-A-PRV-PC-3"]
@@ -1393,7 +1388,6 @@ agents:
   - ref: PROJ_B-SENIOR-DEV-DB
     team: GREEN
     type: periodic-agent
-    observation_space: {}
     observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-B-PRV-PC-1"]
@@ -1532,7 +1526,6 @@ agents:
     team: GREEN
     type: periodic-agent
     observation_space: {}
-    observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-C-PRV-PC-1"]
       target_application: "database-client"
@@ -1616,7 +1609,6 @@ agents:
   - ref: PROJ_C-JUNIOR-DEV-2-DB
     team: GREEN
     type: periodic-agent
-    observation_space: {}
     observation_space: {}
     agent_settings:
       possible_start_nodes: ["ST_PROJ-C-PRV-PC-3"]
@@ -1946,6 +1938,7 @@ agents:
                     - service_name: ftp-client
                   applications:
                     - application_name: ransomware-script
+                    - application_name: database-client
                   folders:
                     - folder_name: downloads
                       files:
@@ -1959,6 +1952,7 @@ agents:
                     - service_name: ftp-client
                   applications:
                     - application_name: ransomware-script
+                    - application_name: database-client
                   folders:
                     - folder_name: downloads
                       files:
