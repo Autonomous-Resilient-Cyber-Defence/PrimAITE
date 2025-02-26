@@ -7,12 +7,14 @@
 Creating Custom Actions in PrimAITE
 ***********************************
 
-PrimAITE contains a selection of available actions that can be exercised within a training session, listed within ``actions.py``. `Note`: Agents are only able to perform the actions listed within it's action_map, defined within it's configuration YAML. See :ref:`custom_environment` for more information.
+PrimAITE contains a selection of possible actions that can be exercised within a training environment. Actions provided as a part of PrimAITE can be seen within `src/primaite/game/agent/actions`. `Note`: Agents are only able to perform the actions listed within it's action_map, defined within it's configuration YAML. See :ref:`custom_environment` for more information.
 
 Developing Custom Actions
-============================
+=========================
 
 Actions within PrimAITE follow a default format, as seen below and in ``actions.py``. It's important that they have an identifier when declared, as this is used when creating the training environment.
+
+An example of a custom action is seen below, with key information about what is required for new actions in :ref:`extensible_actions`.
 
 .. code:: Python
 
@@ -24,7 +26,7 @@ Actions within PrimAITE follow a default format, as seen below and in ``actions.
         class ConfigSchema(AbstractAction.ConfigSchema)
 
             node_name: str
-        
+
         @classmethod
         def form_request(cls, config: ConfigSchema) -> RequestFormat:
             return [config.node_name, "example_action"]
@@ -36,9 +38,9 @@ Any custom actions should then be added to the `ActionManager` class, and the `a
 
 
 Interaction with the PrimAITE Request Manager
-==============================================
+=============================================
 
-Where an action would cause a request to be sent through the PrimAITE RequestManager, a `form_request` method is expected to be defined within the Action Class. This should format  the action into a format that can be ingested by the `RequestManager`. Examples of this include the `NodeFolderCreateAction`, which sends a formed request to create a folder on a given node (seen below).
+Where an action would cause a request to be sent through the PrimAITE RequestManager, a `form_request` method is expected to be defined within the Action Class. This should format  the action into a format that can be ingested by the `RequestManager`. Examples of this include the `NodeFolderCreateAction`, which sends a formed request to create a folder on a given node (seen below):
 
 .. code:: Python
 

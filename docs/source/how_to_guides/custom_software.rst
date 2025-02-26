@@ -12,7 +12,7 @@ This page aims to provide a how-to guide on how to create your own custom softwa
 PrimAITE has a base software class which should be inherited from when building custom software. Examples of this can be seen in the ``IOSoftware`` and ``Process`` classes.
 It's important that any new software created within PrimAITE has the ``identifier`` attribute defined, for use when generating the environment.
 
-Some default attributes may need to be adjusted to align with the intended application of the custom software. 
+Some default attributes may need to be adjusted to align with the intended application of the custom software.
 
 
 .. code:: Python

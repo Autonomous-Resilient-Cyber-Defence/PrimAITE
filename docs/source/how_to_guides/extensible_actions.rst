@@ -7,7 +7,6 @@
 Extensible Actions
 ******************
 
-
 Changes to Actions class Structure.
 ===================================
 
@@ -33,7 +32,7 @@ The ConfigSchema sub-class of the action must contain all `configurable` variabl
 
 
 Unique discriminator
-#################
+####################
 
 When declaring a custom class, it must have a unique discriminator string, that allows PrimAITE to generate the correct action when needed.
 
