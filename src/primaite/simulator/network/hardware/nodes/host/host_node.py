@@ -313,7 +313,7 @@ class HostNode(Node, discriminator="host-node"):
     """
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "HostARP": HostARP,
+        "host-arp": HostARP,
         "icmp": ICMP,
         "dns-client": DNSClient,
         "ntp-client": NTPClient,

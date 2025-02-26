@@ -1,3 +1,2 @@
 include src/primaite/setup/_package_data/primaite_config.yaml
 include src/primaite/config/_package_data/*.yaml
-include src/primaite/simulator/_package_data/*.ipynb
