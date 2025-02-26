@@ -65,8 +65,7 @@ class ACLObservation(AbstractObservation, discriminator="acl"):
         self.port_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(port_list)}
         self.protocol_to_id: Dict[str, int] = {p: i + 2 for i, p in enumerate(protocol_list)}
         self.default_observation: Dict = {
-            i
-            + 1: {
+            i: {
                 "position": i,
                 "permission": 0,
                 "source_ip_id": 0,
@@ -94,12 +93,11 @@ class ACLObservation(AbstractObservation, discriminator="acl"):
             return self.default_observation
         obs = {}
         acl_items = dict(acl_state.items())
-        i = 1  # don't show rule 0 for compatibility reasons.
-        while i < self.num_rules + 1:
+        for i in range(self.num_rules):
             rule_state = acl_items[i]
             if rule_state is None:
                 obs[i] = {
-                    "position": i - 1,
+                    "position": i,
                     "permission": 0,
                     "source_ip_id": 0,
                     "source_wildcard_id": 0,
@@ -125,7 +123,7 @@ class ACLObservation(AbstractObservation, discriminator="acl"):
                 protocol = rule_state["protocol"]
                 protocol_id = self.protocol_to_id.get(protocol, 1)
                 obs[i] = {
-                    "position": i - 1,
+                    "position": i,
                     "permission": rule_state["action"],
                     "source_ip_id": src_node_id,
                     "source_wildcard_id": src_wildcard_id,
@@ -135,7 +133,6 @@ class ACLObservation(AbstractObservation, discriminator="acl"):
                     "dest_port_id": dst_port_id,
                     "protocol_id": protocol_id,
                 }
-            i += 1
         return obs
 
     @property
@@ -148,8 +145,7 @@ class ACLObservation(AbstractObservation, discriminator="acl"):
         """
         return spaces.Dict(
             {
-                i
-                + 1: spaces.Dict(
+                i: spaces.Dict(
                     {
                         "position": spaces.Discrete(self.num_rules),
                         "permission": spaces.Discrete(3),

@@ -53,7 +53,7 @@ def test_router_observation():
     # Observe the state using the RouterObservation instance
     observed_output = router_observation.observe(router.describe_state())
     observed_rule = observed_output["ACL"][5]
-    assert observed_rule["position"] == 4
+    assert observed_rule["position"] == 5
     assert observed_rule["permission"] == 2
     assert observed_rule["source_ip_id"] == 2
     assert observed_rule["source_wildcard_id"] == 3
@@ -77,7 +77,7 @@ def test_router_observation():
     )
     observed_output = router_observation.observe(router.describe_state())
     observed_rule = observed_output["ACL"][2]
-    assert observed_rule["position"] == 1
+    assert observed_rule["position"] == 2
     assert observed_rule["permission"] == 1
     assert observed_rule["source_ip_id"] == 1
     assert observed_rule["source_wildcard_id"] == 1
