@@ -295,7 +295,7 @@ def arcd_uc2_network() -> Network:
     # Security Suite
     security_suite_cfg = {
         "type": "server",
-        "hostname": "backup_server",
+        "hostname": "security_suite",
         "ip_address": "192.168.1.110",
         "subnet_mask": "255.255.255.0",
         "default_gateway": "192.168.1.1",
