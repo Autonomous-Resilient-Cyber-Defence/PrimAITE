@@ -37,15 +37,18 @@ class NodeAbstractAction(AbstractAction, ABC):
         return ["network", "node", config.node_name, config.verb]
 
 
-class NodeOSScanAction(NodeAbstractAction, discriminator="node-os-scan"):
+class NodeOSScanAction(AbstractAction, discriminator="node-os-scan"):
     """Action which scans a node's OS."""
 
-    config: "NodeOSScanAction.ConfigSchema"
+    class ConfigSchema(AbstractAction.ConfigSchema, ABC):
+        """Base Configuration schema for Node actions."""
 
-    class ConfigSchema(NodeAbstractAction.ConfigSchema):
-        """Configuration schema for NodeOSScanAction."""
+        node_name: str
 
-        verb: ClassVar[str] = "scan"
+    @classmethod
+    def form_request(cls, config: ConfigSchema) -> RequestFormat:
+        """Return the action formatted as a request which can be ingested by the PrimAITE simulation."""
+        return ["network", "node", config.node_name, "os", "scan"]
 
 
 class NodeShutdownAction(NodeAbstractAction, discriminator="node-shutdown"):

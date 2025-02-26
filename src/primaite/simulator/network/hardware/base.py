@@ -1534,6 +1534,9 @@ class Node(SimComponent, ABC):
     _registry: ClassVar[Dict[str, Type["Node"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
+    node_scan_countdown: int = 0
+    "Time steps until scan is complete"
+
     # TODO: this should not be set for abstract classes.
     _discriminator: ClassVar[str]
     """discriminator for this particular class, used for printing and logging. Each subclass redefines this."""
@@ -1569,9 +1572,6 @@ class Node(SimComponent, ABC):
 
         node_scan_duration: int = 10
         "How many timesteps until the whole node is scanned. Default 10 time steps."
-
-        node_scan_countdown: int = 0
-        "Time steps until scan is complete"
 
         red_scan_countdown: int = 0
         "Time steps until reveal to red scan is complete."
@@ -2019,10 +2019,10 @@ class Node(SimComponent, ABC):
         # time steps which require the node to be on
         if self.operating_state == NodeOperatingState.ON:
             # node scanning
-            if self.config.node_scan_countdown > 0:
-                self.config.node_scan_countdown -= 1
+            if self.node_scan_countdown > 0:
+                self.node_scan_countdown -= 1
 
-                if self.config.node_scan_countdown == 0:
+                if self.node_scan_countdown == 0:
                     # scan everything!
                     for process_id in self.processes:
                         self.processes[process_id].scan()
@@ -2098,7 +2098,7 @@ class Node(SimComponent, ABC):
 
         to the red agent.
         """
-        self.config.node_scan_countdown = self.config.node_scan_duration
+        self.node_scan_countdown = self.config.node_scan_duration
         return True
 
     def reveal_to_red(self) -> bool:
@@ -2114,7 +2114,7 @@ class Node(SimComponent, ABC):
 
         `revealed_to_red` to `True`.
         """
-        self.config.red_scan_countdown = self.config.node_scan_duration
+        self.red_scan_countdown = self.config.node_scan_duration
         return True
 
     def power_on(self) -> bool:
