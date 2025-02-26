@@ -107,66 +107,27 @@ class AbstractAgent(BaseModel, ABC):
         self.reward_function = RewardFunction(config=self.config.reward_function)
         return super().model_post_init(__context)
 
-    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
-        """Update the given table with information from given AgentHistoryItem."""
-        node, application = "unknown", "unknown"
-        if (node_id := item.parameters.get("node_id")) is not None:
-            node = self.action_manager.node_names[node_id]
-        if (application_id := item.parameters.get("application_id")) is not None:
-            application = self.action_manager.application_names[node_id][application_id]
-        if (application_name := item.parameters.get("application_name")) is not None:
-            application = application_name
-        table.add_row([item.timestep, item.action, node, application, item.response.status])
-        return table
-
     def show_history(self, ignored_actions: Optional[list] = None):
         """
-        Print an agent action provided it's not the DONOTHING action.
+        Print an agent action provided it's not the do-nothing action.
 
         :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
-                                If not provided, defaults to ignore DONOTHING actions.
+                                If not provided, defaults to ignore do-nothing actions.
         """
         if not ignored_actions:
-            ignored_actions = ["DONOTHING"]
+            ignored_actions = ["do-nothing"]
         table = PrettyTable()
-        table.field_names = ["Step", "Action", "Node", "Application", "Response"]
-        print(f"Actions for '{self.agent_name}':")
+        table.field_names = ["Step", "Action", "Params", "Response", "Response Data"]
+        print(f"Actions for '{self.config.ref}':")
         for item in self.history:
             if item.action in ignored_actions:
                 pass
             else:
-                table = self.add_agent_action(item=item, table=table)
-        print(table)
+                # format dict by putting each key-value entry on a separate line and putting a blank line on the end.
+                param_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.parameters.items()], ""])
+                data_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.response.data], ""])
 
-    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
-        """Update the given table with information from given AgentHistoryItem."""
-        node, application = "unknown", "unknown"
-        if (node_id := item.parameters.get("node_id")) is not None:
-            node = self.action_manager.node_names[node_id]
-        if (application_id := item.parameters.get("application_id")) is not None:
-            application = self.action_manager.application_names[node_id][application_id]
-        if (application_name := item.parameters.get("application_name")) is not None:
-            application = application_name
-        table.add_row([item.timestep, item.action, node, application, item.response.status])
-        return table
-
-    def show_history(self, ignored_actions: Optional[list] = None):
-        """
-        Print an agent action provided it's not the DONOTHING action.
-
-        :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
-                                If not provided, defaults to ignore DONOTHING actions.
-        """
-        if not ignored_actions:
-            ignored_actions = ["DONOTHING"]
-        table = PrettyTable()
-        table.field_names = ["Step", "Action", "Node", "Application", "Response"]
-        print(f"Actions for '{self.agent_name}':")
-        for item in self.history:
-            if item.action in ignored_actions:
-                pass
-            else:
-                table = self.add_agent_action(item=item, table=table)
+                table.add_row([item.timestep, item.action, param_string, item.response.status, data_string])
         print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
