@@ -138,8 +138,8 @@ class ARP(Service, discriminator="arp"):
                 break
 
         if use_default_gateway:
-            if self.software_manager.node.default_gateway:
-                target_ip_address = self.software_manager.node.default_gateway
+            if self.software_manager.node.config.default_gateway:
+                target_ip_address = self.software_manager.node.config.default_gateway
             else:
                 return
 

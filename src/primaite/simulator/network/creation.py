@@ -155,7 +155,12 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
         # Create a core switch if more than one edge switch is needed
         if num_of_switches > 1:
             core_switch = Switch.from_config(
-                config={"type": "switch", "hostname": f"switch_core_{config.lan_name}", "start_up_duration": 0}
+                config={
+                    "type": "switch",
+                    "hostname": f"switch_core_{config.lan_name}",
+                    "start_up_duration": 0,
+                    "num_ports": 24,
+                }
             )
             core_switch.power_on()
             network.add_node(core_switch)
@@ -183,7 +188,12 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
         switch_port = 0
         switch_n = 1
         switch = Switch.from_config(
-            config={"type": "switch", "hostname": f"switch_edge_{switch_n}_{config.lan_name}", "start_up_duration": 0}
+            config={
+                "type": "switch",
+                "hostname": f"switch_edge_{switch_n}_{config.lan_name}",
+                "start_up_duration": 0,
+                "num_ports": 24,
+            }
         )
         switch.power_on()
         network.add_node(switch)
@@ -207,6 +217,7 @@ class OfficeLANAdder(NetworkNodeAdder, discriminator="office-lan"):
                         "type": "switch",
                         "hostname": f"switch_edge_{switch_n}_{config.lan_name}",
                         "start_up_duration": 0,
+                        "num_ports": 24,
                     }
                 )
                 switch.power_on()

@@ -82,7 +82,7 @@ class Software(SimComponent, ABC):
         """Configurable options for all software."""
 
         model_config = ConfigDict(extra="forbid")
-        starting_health_state: SoftwareHealthState = SoftwareHealthState.UNUSED
+        starting_health_state: SoftwareHealthState = SoftwareHealthState.GOOD
         criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
         fixing_duration: int = 2
 

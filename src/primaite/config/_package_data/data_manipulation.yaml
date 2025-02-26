@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 io_settings:
   save_agent_actions: true
   save_step_metadata: false
@@ -81,7 +84,7 @@ agents:
           action: node-application-execute
           options:
             node_name: client_1
-            application_name: web-browser
+            application_name: database-client
 
     reward_function:
       reward_components:
