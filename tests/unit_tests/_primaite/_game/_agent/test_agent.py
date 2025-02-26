@@ -1,3 +1,4 @@
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.file_system_observations import FileObservation
 from primaite.game.agent.observations.observation_manager import NullObservation
 from primaite.game.agent.scripted_agents.random_agent import RandomAgent
