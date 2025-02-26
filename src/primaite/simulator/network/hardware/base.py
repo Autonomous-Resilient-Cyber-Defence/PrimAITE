@@ -639,10 +639,8 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
         """
         super().enable()
-        try:
+        if hasattr(self._connected_node, "default_gateway_hello"):
             self._connected_node.default_gateway_hello()
-        except AttributeError:
-            pass
         return True
 
     @abstractmethod
@@ -1211,7 +1209,7 @@ class UserSessionManager(Service, discriminator="user-session-manager"):
             """Request should take the form [username, password, remote_ip_address]."""
             username, password, remote_ip_address = request
             response = RequestResponse.from_bool(self.remote_login(username, password, remote_ip_address))
-            response.data = {"remote_hostname": self.parent.hostname, "username": username}
+            response.data = {"remote_hostname": self.parent.config.hostname, "username": username}
             return response
 
         rm.add_request("remote_login", RequestType(func=_remote_login))
@@ -1244,7 +1242,7 @@ class UserSessionManager(Service, discriminator="user-session-manager"):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.parent.hostname} User Sessions"
+        table.title = f"{self.parent.config.hostname} User Sessions"
 
         def _add_session_to_table(user_session: UserSession):
             """

@@ -1352,7 +1352,6 @@ class Router(NetworkNode, discriminator="router"):
         :return: A dictionary representing the current state.
         """
         state = super().describe_state()
-        state["num_ports"] = self.config.num_ports
         state["acl"] = self.acl.describe_state()
         return state
 

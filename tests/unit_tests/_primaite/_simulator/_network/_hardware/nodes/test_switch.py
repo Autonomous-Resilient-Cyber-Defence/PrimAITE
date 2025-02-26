@@ -17,4 +17,3 @@ def switch() -> Switch:
 def test_describe_state(switch):
     state = switch.describe_state()
     assert len(state.get("ports")) is 8
-    assert state.get("num_ports") is 8

@@ -77,7 +77,7 @@ class AbstractAgent(BaseModel, ABC):
 
     config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
-    logger: AgentLog = AgentLog(agent_name="Abstract_Agent")
+    logger: AgentLog = None
     history: List[AgentHistoryItem] = []
 
     action_manager: ActionManager = Field(default_factory=lambda: ActionManager())
@@ -85,6 +85,11 @@ class AbstractAgent(BaseModel, ABC):
     reward_function: RewardFunction = Field(default_factory=lambda: RewardFunction())
 
     _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
+
+    def __init__(self, **kwargs):
+        """Initialise and setup agent logger."""
+        super().__init__(**kwargs)
+        self.logger: AgentLog = AgentLog(agent_name=kwargs["config"]["ref"])
 
     def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
