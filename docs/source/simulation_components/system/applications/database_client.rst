@@ -59,7 +59,7 @@ Python
     # install DatabaseClient
     client.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = client.software_manager.software.get("database-sclient")
+    database_client: DatabaseClient = client.software_manager.software.get("database-client")
 
     # Configure the DatabaseClient
     database_client.configure(server_ip_address=IPv4Address("192.168.0.1"))  # address of the DatabaseService
