@@ -112,7 +112,7 @@ agents:
     action_space:
       action_map:
           0:
-            action: do_nothing
+            action: do-nothing
             options: {}
 
     reward_function:
