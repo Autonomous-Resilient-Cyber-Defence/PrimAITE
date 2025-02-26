@@ -2,7 +2,7 @@
 
     © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
-.. _custom_action:
+.. _custom_actions:
 
 Creating Custom Actions in PrimAITE
 ***********************************
@@ -19,18 +19,24 @@ Actions within PrimAITE follow a default format, as seen below and in ``actions.
     class ExampleActionClass(AbstractAction, identifier="ExampleActions"):
         """Example Action Class"""
 
-        def __init__(self, manager: "ActionManager", num_nodes: int, num_folders: int, **kwargs) -> None:
-            super().__init(manager, num_nodes=num_nodes, num_folders=num_folders, **kwargs)
-            self.verb: str = "ExampleAction"
+        config: ExampleAction.ConfigSchema(AbstractAction.ConfigSchema)
+
+        class ConfigSchema(AbstractAction.ConfigSchema)
+
+            node_name: str
+        
+        @classmethod
+        def form_request(cls, config: ConfigSchema) -> RequestFormat:
+            return [config.node_name, "example_action"]
 
 Integration with PrimAITE ActionManager
-==========================================
+=======================================
 
 Any custom actions should then be added to the `ActionManager` class, and the `act_class_identifiers` dictionary. This will map the action class to the corresponding action type string that would be passed through the PrimAITE `request_system`.
 
 
 Interaction with the PrimAITE Request Manager
-================================================
+==============================================
 
 Where an action would cause a request to be sent through the PrimAITE RequestManager, a `form_request` method is expected to be defined within the Action Class. This should format  the action into a format that can be ingested by the `RequestManager`. Examples of this include the `NodeFolderCreateAction`, which sends a formed request to create a folder on a given node (seen below).
 

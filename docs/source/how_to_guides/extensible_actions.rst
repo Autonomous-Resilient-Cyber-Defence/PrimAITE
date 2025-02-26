@@ -2,6 +2,7 @@
 
     © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+.. _extensible_actions:
 
 Extensible Actions
 ******************
@@ -48,6 +49,7 @@ When declaring a custom class, it must have a unique discriminator string, that 
             node_name: str
             directory_name: str
 
+        @classmethod
         def form_request(cls, config: ConfigSchema) -> RequestFormat:
             return ["network",
                     "node",
