@@ -26,6 +26,7 @@ REPEAT_KILL_CHAIN = False  # Should the TAP repeat the kill chain after success/
 REPEAT_KILL_CHAIN_STAGES = False  # Should the TAP restart from it's previous stage on failure?
 KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success'
 DATA_EXFIL = True  # Data exfiltration on the payload stage is enabled.
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap001_env() -> PrimaiteGymEnv:
@@ -33,14 +34,18 @@ def uc7_tap001_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        cfg["agents"][32]["agent_settings"]["start_step"] = START_STEP
-        cfg["agents"][32]["agent_settings"]["frequency"] = FREQUENCY
-        cfg["agents"][32]["agent_settings"]["variance"] = VARIANCE
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain"] = REPEAT_KILL_CHAIN_STAGES
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain_stages"] = REPEAT_KILL_CHAIN_STAGES
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["PAYLOAD"]["probability"] = KILL_CHAIN_PROBABILITY
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["PROPAGATE"]["probability"] = KILL_CHAIN_PROBABILITY
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["PAYLOAD"]["exfiltrate"] = DATA_EXFIL
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain"] = REPEAT_KILL_CHAIN_STAGES
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain_stages"] = REPEAT_KILL_CHAIN_STAGES
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PAYLOAD"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PROPAGATE"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PAYLOAD"]["exfiltrate"] = DATA_EXFIL
     env = PrimaiteGymEnv(env_config=cfg)
     return env
 

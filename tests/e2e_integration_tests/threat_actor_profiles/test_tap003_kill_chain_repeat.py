@@ -19,23 +19,30 @@ from primaite.session.environment import PrimaiteGymEnv
 START_STEP = 1  # The starting step of the agent.
 FREQUENCY = 2  # The frequency of kill chain stage progression (E.g it's next attempt at "attacking").
 VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap003_env(**kwargs) -> PrimaiteGymEnv:
-    """Setups the UC7 TAP003 Game with the start_step & frequency set to 1 with probabilities set to 1 as well"""
+    """Setups the UC7 TAP003 Game with a 1 timestep start_step, frequency of 2 and probabilities set to 1 as well"""
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        cfg["agents"][32]["agent_settings"]["start_step"] = START_STEP
-        cfg["agents"][32]["agent_settings"]["frequency"] = FREQUENCY
-        cfg["agents"][32]["agent_settings"]["variance"] = VARIANCE
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain"] = kwargs["repeat_kill_chain"]
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain_stages"] = kwargs["repeat_kill_chain_stages"]
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["MANIPULATION"]["probability"] = kwargs[
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain"] = kwargs["repeat_kill_chain"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain_stages"] = kwargs[
+            "repeat_kill_chain_stages"
+        ]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["MANIPULATION"]["probability"] = kwargs[
             "manipulation_probability"
         ]
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["ACCESS"]["probability"] = kwargs["access_probability"]
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["PLANNING"]["probability"] = kwargs["planning_probability"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["ACCESS"]["probability"] = kwargs[
+            "access_probability"
+        ]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PLANNING"]["probability"] = kwargs[
+            "planning_probability"
+        ]
     env = PrimaiteGymEnv(env_config=cfg)
     return env
 

@@ -23,22 +23,31 @@ VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next t
 REPEAT_KILL_CHAIN = False  # Should the TAP repeat the kill chain after success/failure?
 REPEAT_KILL_CHAIN_STAGES = False  # Should the TAP restart from it's previous stage on failure?
 KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success'
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap003_env() -> PrimaiteGymEnv:
-    """Setups the UC7 TAP003 Game with the start_step & frequency set to 1 with probabilities set to 1 as well"""
+    """Setups the UC7 TAP003 Game with a 1 timestep start_step, frequency of 2 and probabilities set to 1 as well"""
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        cfg["agents"][32]["agent_settings"]["start_step"] = START_STEP
-        cfg["agents"][32]["agent_settings"]["frequency"] = FREQUENCY
-        cfg["agents"][32]["agent_settings"]["variance"] = VARIANCE
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain"] = REPEAT_KILL_CHAIN_STAGES
-        cfg["agents"][32]["agent_settings"]["repeat_kill_chain_stages"] = REPEAT_KILL_CHAIN_STAGES
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["MANIPULATION"]["probability"] = KILL_CHAIN_PROBABILITY
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["ACCESS"]["probability"] = KILL_CHAIN_PROBABILITY
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["PLANNING"]["probability"] = KILL_CHAIN_PROBABILITY
-        cfg["agents"][32]["agent_settings"]["kill_chain"]["EXPLOIT"]["probability"] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain"] = REPEAT_KILL_CHAIN_STAGES
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain_stages"] = REPEAT_KILL_CHAIN_STAGES
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["MANIPULATION"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["ACCESS"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PLANNING"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["EXPLOIT"][
+            "probability"
+        ] = KILL_CHAIN_PROBABILITY
     env = PrimaiteGymEnv(env_config=cfg)
     return env
 
@@ -215,7 +224,7 @@ def test_tap003_kill_chain_stage_exploit():
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.EXPLOIT.name
 
     # Testing that the stage successfully impacted the simulation - Malicious ACL Added:
-    for _ in range(32):
+    for _ in range(ATTACK_AGENT_INDEX):
         env.step(0)
 
     # Tests that the ACL has been added and that the action is deny.

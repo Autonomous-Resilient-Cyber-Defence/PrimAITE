@@ -19,6 +19,7 @@ from primaite.session.environment import PrimaiteGymEnv
 START_STEP = 1  # The starting step of the agent.
 FREQUENCY = 2  # The frequency of kill chain stage progression (E.g it's next attempt at "attacking").
 VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap003_env() -> PrimaiteGymEnv:
@@ -26,9 +27,9 @@ def uc7_tap003_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        cfg["agents"][32]["agent_settings"]["start_step"] = START_STEP
-        cfg["agents"][32]["agent_settings"]["frequency"] = FREQUENCY
-        cfg["agents"][32]["agent_settings"]["variance"] = VARIANCE
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
     env = PrimaiteGymEnv(env_config=cfg)
     return env
 
@@ -38,9 +39,9 @@ def uc7_tap001_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        cfg["agents"][32]["agent_settings"]["start_step"] = START_STEP
-        cfg["agents"][32]["agent_settings"]["frequency"] = FREQUENCY
-        cfg["agents"][32]["agent_settings"]["variance"] = VARIANCE
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
     env = PrimaiteGymEnv(env_config=cfg)
     return env
 

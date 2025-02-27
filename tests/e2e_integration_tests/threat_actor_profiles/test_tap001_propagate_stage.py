@@ -24,7 +24,8 @@ FREQUENCY = 2  # The frequency of kill chain stage progression (E.g it's next at
 VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
 REPEAT_KILL_CHAIN = False  # Should the TAP repeat the kill chain after success/failure?
 REPEAT_KILL_CHAIN_STAGES = False  # Should the TAP restart from it's previous stage on failure?
-KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success'
+KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success's.
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap001_env(**kwargs) -> PrimaiteGymEnv:
@@ -32,7 +33,7 @@ def uc7_tap001_env(**kwargs) -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
-        agent_cfg = cfg["agents"][32]["agent_settings"]
+        agent_cfg = cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]
         agent_cfg["start_step"] = START_STEP
         agent_cfg["frequency"] = FREQUENCY
         agent_cfg["variance"] = VARIANCE
@@ -135,6 +136,6 @@ def test_tap001_kill_chain_stage_PROPAGATE_repeat_scan():
     while tap001.current_kill_chain_stage == MobileMalwareKillChain.PROPAGATE:
         env.step(0)
 
-    # As the given network_address does not contain the target, we should failed because the maximum amount of scan attempts has been reached
-    assert tap001.scans_complete == 20
+    # As the given network_address does not contain the target, we should fail because the maximum amount of scan attempts has been reached
+    assert tap001.scans_complete == scan_attempts
     assert tap001.current_kill_chain_stage == MobileMalwareKillChain.FAILED
