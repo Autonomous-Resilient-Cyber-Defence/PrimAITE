@@ -350,7 +350,7 @@ class HostNode(Node, discriminator="host-node"):
         self.connect_nic(NIC(ip_address=kwargs["config"].ip_address, subnet_mask=kwargs["config"].subnet_mask))
 
         for folder in self.config.folders:
-            # handle empty foler defined by just a string
+            # handle empty folder defined by just a string
             self.file_system.create_folder(folder["folder_name"])
 
             for file in folder.get("files", []):

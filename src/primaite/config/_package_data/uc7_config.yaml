@@ -252,7 +252,7 @@ simulation:
               next_hop_ip_address: 192.168.10.2
           default_route:
             next_hop_ip_address: 10.1.10.1 # Forward to internet router port 3
-          acl: # TODO: Expand on this (For now permit all)
+          acl:
             internal_inbound_acl:
               1:
                 action: PERMIT
@@ -331,7 +331,7 @@ simulation:
             dmz_port: # SOME_TECH Port Facing Port
               ip_address: 192.168.100.1
               subnet_mask: *ST_DMZ_SUBNET
-          acl: # TODO: Expand on this (For now permit all)
+          acl:
             internal_inbound_acl:
               5:
                 action: PERMIT
