@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Tuple
 
 import pytest
@@ -6,34 +6,40 @@ import pytest
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
 def pc_a_pc_b_router_1() -> Tuple[Computer, Computer, Router]:
     network = Network()
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    pc_a = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_a",
+            "ip_address": "192.168.0.10",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     pc_a.power_on()
 
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.1.10",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    pc_b = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_b",
+            "ip_address": "192.168.1.10",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     pc_b.power_on()
 
-    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1 = Router.from_config(config={"type": "router", "hostname": "router_1", "start_up_duration": 0})
     router_1.power_on()
 
     router_1.configure_port(1, "192.168.0.1", "255.255.255.0")
@@ -52,18 +58,21 @@ def multi_hop_network() -> Network:
     network = Network()
 
     # Configure PC A
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    pc_a: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_a",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     pc_a.power_on()
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = Router(hostname="router_1", start_up_duration=0)
+    router_1: Router = Router.from_config(config={"type": "router", "hostname": "router_1", "start_up_duration": 0})
     router_1.power_on()
     network.add_node(router_1)
 
@@ -73,21 +82,27 @@ def multi_hop_network() -> Network:
     router_1.enable_port(2)
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+    )
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # Configure PC B
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
+    pc_b: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_b",
+            "ip_address": "192.168.2.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.2.1",
+            "start_up_duration": 0,
+        }
     )
     pc_b.power_on()
     network.add_node(pc_b)
 
     # Configure Router 2
-    router_2 = Router(hostname="router_2", start_up_duration=0)
+    router_2: Router = Router.from_config(config={"type": "router", "hostname": "router_2", "start_up_duration": 0})
     router_2.power_on()
     network.add_node(router_2)
 
@@ -110,13 +125,13 @@ def multi_hop_network() -> Network:
 def test_ping_default_gateway(pc_a_pc_b_router_1):
     pc_a, pc_b, router_1 = pc_a_pc_b_router_1
 
-    assert pc_a.ping(pc_a.default_gateway)
+    assert pc_a.ping(pc_a.config.default_gateway)
 
 
 def test_ping_other_router_port(pc_a_pc_b_router_1):
     pc_a, pc_b, router_1 = pc_a_pc_b_router_1
 
-    assert pc_a.ping(pc_b.default_gateway)
+    assert pc_a.ping(pc_b.config.default_gateway)
 
 
 def test_host_on_other_subnet(pc_a_pc_b_router_1):
@@ -185,19 +200,23 @@ def test_routing_services(multi_hop_network):
     pc_b = multi_hop_network.get_node_by_hostname("pc_b")
 
     pc_a.software_manager.install(NTPClient)
-    ntp_client = pc_a.software_manager.software["NTPClient"]
+    ntp_client = pc_a.software_manager.software["ntp-client"]
     ntp_client.start()
 
     pc_b.software_manager.install(NTPServer)
-    pc_b.software_manager.software["NTPServer"].start()
+    pc_b.software_manager.software["ntp-server"].start()
 
     ntp_client.configure(ntp_server_ip_address=pc_b.network_interface[1].ip_address)
 
     router_1: Router = multi_hop_network.get_node_by_hostname("router_1")  # noqa
     router_2: Router = multi_hop_network.get_node_by_hostname("router_2")  # noqa
 
-    router_1.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
-    router_2.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=21)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=21
+    )
+    router_2.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=21
+    )
 
     assert ntp_client.time is None
     ntp_client.request_time()

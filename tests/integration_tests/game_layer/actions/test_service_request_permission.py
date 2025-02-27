@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Tuple
 
 import pytest
@@ -26,12 +26,12 @@ def test_service_start(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     game, agent = game_and_agent_fixture
 
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
-    dns_server = server_1.software_manager.software.get("DNSServer")
+    dns_server = server_1.software_manager.software.get("dns-server")
 
     dns_server.pause()
     assert dns_server.operating_state == ServiceOperatingState.PAUSED
 
-    action = ("NODE_SERVICE_START", {"node_id": 1, "service_id": 0})
+    action = ("node-service-start", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.PAUSED
@@ -40,7 +40,7 @@ def test_service_start(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
 
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_START", {"node_id": 1, "service_id": 0})
+    action = ("node-service-start", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
 
@@ -52,9 +52,9 @@ def test_service_resume(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent])
     game, agent = game_and_agent_fixture
 
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
-    dns_server = server_1.software_manager.software.get("DNSServer")
+    dns_server = server_1.software_manager.software.get("dns-server")
 
-    action = ("NODE_SERVICE_RESUME", {"node_id": 1, "service_id": 0})
+    action = ("node-service-resume", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.RUNNING
@@ -63,7 +63,7 @@ def test_service_resume(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent])
 
     assert dns_server.operating_state == ServiceOperatingState.PAUSED
 
-    action = ("NODE_SERVICE_RESUME", {"node_id": 1, "service_id": 0})
+    action = ("node-service-resume", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
 
@@ -75,32 +75,32 @@ def test_service_cannot_perform_actions_unless_running(game_and_agent_fixture: T
     game, agent = game_and_agent_fixture
 
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
-    dns_server = server_1.software_manager.software.get("DNSServer")
+    dns_server = server_1.software_manager.software.get("dns-server")
 
     dns_server.stop()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_SCAN", {"node_id": 1, "service_id": 0})
+    action = ("node-service-scan", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_PAUSE", {"node_id": 1, "service_id": 0})
+    action = ("node-service-pause", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_RESUME", {"node_id": 1, "service_id": 0})
+    action = ("node-service-resume", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_RESTART", {"node_id": 1, "service_id": 0})
+    action = ("node-service-restart", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED
 
-    action = ("NODE_SERVICE_FIX", {"node_id": 1, "service_id": 0})
+    action = ("node-service-fix", {"node_name": "server_1", "service_name": "dns-server"})
     agent.store_action(action)
     game.step()
     assert dns_server.operating_state == ServiceOperatingState.STOPPED

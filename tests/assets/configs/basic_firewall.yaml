@@ -4,6 +4,8 @@
 #  |  client_1  |------|  switch_1  |------|  client_2  |
 #  --------------      --------------      --------------
 #
+metadata:
+    version: 3.0
 
 io_settings:
   save_step_metadata: false
@@ -26,40 +28,23 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
-    observation_space: null
+    type: probabilistic-agent
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
       action_map:
         0:
-          action: DONOTHING
+          action: do-nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node-application-execute
           options:
-            node_id: 0
-            application_id: 0
-      options:
-        nodes:
-          - node_name: client_2
-            applications:
-              - application_name: WebBrowser
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
+            node_name: client_2
+            application_name: web-browser
 
     agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
+      action_probabilities:
+        0: 0.4
+        1: 0.6
 
 simulation:
   network:

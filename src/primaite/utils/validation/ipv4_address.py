@@ -1,4 +1,6 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+
+
 from ipaddress import IPv4Address
 from typing import Any, Final
 
@@ -6,6 +8,9 @@ from pydantic import BeforeValidator
 from typing_extensions import Annotated
 
 
+# Define a custom type IPV4Address using the typing_extensions.Annotated.
+# Annotated is used to attach metadata to type hints. In this case, it's used to associate the ipv4_validator
+# with the IPv4Address type, ensuring that any usage of IPV4Address undergoes validation before assignment.
 def ipv4_validator(v: Any) -> IPv4Address:
     """
     Validate the input and ensure it can be converted to an IPv4Address instance.
@@ -24,12 +29,9 @@ def ipv4_validator(v: Any) -> IPv4Address:
     return IPv4Address(v)
 
 
-# Define a custom type IPV4Address using the typing_extensions.Annotated.
-# Annotated is used to attach metadata to type hints. In this case, it's used to associate the ipv4_validator
-# with the IPv4Address type, ensuring that any usage of IPV4Address undergoes validation before assignment.
 IPV4Address: Final[Annotated] = Annotated[IPv4Address, BeforeValidator(ipv4_validator)]
 """
-IPv4Address with with IPv4Address with with pre-validation and auto-conversion from str using ipv4_validator..
+IPv4Address with pre-validation and auto-conversion from str using ipv4_validator..
 
 This type is essentially an IPv4Address from the standard library's ipaddress module,
 but with added validation logic. If you use this custom type, the ipv4_validator function
@@ -37,3 +39,12 @@ will automatically check and convert the input value to an instance of IPv4Addre
 any Pydantic model uses it. This ensures that any field marked with this type is not just
 an IPv4Address in form, but also valid according to the rules defined in ipv4_validator.
 """
+
+
+def str_ip(value: Any) -> str:
+    """Make sure it's a valid IP, but represent it as a string."""
+    # TODO: this is a bit of a hack, we should change RequestResponse to be able to handle IPV4Address objects
+    return str(IPV4Address(value))
+
+
+StrIP: Final[Annotated] = Annotated[str, BeforeValidator(str_ip)]

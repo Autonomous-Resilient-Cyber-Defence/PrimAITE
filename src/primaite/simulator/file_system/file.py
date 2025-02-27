@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 import hashlib
@@ -130,8 +130,8 @@ class File(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
-        warnings.warn("NODE_FILE_CHECKHASH is currently not implemented.")
-        self.sys_log.warning("NODE_FILE_CHECKHASH is currently not implemented.")
+        warnings.warn("node-file-checkhash is currently not implemented.")
+        self.sys_log.warning("node-file-checkhash is currently not implemented.")
         return False
 
         if self.deleted:

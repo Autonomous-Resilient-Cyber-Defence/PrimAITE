@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _network:
 
@@ -103,6 +103,13 @@ we'll use the following Network that has a client, server, two switches, and a r
 
     router_1.acl.add_rule(
         action=ACLAction.PERMIT,
-        protocol=IPProtocol.ICMP,
+        src_port=PORT_LOOKUP["ARP"],
+        dst_port=PORT_LOOKUP["ARP"],
+        position=22
+    )
+
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT,
+        protocol=PROTOCOL_LOOKUP["ICMP"],
         position=23
     )

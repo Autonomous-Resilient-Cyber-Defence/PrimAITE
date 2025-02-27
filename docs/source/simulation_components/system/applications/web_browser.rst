@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _WebBrowser:
 
@@ -61,7 +61,7 @@ The :ref:`DNSClient` must be configured to use the :ref:`DNSServer`. The :ref:`D
 
     # Install WebBrowser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.run()
 
     # configure the WebBrowser
@@ -85,7 +85,7 @@ Via Configuration
                 ...
                 applications:
                     - ref: web_browser
-                    type: WebBrowser
+                    type: web-browser
                     options:
                         target_url: http://arcd.com/
 

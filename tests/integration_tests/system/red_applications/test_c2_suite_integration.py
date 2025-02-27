@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Tuple
 
@@ -13,8 +13,6 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import AccessControlList, ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
@@ -25,6 +23,8 @@ from primaite.simulator.system.services.dns.dns_server import DNSServer
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.web_server.web_server import WebServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
@@ -34,52 +34,64 @@ def basic_network() -> Network:
 
     # Creating two generic nodes for the C2 Server and the C2 Beacon.
 
-    node_a = Computer(
-        hostname="node_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.252",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
-    )
+    node_a_cfg = {
+        "type": "computer",
+        "hostname": "node_a",
+        "ip_address": "192.168.0.2",
+        "subnet_mask": "255.255.255.252",
+        "default_gateway": "192.168.0.1",
+        "start_up_duration": 0,
+    }
+
+    node_a: Computer = Computer.from_config(config=node_a_cfg)
     node_a.power_on()
     node_a.software_manager.get_open_ports()
     node_a.software_manager.install(software_class=C2Server)
 
-    node_b = Computer(
-        hostname="node_b",
-        ip_address="192.168.255.2",
-        subnet_mask="255.255.255.248",
-        default_gateway="192.168.255.1",
-        start_up_duration=0,
-    )
+    node_b_cfg = {
+        "type": "computer",
+        "hostname": "node_b",
+        "ip_address": "192.168.255.2",
+        "subnet_mask": "255.255.255.248",
+        "default_gateway": "192.168.255.1",
+        "start_up_duration": 0,
+    }
 
+    node_b: Computer = Computer.from_config(config=node_b_cfg)
     node_b.power_on()
     node_b.software_manager.install(software_class=C2Beacon)
 
     # Creating a generic computer for testing remote terminal connections.
-    node_c = Computer(
-        hostname="node_c",
-        ip_address="192.168.255.3",
-        subnet_mask="255.255.255.248",
-        default_gateway="192.168.255.1",
-        start_up_duration=0,
-    )
+    node_c_cfg = {
+        "type": "computer",
+        "hostname": "node_c",
+        "ip_address": "192.168.255.3",
+        "subnet_mask": "255.255.255.248",
+        "default_gateway": "192.168.255.1",
+        "start_up_duration": 0,
+    }
+
+    node_c: Computer = Computer.from_config(config=node_c_cfg)
     node_c.power_on()
 
     # Creating a router to sit between node 1 and node 2.
-    router = Router(hostname="router", num_ports=3, start_up_duration=0)
+    router = Router.from_config(config={"type": "router", "hostname": "router", "num_ports": 3, "start_up_duration": 0})
     # Default allow all.
     router.acl.add_rule(action=ACLAction.PERMIT)
     router.power_on()
     # Creating switches for each client.
-    switch_1 = Switch(hostname="switch_1", num_ports=6, start_up_duration=0)
+    switch_1 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_1", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_1.power_on()
 
     # Connecting the switches to the router.
     router.configure_port(port=1, ip_address="192.168.0.1", subnet_mask="255.255.255.252")
     network.connect(endpoint_a=router.network_interface[1], endpoint_b=switch_1.network_interface[6])
 
-    switch_2 = Switch(hostname="switch_2", num_ports=6, start_up_duration=0)
+    switch_2 = Switch.from_config(
+        config={"type": "switch", "hostname": "switch_2", "num_ports": 6, "start_up_duration": 0}
+    )
     switch_2.power_on()
 
     network.connect(endpoint_a=router.network_interface[2], endpoint_b=switch_2.network_interface[6])
@@ -99,15 +111,15 @@ def basic_network() -> Network:
 def setup_c2(given_network: Network):
     """Installs the C2 Beacon & Server, configures and then returns."""
     computer_a: Computer = given_network.get_node_by_hostname("node_a")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
     computer_a.software_manager.install(DatabaseService)
-    computer_a.software_manager.software["DatabaseService"].start()
+    computer_a.software_manager.software["database-service"].start()
 
     computer_b: Computer = given_network.get_node_by_hostname("node_b")
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
     computer_b.software_manager.install(DatabaseClient)
-    computer_b.software_manager.software["DatabaseClient"].configure(server_ip_address=IPv4Address("192.168.0.2"))
-    computer_b.software_manager.software["DatabaseClient"].run()
+    computer_b.software_manager.software["database-client"].configure(server_ip_address=IPv4Address("192.168.0.2"))
+    computer_b.software_manager.software["database-client"].run()
 
     c2_beacon.configure(c2_server_ip_address="192.168.0.2", keep_alive_frequency=2)
     c2_server.run()
@@ -173,13 +185,13 @@ def test_c2_suite_configure_request(basic_network):
     c2_beacon_config = {
         "c2_server_ip_address": "192.168.0.2",
         "keep_alive_frequency": 5,
-        "masquerade_protocol": "TCP",
-        "masquerade_port": "HTTP",
+        "masquerade_protocol": "tcp",
+        "masquerade_port": 80,
     }
 
-    network.apply_request(["node", "node_b", "application", "C2Beacon", "configure", c2_beacon_config])
+    network.apply_request(["node", "node_b", "application", "c2-beacon", "configure", c2_beacon_config])
     network.apply_timestep(0)
-    network.apply_request(["node", "node_b", "application", "C2Beacon", "execute"])
+    network.apply_request(["node", "node_b", "application", "c2-beacon", "execute"])
 
     assert c2_beacon.c2_connection_active is True
     assert c2_server.c2_connection_active is True
@@ -195,13 +207,13 @@ def test_c2_suite_ransomware_commands(basic_network):
     # Testing Via Requests:
     computer_b.software_manager.install(software_class=RansomwareScript)
     ransomware_config = {"server_ip_address": "192.168.0.2"}
-    network.apply_request(["node", "node_a", "application", "C2Server", "ransomware_configure", ransomware_config])
+    network.apply_request(["node", "node_a", "application", "c2-server", "ransomware_configure", ransomware_config])
 
-    ransomware_script: RansomwareScript = computer_b.software_manager.software["RansomwareScript"]
+    ransomware_script: RansomwareScript = computer_b.software_manager.software["ransomware-script"]
 
     assert ransomware_script.server_ip_address == "192.168.0.2"
 
-    network.apply_request(["node", "node_a", "application", "C2Server", "ransomware_launch"])
+    network.apply_request(["node", "node_a", "application", "c2-server", "ransomware_launch"])
 
     database_file = computer_a.software_manager.file_system.get_file("database", "database.db")
 
@@ -227,7 +239,7 @@ def test_c2_suite_acl_block(basic_network):
     assert c2_beacon.c2_connection_active == True
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
 
     c2_beacon.apply_timestep(2)
     c2_beacon.apply_timestep(3)
@@ -322,8 +334,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Confirm Default Setup #########################
 
     # Permitting all HTTP & FTP traffic
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=1)
 
     c2_beacon.apply_timestep(0)
     assert c2_beacon.keep_alive_inactivity == 1
@@ -337,7 +349,7 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying HTTP Traffic #########################
 
     # Now we add a HTTP blocking acl (Thus preventing a keep alive)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
     blocking_acl: AccessControlList = router.acl.acl[0]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -359,8 +371,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port.FTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=PORT_LOOKUP["FTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     c2_beacon.establish()
@@ -407,8 +419,8 @@ def test_c2_suite_acl_bypass(basic_network):
     ################ Denying FTP Traffic & Enable HTTP #########################
 
     # Blocking FTP and re-permitting HTTP:
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=0)
-    router.acl.add_rule(action=ACLAction.DENY, src_port=Port.FTP, dst_port=Port.FTP, position=1)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=0)
+    router.acl.add_rule(action=ACLAction.DENY, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=1)
     blocking_acl: AccessControlList = router.acl.acl[1]
 
     # Asserts to show the C2 Suite is unable to maintain connection:
@@ -430,8 +442,8 @@ def test_c2_suite_acl_bypass(basic_network):
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.2",
         keep_alive_frequency=2,
-        masquerade_port=Port.HTTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=PORT_LOOKUP["HTTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     c2_beacon.establish()
@@ -491,10 +503,16 @@ def test_c2_suite_yaml():
 
     yaml_network = game.simulation.network
     computer_a: Computer = yaml_network.get_node_by_hostname("node_a")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
 
     computer_b: Computer = yaml_network.get_node_by_hostname("node_b")
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
+    c2_beacon.configure(
+        c2_server_ip_address=c2_beacon.config.c2_server_ip_address,
+        keep_alive_frequency=c2_beacon.config.keep_alive_frequency,
+        masquerade_port=c2_beacon.config.masquerade_port,
+        masquerade_protocol=c2_beacon.config.masquerade_protocol,
+    )
 
     assert c2_server.operating_state == ApplicationOperatingState.RUNNING
 

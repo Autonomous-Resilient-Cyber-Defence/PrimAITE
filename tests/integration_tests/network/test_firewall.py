@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 
 import pytest
@@ -7,10 +7,10 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.ntp.ntp_server import NTPServer
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -41,7 +41,9 @@ def dmz_external_internal_network() -> Network:
     """
     network = Network()
 
-    firewall_node: Firewall = Firewall(hostname="firewall_1", start_up_duration=0)
+    firewall_node: Firewall = Firewall.from_config(
+        config={"type": "firewall", "hostname": "firewall_1", "start_up_duration": 0}
+    )
     firewall_node.power_on()
     # configure firewall ports
     firewall_node.configure_external_port(
@@ -53,70 +55,83 @@ def dmz_external_internal_network() -> Network:
     )
 
     # Allow ICMP
-    firewall_node.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.external_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.external_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
-    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    firewall_node.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    firewall_node.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    firewall_node.external_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    firewall_node.external_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
+    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # Allow ARP
     firewall_node.internal_inbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
     )
     firewall_node.internal_outbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
     )
     firewall_node.external_inbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
     )
     firewall_node.external_outbound_acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
     )
-    firewall_node.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
-    firewall_node.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.ARP, dst_port=Port.ARP, position=22)
+    firewall_node.dmz_inbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+    )
+    firewall_node.dmz_outbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+    )
 
     # external node
-    external_node = Computer(
-        hostname="external_node",
-        ip_address="192.168.10.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        start_up_duration=0,
+    external_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "external_node",
+            "ip_address": "192.168.10.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.10.1",
+            "start_up_duration": 0,
+        }
     )
     external_node.power_on()
     external_node.software_manager.install(NTPServer)
-    ntp_service: NTPServer = external_node.software_manager.software["NTPServer"]
+    ntp_service: NTPServer = external_node.software_manager.software["ntp-server"]
     ntp_service.start()
     # connect external node to firewall node
     network.connect(endpoint_b=external_node.network_interface[1], endpoint_a=firewall_node.external_port)
 
     # internal node
-    internal_node = Computer(
-        hostname="internal_node",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    internal_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "internal_node",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     internal_node.power_on()
     internal_node.software_manager.install(NTPClient)
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
     internal_ntp_client.configure(external_node.network_interface[1].ip_address)
     internal_ntp_client.start()
     # connect external node to firewall node
     network.connect(endpoint_b=internal_node.network_interface[1], endpoint_a=firewall_node.internal_port)
 
     # dmz node
-    dmz_node = Computer(
-        hostname="dmz_node",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    dmz_node: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "dmz_node",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     dmz_node.power_on()
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
     dmz_ntp_client.configure(external_node.network_interface[1].ip_address)
     dmz_ntp_client.start()
     # connect external node to firewall node
@@ -151,9 +166,9 @@ def test_nodes_can_ping_default_gateway(dmz_external_internal_network):
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
 
-    assert internal_node.ping(internal_node.default_gateway)  # default gateway internal
-    assert dmz_node.ping(dmz_node.default_gateway)  # default gateway dmz
-    assert external_node.ping(external_node.default_gateway)  # default gateway external
+    assert internal_node.ping(internal_node.config.default_gateway)  # default gateway internal
+    assert dmz_node.ping(dmz_node.config.default_gateway)  # default gateway dmz
+    assert external_node.ping(external_node.config.default_gateway)  # default gateway external
 
 
 def test_nodes_can_ping_default_gateway_on_another_subnet(dmz_external_internal_network):
@@ -167,14 +182,14 @@ def test_nodes_can_ping_default_gateway_on_another_subnet(dmz_external_internal_
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
 
-    assert internal_node.ping(external_node.default_gateway)  # internal node to external default gateway
-    assert internal_node.ping(dmz_node.default_gateway)  # internal node to dmz default gateway
+    assert internal_node.ping(external_node.config.default_gateway)  # internal node to external default gateway
+    assert internal_node.ping(dmz_node.config.default_gateway)  # internal node to dmz default gateway
 
-    assert dmz_node.ping(internal_node.default_gateway)  # dmz node to internal default gateway
-    assert dmz_node.ping(external_node.default_gateway)  # dmz node to external default gateway
+    assert dmz_node.ping(internal_node.config.default_gateway)  # dmz node to internal default gateway
+    assert dmz_node.ping(external_node.config.default_gateway)  # dmz node to external default gateway
 
-    assert external_node.ping(external_node.default_gateway)  # external node to internal default gateway
-    assert external_node.ping(dmz_node.default_gateway)  # external node to dmz default gateway
+    assert external_node.ping(external_node.config.default_gateway)  # external node to internal default gateway
+    assert external_node.ping(dmz_node.config.default_gateway)  # external node to dmz default gateway
 
 
 def test_nodes_can_ping_each_other(dmz_external_internal_network):
@@ -210,8 +225,8 @@ def test_service_blocked(dmz_external_internal_network):
     firewall = dmz_external_internal_network.get_node_by_hostname("firewall_1")
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
 
     assert not internal_ntp_client.time
 
@@ -257,13 +272,17 @@ def test_service_allowed_with_rule(dmz_external_internal_network):
     firewall = dmz_external_internal_network.get_node_by_hostname("firewall_1")
     internal_node = dmz_external_internal_network.get_node_by_hostname("internal_node")
     dmz_node = dmz_external_internal_network.get_node_by_hostname("dmz_node")
-    internal_ntp_client: NTPClient = internal_node.software_manager.software["NTPClient"]
-    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["NTPClient"]
+    internal_ntp_client: NTPClient = internal_node.software_manager.software["ntp-client"]
+    dmz_ntp_client: NTPClient = dmz_node.software_manager.software["ntp-client"]
 
     assert not internal_ntp_client.time
 
-    firewall.internal_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
-    firewall.internal_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
+    firewall.internal_outbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=1
+    )
+    firewall.internal_inbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=1
+    )
 
     internal_ntp_client.request_time()
 
@@ -271,8 +290,12 @@ def test_service_allowed_with_rule(dmz_external_internal_network):
 
     assert not dmz_ntp_client.time
 
-    firewall.dmz_outbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
-    firewall.dmz_inbound_acl.add_rule(action=ACLAction.PERMIT, src_port=Port.NTP, dst_port=Port.NTP, position=1)
+    firewall.dmz_outbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=1
+    )
+    firewall.dmz_inbound_acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["NTP"], dst_port=PORT_LOOKUP["NTP"], position=1
+    )
 
     dmz_ntp_client.request_time()
 

@@ -1,32 +1,45 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Any, Optional
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import is_valid_port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class FTPServer(FTPServiceABC):
+class FTPServer(FTPServiceABC, discriminator="ftp-server"):
     """
     A class for simulating an FTP server service.
 
-    This class inherits from the `Service` class and provides methods to emulate FTP
+    This class inherits from the `FTPServiceABC` class and provides methods to emulate FTP
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
+    class ConfigSchema(FTPServiceABC.ConfigSchema):
+        """ConfigSchema for FTPServer."""
+
+        type: str = "ftp-server"
+        server_password: Optional[str] = None
+
+    config: ConfigSchema = Field(default_factory=lambda: FTPServer.ConfigSchema())
     server_password: Optional[str] = None
-    """Password needed to connect to FTP server. Default is None."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "FTPServer"
-        kwargs["port"] = Port.FTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "ftp-server"
+        kwargs["port"] = PORT_LOOKUP["FTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
+
+    @property
+    def server_password(self) -> Optional[str]:
+        """Convenience method for accessing FTP server password."""
+        return self.config.server_password
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
@@ -52,7 +65,7 @@ class FTPServer(FTPServiceABC):
         # process server specific commands, otherwise call super
         if payload.ftp_command == FTPCommand.PORT:
             # check that the port is valid
-            if isinstance(payload.ftp_command_args, Port) and payload.ftp_command_args.value in range(0, 65535):
+            if is_valid_port(payload.ftp_command_args):
                 # return successful connection
                 self.add_connection(connection_id=session_id, session_id=session_id)
                 payload.status_code = FTPStatusCode.OK

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 
 import pytest
@@ -6,34 +6,46 @@ import pytest
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.protocols.dns import DNSPacket, DNSReply, DNSRequest
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
 def dns_client() -> Computer:
-    node = Computer(
-        hostname="dns_client",
-        ip_address="192.168.1.11",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        dns_server=IPv4Address("192.168.1.10"),
-    )
+    node_cfg = {
+        "type": "computer",
+        "hostname": "dns_client",
+        "ip_address": "192.168.1.11",
+        "subnet_mask": "255.255.255.0",
+        "default_gateway": "192.168.1.1",
+        "dns_server": IPv4Address("192.168.1.10"),
+    }
+    node = Computer.from_config(config=node_cfg)
     return node
 
 
 def test_create_dns_client(dns_client):
     assert dns_client is not None
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
-    assert dns_client_service.name is "DNSClient"
-    assert dns_client_service.port is Port.DNS
-    assert dns_client_service.protocol is IPProtocol.TCP
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
+    assert dns_client_service.name == "dns-client"
+    assert dns_client_service.port is PORT_LOOKUP["DNS"]
+    assert dns_client_service.protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
+
+    # shutdown the dns_client
+    dns_client.power_off()
+
+    # wait for dns_client to turn off
+    idx = 0
+    while dns_client.operating_state == NodeOperatingState.SHUTTING_DOWN:
+        dns_client.apply_timestep(idx)
+        idx += 1
+
     assert dns_client.operating_state is NodeOperatingState.OFF
     assert dns_client_service.operating_state is ServiceOperatingState.STOPPED
 
@@ -46,7 +58,7 @@ def test_dns_client_add_domain_to_cache_when_not_running(dns_client):
 
 def test_dns_client_check_domain_exists_when_not_running(dns_client):
     dns_client.operating_state = NodeOperatingState.ON
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
     dns_client_service.start()
 
     assert dns_client.operating_state is NodeOperatingState.ON
@@ -61,7 +73,7 @@ def test_dns_client_check_domain_exists_when_not_running(dns_client):
 
     dns_client.power_off()
 
-    for i in range(dns_client.shut_down_duration + 1):
+    for i in range(dns_client.config.shut_down_duration + 1):
         dns_client.apply_timestep(timestep=i)
 
     assert dns_client.operating_state is NodeOperatingState.OFF
@@ -73,7 +85,7 @@ def test_dns_client_check_domain_exists_when_not_running(dns_client):
 def test_dns_client_check_domain_in_cache(dns_client):
     """Test to make sure that the check_domain_in_cache returns the correct values."""
     dns_client.operating_state = NodeOperatingState.ON
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
     dns_client_service.start()
 
     # add a domain to the dns client cache
@@ -85,7 +97,7 @@ def test_dns_client_check_domain_in_cache(dns_client):
 
 def test_dns_client_receive(dns_client):
     """Test to make sure the DNS Client knows how to deal with request responses."""
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
 
     dns_client_service.receive(
         payload=DNSPacket(
@@ -99,6 +111,6 @@ def test_dns_client_receive(dns_client):
 
 
 def test_dns_client_receive_non_dns_payload(dns_client):
-    dns_client_service: DNSClient = dns_client.software_manager.software.get("DNSClient")
+    dns_client_service: DNSClient = dns_client.software_manager.software.get("dns-client")
 
     assert dns_client_service.receive(payload=None) is False

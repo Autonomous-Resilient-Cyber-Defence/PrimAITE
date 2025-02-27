@@ -1,20 +1,22 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import secrets
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, Union
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import NetworkInterface
 from primaite.simulator.network.protocols.icmp import ICMPPacket, ICMPType
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class ICMP(Service):
+class ICMP(Service, discriminator="icmp"):
     """
     The Internet Control Message Protocol (ICMP) service.
 
@@ -22,12 +24,19 @@ class ICMP(Service):
     network diagnostics, notably the ping command.
     """
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for ICMP."""
+
+        type: str = "icmp"
+
+    config: "ICMP.ConfigSchema" = Field(default_factory=lambda: ICMP.ConfigSchema())
+
     request_replies: Dict = {}
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "ICMP"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.ICMP
+        kwargs["name"] = "icmp"
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["ICMP"]
         super().__init__(**kwargs)
 
     def describe_state(self) -> Dict:

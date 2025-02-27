@@ -1,12 +1,14 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from abc import ABC
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import StrictBool
+
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.simulator.system.services.service import Service
+from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.utils.validation.port import Port
 
 
 class FTPServiceABC(Service, ABC):
@@ -16,9 +18,22 @@ class FTPServiceABC(Service, ABC):
     Contains shared methods between both classes.
     """
 
+    _active: StrictBool = False
+    """Flag that is True on timesteps where service transmits data and False when idle. Used for describe_state."""
+
+    def pre_timestep(self, timestep: int) -> None:
+        """When a new timestep begins, clear the _active attribute."""
+        self._active = False
+        return super().pre_timestep(timestep)
+
     def describe_state(self) -> Dict:
         """Returns a Dict of the FTPService state."""
-        return super().describe_state()
+        state = super().describe_state()
+
+        # override so that the service is shows as running only if actively transmitting data this timestep
+        if self.operating_state == ServiceOperatingState.RUNNING and not self._active:
+            state["operating_state"] = ServiceOperatingState.STOPPED.value
+        return state
 
     def _process_ftp_command(self, payload: FTPPacket, session_id: Optional[str] = None, **kwargs) -> FTPPacket:
         """
@@ -29,6 +44,7 @@ class FTPServiceABC(Service, ABC):
         :param: session_id: session ID linked to the FTP Packet. Optional.
         :type: session_id: Optional[str]
         """
+        self._active = True
         if payload.ftp_command is not None:
             self.sys_log.info(f"Received FTP {payload.ftp_command.name} command.")
 
@@ -51,6 +67,7 @@ class FTPServiceABC(Service, ABC):
         :param: payload: The FTP Packet that contains the file data
         :type: FTPPacket
         """
+        self._active = True
         try:
             file_name = payload.ftp_command_args["dest_file_name"]
             folder_name = payload.ftp_command_args["dest_folder_name"]
@@ -97,7 +114,7 @@ class FTPServiceABC(Service, ABC):
         :param: dest_ip_address: The IP address of the machine that hosts the FTP Server.
         :type: dest_ip_address: Optional[IPv4Address]
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
         :type: dest_port: Optional[Port]
 
         :param: session_id: session ID linked to the FTP Packet. Optional.
@@ -106,6 +123,7 @@ class FTPServiceABC(Service, ABC):
         :param: is_response: is true if the data being sent is in response to a request. Default False.
         :type: is_response: bool
         """
+        self._active = True
         # send STOR request
         payload: FTPPacket = FTPPacket(
             ftp_command=FTPCommand.STOR,
@@ -135,6 +153,7 @@ class FTPServiceABC(Service, ABC):
         :param: payload: The FTP Packet that contains the file data
         :type: FTPPacket
         """
+        self._active = True
         try:
             # find the file
             file_name = payload.ftp_command_args["src_file_name"]
@@ -181,6 +200,7 @@ class FTPServiceABC(Service, ABC):
 
         :return: True if successful, False otherwise.
         """
+        self._active = True
         self.sys_log.info(f"{self.name}: Sending FTP {payload.ftp_command.name} {payload.ftp_command_args}")
 
         return super().send(

@@ -1,34 +1,26 @@
 agents: &greens
   - ref: green_B
     team: GREEN
-    type: ProbabilisticAgent
+    type: probabilistic-agent
     agent_settings:
       action_probabilities:
         0: 0.95
         1: 0.05
-    observation_space: null
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
-      options:
-        nodes:
-        - node_name: client
-          applications:
-            - application_name: DatabaseClient
       action_map:
         0:
-          action: DONOTHING
+          action: do-nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node-application-execute
           options:
-            node_id: 0
-            application_id: 0
+            node_name: client
+            application_name: database-client
 
     reward_function:
       reward_components:
-        - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+        - type: green-admin-database-unreachable-penalty
           weight: 1.0
           options:
             node_hostname: client

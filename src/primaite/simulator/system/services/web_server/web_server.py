@@ -1,7 +1,9 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.http import (
@@ -10,17 +12,24 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClientConnection
 from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class WebServer(Service):
+class WebServer(Service, discriminator="web-server"):
     """Class used to represent a Web Server Service in simulation."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for WebServer."""
+
+        type: str = "web-server"
+
+    config: ConfigSchema = Field(default_factory=lambda: WebServer.ConfigSchema())
 
     response_codes_this_timestep: List[HttpStatusCode] = []
 
@@ -48,11 +57,11 @@ class WebServer(Service):
         return super().pre_timestep(timestep)
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "WebServer"
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "web-server"
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port.HTTP
+            kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
         self._install_web_files()
@@ -139,7 +148,7 @@ class WebServer(Service):
             return True
 
         # otherwise, try to create db connection
-        db_client = self.software_manager.software.get("DatabaseClient")
+        db_client = self.software_manager.software.get("database-client")
 
         if db_client is None:
             return False  # database client not installed

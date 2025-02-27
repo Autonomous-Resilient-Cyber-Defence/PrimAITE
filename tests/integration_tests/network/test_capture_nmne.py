@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from itertools import product
 
 import yaml
@@ -23,7 +23,7 @@ def test_capture_nmne(uc2_network: Network):
     of the "DELETE" SQL command as a malicious network event.
     """
     web_server: Server = uc2_network.get_node_by_hostname("web_server")  # noqa
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]  # noqa
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]  # noqa
     db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     db_server: Server = uc2_network.get_node_by_hostname("database_server")  # noqa
@@ -100,7 +100,7 @@ def test_describe_state_nmne(uc2_network: Network):
     only shows MNEs since the last time describe_state was called.
     """
     web_server: Server = uc2_network.get_node_by_hostname("web_server")  # noqa
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]  # noqa
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]  # noqa
     db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     db_server: Server = uc2_network.get_node_by_hostname("database_server")  # noqa
@@ -214,7 +214,7 @@ def test_capture_nmne_observations(uc2_network: Network):
     sim.network = uc2_network
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software["DatabaseClient"]
+    db_client: DatabaseClient = web_server.software_manager.software["database-client"]
     db_client_connection: DatabaseClientConnection = db_client.get_new_connection()
 
     # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs

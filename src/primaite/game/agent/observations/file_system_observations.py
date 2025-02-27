@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, Iterable, List, Optional
@@ -13,7 +13,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 
-class FileObservation(AbstractObservation, identifier="FILE"):
+class FileObservation(AbstractObservation, discriminator="file"):
     """File observation, provides status information about a file within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -158,7 +158,7 @@ class FileObservation(AbstractObservation, identifier="FILE"):
         )
 
 
-class FolderObservation(AbstractObservation, identifier="FOLDER"):
+class FolderObservation(AbstractObservation, discriminator="folder"):
     """Folder observation, provides status information about a folder within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -225,6 +225,8 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
         if self.files:
             self.default_observation["FILES"] = {i + 1: f.default_observation for i, f in enumerate(self.files)}
 
+        self.cached_obs: Optional[ObsType] = self.default_observation
+
     def observe(self, state: Dict) -> ObsType:
         """
         Generate observation based on the current state of the simulation.
@@ -239,7 +241,10 @@ class FolderObservation(AbstractObservation, identifier="FOLDER"):
             return self.default_observation
 
         if self.file_system_requires_scan:
-            health_status = folder_state["visible_status"]
+            if not folder_state["scanned_this_step"]:
+                health_status = self.cached_obs["health_status"]
+            else:
+                health_status = folder_state["visible_status"]
         else:
             health_status = folder_state["health_status"]
 

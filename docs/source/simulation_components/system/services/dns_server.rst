@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _DNSServer:
 
@@ -53,7 +53,7 @@ Python
 
     # Install DNSServer on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     dns_server.start()
 
     # configure DatabaseService
@@ -74,7 +74,7 @@ Via Configuration
                 ...
                 services:
                     - ref: dns_server
-                    type: DNSServer
+                    type: dns-server
                     options:
                         domain_mapping:
                             arcd.com: 192.168.0.10

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Tuple
 
@@ -9,7 +9,6 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
@@ -19,6 +18,7 @@ from primaite.simulator.system.applications.red_applications.data_manipulation_b
 from primaite.simulator.system.applications.red_applications.dos_bot import DoSAttackStage, DoSBot
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -27,20 +27,20 @@ def data_manipulation_bot_and_db_server(client_server) -> Tuple[DataManipulation
 
     # install db client on computer
     computer.software_manager.install(DatabaseClient)
-    db_client: DatabaseClient = computer.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = computer.software_manager.software.get("database-client")
     db_client.run()
 
     # Install DoSBot on computer
     computer.software_manager.install(DataManipulationBot)
 
-    data_manipulation_bot: DataManipulationBot = computer.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = computer.software_manager.software.get("data-manipulation-bot")
     data_manipulation_bot.configure(
         server_ip_address=IPv4Address(server.network_interface[1].ip_address), payload="DELETE"
     )
 
     # Install DB Server service on server
     server.software_manager.install(DatabaseService)
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
     db_server_service.start()
 
     return data_manipulation_bot, computer, db_server_service, server
@@ -52,7 +52,10 @@ def data_manipulation_db_server_green_client(example_network) -> Network:
 
     router_1: Router = example_network.get_node_by_hostname("router_1")
     router_1.acl.add_rule(
-        action=ACLAction.PERMIT, src_port=Port.POSTGRES_SERVER, dst_port=Port.POSTGRES_SERVER, position=0
+        action=ACLAction.PERMIT,
+        src_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        dst_port=PORT_LOOKUP["POSTGRES_SERVER"],
+        position=0,
     )
 
     client_1: Computer = network.get_node_by_hostname("client_1")
@@ -61,26 +64,26 @@ def data_manipulation_db_server_green_client(example_network) -> Network:
 
     # install db client on client 1
     client_1.software_manager.install(DatabaseClient)
-    db_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = client_1.software_manager.software.get("database-client")
     db_client.run()
 
     # install Data Manipulation bot on client 1
     client_1.software_manager.install(DataManipulationBot)
 
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
     data_manipulation_bot.configure(
         server_ip_address=IPv4Address(server.network_interface[1].ip_address), payload="DELETE"
     )
 
     # install db server service on server
     server.software_manager.install(DatabaseService)
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
     db_server_service.start()
 
     # Install DB client (green) on client 2
     client_2.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client_2.software_manager.software.get("database-client")
     database_client.configure(server_ip_address=IPv4Address(server.network_interface[1].ip_address))
     database_client.run()
 
@@ -134,13 +137,13 @@ def test_data_manipulation_disrupts_green_agent_connection(data_manipulation_db_
     network: Network = data_manipulation_db_server_green_client
 
     client_1: Computer = network.get_node_by_hostname("client_1")
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
 
     client_2: Computer = network.get_node_by_hostname("client_2")
-    green_db_client: DatabaseClient = client_2.software_manager.software.get("DatabaseClient")
+    green_db_client: DatabaseClient = client_2.software_manager.software.get("database-client")
 
     server: Server = network.get_node_by_hostname("server_1")
-    db_server_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_server_service: DatabaseService = server.software_manager.software.get("database-service")
 
     green_db_connection: DatabaseClientConnection = green_db_client.get_new_connection()
 

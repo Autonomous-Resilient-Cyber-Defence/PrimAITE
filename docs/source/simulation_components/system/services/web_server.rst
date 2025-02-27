@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _WebServer:
 
@@ -56,7 +56,7 @@ Python
 
     # Install WebServer on server
     server.software_manager.install(WebServer)
-    web_server: WebServer = server.software_manager.software.get("WebServer")
+    web_server: WebServer = server.software_manager.software.get("web-server")
     web_server.start()
 
 Via Configuration
@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: web_server
-                    type: WebServer
+                    type: web-server
 
 
 ``Common Attributes``

@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 game:
   max_episode_length: 256
   ports:
@@ -24,7 +27,7 @@ simulation:
         default_gateway: 192.168.2.1
         start_up_duration: 0
 
-      - type: wireless_router
+      - type: wireless-router
         hostname: router_1
         start_up_duration: 0
 
@@ -45,7 +48,7 @@ simulation:
             next_hop_ip_address: 192.168.1.2
             metric: 0
 
-      - type: wireless_router
+      - type: wireless-router
         hostname: router_2
         start_up_duration: 0
 

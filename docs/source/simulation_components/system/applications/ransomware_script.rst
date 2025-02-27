@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _RansomwareScript:
 
@@ -62,7 +62,7 @@ Python
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)
     client_1.software_manager.install(RansomwareScript)
-    RansomwareScript: RansomwareScript = client_1.software_manager.software.get("RansomwareScript")
+    RansomwareScript: RansomwareScript = client_1.software_manager.software.get("ransomware-script")
     RansomwareScript.configure(server_ip_address=IPv4Address("192.168.1.14"))
     RansomwareScript.execute()
 
@@ -70,7 +70,7 @@ Python
 Configuration
 =============
 
-The RansomwareScript inherits configuration options such as ``fix_duration`` from its parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
+The RansomwareScript inherits configuration options such as ``fixing_duration`` from its parent class. However, for the ``RansomwareScript`` the most relevant option is ``server_ip``.
 
 
 ``server_ip``

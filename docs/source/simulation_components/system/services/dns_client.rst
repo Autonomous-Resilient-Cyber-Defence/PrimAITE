@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _DNSClient:
 
@@ -56,7 +56,7 @@ Python
 
     # Install DNSClient on server
     server.software_manager.install(DNSClient)
-    dns_client: DNSClient = server.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = server.software_manager.software.get("dns-client")
     dns_client.start()
 
     # configure DatabaseService
@@ -77,7 +77,7 @@ Via Configuration
                 ...
                 services:
                     - ref: dns_client
-                    type: DNSClient
+                    type: dns-client
                     options:
                         dns_server: 192.168.0.10
 

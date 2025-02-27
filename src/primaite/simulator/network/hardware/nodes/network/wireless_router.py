@@ -1,16 +1,16 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
-from typing import Any, Dict, Optional, Union
+from typing import Any, Dict, Literal, Optional, Union
 
-from pydantic import validate_call
+from pydantic import Field, validate_call
 
-from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, IPWirelessNetworkInterface
+from primaite.simulator.network.airspace import AirSpace, AirSpaceFrequency, FREQ_WIFI_2_4, IPWirelessNetworkInterface
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router, RouterInterface
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class WirelessAccessPoint(IPWirelessNetworkInterface):
@@ -91,7 +91,7 @@ class WirelessAccessPoint(IPWirelessNetworkInterface):
         )
 
 
-class WirelessRouter(Router):
+class WirelessRouter(Router, discriminator="wireless-router"):
     """
     A WirelessRouter class that extends the functionality of a standard Router to include wireless capabilities.
 
@@ -116,19 +116,32 @@ class WirelessRouter(Router):
         >>> wireless_router.configure_wireless_access_point(
         ...     ip_address="10.10.10.1",
         ...     subnet_mask="255.255.255.0"
-        ...     frequency=AirSpaceFrequency.WIFI_2_4
+        ...     frequency="WIFI_2_4"
         ... )
     """
 
     network_interfaces: Dict[str, Union[RouterInterface, WirelessAccessPoint]] = {}
     network_interface: Dict[int, Union[RouterInterface, WirelessAccessPoint]] = {}
-    airspace: AirSpace
 
-    def __init__(self, hostname: str, airspace: AirSpace, **kwargs):
-        super().__init__(hostname=hostname, num_ports=0, airspace=airspace, **kwargs)
+    class ConfigSchema(Router.ConfigSchema):
+        """Configuration Schema for WirelessRouter nodes within PrimAITE."""
+
+        type: Literal["wireless-router"] = "wireless-router"
+        hostname: str = "WirelessRouter"
+        num_ports: int = 0
+        router_interface: Any = None  # temporarily unset to appease extra="forbid"
+        wireless_access_point: Any = None  # temporarily unset to appease extra="forbid"
+
+    airspace: AirSpace
+    config: ConfigSchema = Field(default_factory=lambda: WirelessRouter.ConfigSchema())
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
 
         self.connect_nic(
-            WirelessAccessPoint(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=airspace)
+            WirelessAccessPoint(
+                ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0", airspace=self.airspace
+            )
         )
 
         self.connect_nic(RouterInterface(ip_address="127.0.0.1", subnet_mask="255.0.0.0", gateway="0.0.0.0"))
@@ -153,7 +166,7 @@ class WirelessRouter(Router):
         self,
         ip_address: IPV4Address,
         subnet_mask: IPV4Address,
-        frequency: Optional[AirSpaceFrequency] = AirSpaceFrequency.WIFI_2_4,
+        frequency: Optional[AirSpaceFrequency] = FREQ_WIFI_2_4,
     ):
         """
         Configures a wireless access point (WAP).
@@ -166,12 +179,12 @@ class WirelessRouter(Router):
 
         :param ip_address: The IP address to be assigned to the wireless access point.
         :param subnet_mask: The subnet mask associated with the IP address
-        :param frequency: The operating frequency of the wireless access point, defined by the AirSpaceFrequency
+        :param frequency: The operating frequency of the wireless access point, defined by the air space frequency
             enum. This determines the frequency band (e.g., 2.4 GHz or 5 GHz) the access point will use for wireless
-            communication. Default is AirSpaceFrequency.WIFI_2_4.
+            communication. Default is "WIFI_2_4".
         """
         if not frequency:
-            frequency = AirSpaceFrequency.WIFI_2_4
+            frequency = FREQ_WIFI_2_4
         self.sys_log.info("Configuring wireless access point")
 
         self.wireless_access_point.disable()  # Temporarily disable the WAP for reconfiguration
@@ -226,7 +239,7 @@ class WirelessRouter(Router):
         )
 
     @classmethod
-    def from_config(cls, cfg: Dict, **kwargs) -> "WirelessRouter":
+    def from_config(cls, config: Dict, airspace: AirSpace) -> "WirelessRouter":
         """Generate the wireless router from config.
 
         Schema:
@@ -253,35 +266,35 @@ class WirelessRouter(Router):
         :return: WirelessRouter instance.
         :rtype: WirelessRouter
         """
-        operating_state = (
-            NodeOperatingState.ON if not (p := cfg.get("operating_state")) else NodeOperatingState[p.upper()]
+        router = cls(config=cls.ConfigSchema(**config), airspace=airspace)
+        router.operating_state = (
+            NodeOperatingState.ON if not (p := config.get("operating_state")) else NodeOperatingState[p.upper()]
         )
-        router = cls(hostname=cfg["hostname"], operating_state=operating_state, airspace=kwargs["airspace"])
-        if "router_interface" in cfg:
-            ip_address = cfg["router_interface"]["ip_address"]
-            subnet_mask = cfg["router_interface"]["subnet_mask"]
+        if "router_interface" in config:
+            ip_address = config["router_interface"]["ip_address"]
+            subnet_mask = config["router_interface"]["subnet_mask"]
             router.configure_router_interface(ip_address=ip_address, subnet_mask=subnet_mask)
-        if "wireless_access_point" in cfg:
-            ip_address = cfg["wireless_access_point"]["ip_address"]
-            subnet_mask = cfg["wireless_access_point"]["subnet_mask"]
-            frequency = AirSpaceFrequency[cfg["wireless_access_point"]["frequency"]]
+        if "wireless_access_point" in config:
+            ip_address = config["wireless_access_point"]["ip_address"]
+            subnet_mask = config["wireless_access_point"]["subnet_mask"]
+            frequency = AirSpaceFrequency._registry[config["wireless_access_point"]["frequency"]]
             router.configure_wireless_access_point(ip_address=ip_address, subnet_mask=subnet_mask, frequency=frequency)
 
-        if "acl" in cfg:
-            for r_num, r_cfg in cfg["acl"].items():
+        if "acl" in config:
+            for r_num, r_cfg in config["acl"].items():
                 router.acl.add_rule(
                     action=ACLAction[r_cfg["action"]],
-                    src_port=None if not (p := r_cfg.get("src_port")) else Port[p],
-                    dst_port=None if not (p := r_cfg.get("dst_port")) else Port[p],
-                    protocol=None if not (p := r_cfg.get("protocol")) else IPProtocol[p],
+                    src_port=None if not (p := r_cfg.get("src_port")) else PORT_LOOKUP[p],
+                    dst_port=None if not (p := r_cfg.get("dst_port")) else PORT_LOOKUP[p],
+                    protocol=None if not (p := r_cfg.get("protocol")) else PROTOCOL_LOOKUP[p],
                     src_ip_address=r_cfg.get("src_ip"),
                     dst_ip_address=r_cfg.get("dst_ip"),
                     src_wildcard_mask=r_cfg.get("src_wildcard_mask"),
                     dst_wildcard_mask=r_cfg.get("dst_wildcard_mask"),
                     position=r_num,
                 )
-        if "routes" in cfg:
-            for route in cfg.get("routes"):
+        if "routes" in config:
+            for route in config.get("routes"):
                 router.route_table.add_route(
                     address=IPv4Address(route.get("address")),
                     subnet_mask=IPv4Address(route.get("subnet_mask", "255.255.255.0")),

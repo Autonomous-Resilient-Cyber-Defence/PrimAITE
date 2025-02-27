@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from pathlib import Path
 from typing import Dict, Final, Union
 
@@ -54,6 +54,21 @@ def data_manipulation_marl_config_path() -> Path:
     :rtype: Path
     """
     path = _EXAMPLE_CFG / "data_manipulation_marl.yaml"
+    if not path.exists():
+        msg = f"Example config does not exist: {path}. Have you run `primaite setup`?"
+        _LOGGER.error(msg)
+        raise FileNotFoundError(msg)
+    return path
+
+
+def get_extended_config_path() -> Path:
+    """
+    Get the path to an 'extended' example config that contains nodes using the extension framework.
+
+    :return: Path to the extended example config
+    :rtype: Path
+    """
+    path = _EXAMPLE_CFG / "extended_config.yaml"
     if not path.exists():
         msg = f"Example config does not exist: {path}. Have you run `primaite setup`?"
         _LOGGER.error(msg)

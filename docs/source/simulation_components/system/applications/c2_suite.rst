@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _C2_Suite:
 
@@ -183,7 +183,7 @@ Python
     # Example command: Installing and configuring Ransomware:
 
     ransomware_installation_command = { "commands": [
-            ["software_manager","application","install","RansomwareScript"],
+            ["software_manager","application","install","ransomware-script"],
         ],
         "username": "admin",
         "password": "admin",
@@ -229,7 +229,7 @@ Via Configuration
                 type: computer
                 ...
                 applications:
-                    type: C2Server
+                    type: c2-server
             ...
                 hostname: computer_b
                 type: computer
@@ -238,7 +238,7 @@ Via Configuration
                 # Either an agent must use application_execute.
                 # Or a if using the simulation layer - .establish().
                 applications:
-                    type: C2Beacon
+                    type: c2-beacon
                     options:
                         c2_server_ip_address: ...
                         keep_alive_frequency: 5

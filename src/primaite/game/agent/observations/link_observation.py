@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Any, Dict, List
@@ -13,7 +13,7 @@ from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_ST
 _LOGGER = getLogger(__name__)
 
 
-class LinkObservation(AbstractObservation, identifier="LINK"):
+class LinkObservation(AbstractObservation, discriminator="link"):
     """Link observation, providing information about a specific link within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -90,7 +90,7 @@ class LinkObservation(AbstractObservation, identifier="LINK"):
         return cls(where=where)
 
 
-class LinksObservation(AbstractObservation, identifier="LINKS"):
+class LinksObservation(AbstractObservation, discriminator="links"):
     """Collection of link observations representing multiple links within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

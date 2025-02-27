@@ -1,22 +1,34 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
-class RansomwareScript(Application, identifier="RansomwareScript"):
+class RansomwareScript(Application, discriminator="ransomware-script"):
     """Ransomware Kill Chain - Designed to be used by the TAP001 Agent on the example layout Network.
 
     :ivar payload: The attack stage query payload. (Default ENCRYPT)
     """
+
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for RansomwareScript."""
+
+        type: str = "ransomware-script"
+        server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
+        payload: str = "ENCRYPT"
+
+    config: "RansomwareScript.ConfigSchema" = Field(default_factory=lambda: RansomwareScript.ConfigSchema())
 
     server_ip_address: Optional[IPv4Address] = None
     """IP address of node which hosts the database."""
@@ -26,12 +38,15 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     "Payload String for the payload stage"
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "RansomwareScript"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["name"] = "ransomware-script"
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None
+        self.server_ip_address = self.config.server_ip
+        self.server_password = self.config.server_password
+        self.payload = self.config.payload
 
     def describe_state(self) -> Dict:
         """
@@ -48,7 +63,7 @@ class RansomwareScript(Application, identifier="RansomwareScript"):
     @property
     def _host_db_client(self) -> DatabaseClient:
         """Return the database client that is installed on the same machine as the Ransomware Script."""
-        db_client: DatabaseClient = self.software_manager.software.get("DatabaseClient")
+        db_client: DatabaseClient = self.software_manager.software.get("database-client")
         if db_client is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client

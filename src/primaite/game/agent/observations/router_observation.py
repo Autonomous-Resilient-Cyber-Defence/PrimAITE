@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -11,11 +11,14 @@ from primaite.game.agent.observations.acl_observation import ACLObservation
 from primaite.game.agent.observations.nic_observations import PortObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
 
-class RouterObservation(AbstractObservation, identifier="ROUTER"):
+class RouterObservation(AbstractObservation, discriminator="router"):
     """Router observation, provides status information about a router within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -29,17 +32,17 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         """Number of port observations configured for this router."""
         acl: Optional[ACLObservation.ConfigSchema] = None
         """Configuration of ACL observation on this router."""
-        ip_list: Optional[List[str]] = None
+        ip_list: Optional[List[StrIP]] = None
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[int]] = None
+        port_list: Optional[List[Port]] = None
         """List of ports for encoding ACLs."""
-        protocol_list: Optional[List[str]] = None
+        protocol_list: Optional[List[IPProtocol]] = None
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
-        include_users: Optional[bool] = True
+        include_users: Optional[bool] = None
         """If True, report user session information."""
 
     def __init__(
@@ -84,6 +87,8 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         }
         if self.ports:
             self.default_observation["PORTS"] = {i + 1: p.default_observation for i, p in enumerate(self.ports)}
+        if self.include_users:
+            self.default_observation["users"] = {"local_login": 0, "remote_sessions": 0}
 
     def observe(self, state: Dict) -> ObsType:
         """
@@ -98,16 +103,21 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         if router_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
-        obs = {}
-        obs["ACL"] = self.acl.observe(state)
-        if self.ports:
-            obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
-        if self.include_users:
-            sess = router_state["services"]["UserSessionManager"]
-            obs["users"] = {
-                "local_login": 1 if sess["current_local_user"] else 0,
-                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
-            }
+        is_on = router_state["operating_state"] == 1
+        if not is_on:
+            obs = {**self.default_observation}
+
+        else:
+            obs = {}
+            obs["ACL"] = self.acl.observe(state)
+            if self.ports:
+                obs["PORTS"] = {i + 1: p.observe(state) for i, p in enumerate(self.ports)}
+            if self.include_users:
+                sess = router_state["services"]["user-session-manager"]
+                obs["users"] = {
+                    "local_login": 1 if sess["current_local_user"] else 0,
+                    "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+                }
         return obs
 
     @property
@@ -121,6 +131,10 @@ class RouterObservation(AbstractObservation, identifier="ROUTER"):
         shape = {"ACL": self.acl.space}
         if self.ports:
             shape["PORTS"] = spaces.Dict({i + 1: p.space for i, p in enumerate(self.ports)})
+        if self.include_users:
+            shape["users"] = spaces.Dict(
+                {"local_login": spaces.Discrete(2), "remote_sessions": spaces.Discrete(self.max_users + 1)}
+            )
         return spaces.Dict(shape)
 
     @classmethod

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Tuple
 
@@ -11,13 +11,13 @@ from primaite.simulator.network.hardware.base import UserManager
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
 from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
 from primaite.simulator.system.services.database.database_service import DatabaseService
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.ftp.ftp_server import FTPServer
 from primaite.simulator.system.services.service import ServiceOperatingState
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture
@@ -26,13 +26,13 @@ def game_and_agent_fixture(game_and_agent):
     game, agent = game_and_agent
 
     router = game.simulation.network.get_node_by_hostname("router")
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.HTTP, dst_port=Port.HTTP, position=4)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.DNS, dst_port=Port.DNS, position=5)
-    router.acl.add_rule(action=ACLAction.PERMIT, src_port=Port.FTP, dst_port=Port.FTP, position=6)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["HTTP"], dst_port=PORT_LOOKUP["HTTP"], position=4)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["DNS"], dst_port=PORT_LOOKUP["DNS"], position=5)
+    router.acl.add_rule(action=ACLAction.PERMIT, src_port=PORT_LOOKUP["FTP"], dst_port=PORT_LOOKUP["FTP"], position=6)
 
     c2_server_host = game.simulation.network.get_node_by_hostname("client_1")
     c2_server_host.software_manager.install(software_class=C2Server)
-    c2_server: C2Server = c2_server_host.software_manager.software["C2Server"]
+    c2_server: C2Server = c2_server_host.software_manager.software["c2-server"]
     c2_server.run()
 
     return (game, agent)
@@ -46,23 +46,21 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     server_1: Server = game.simulation.network.get_node_by_hostname("server_1")
 
     action = (
-        "NODE_APPLICATION_INSTALL",
-        {"node_id": 1, "application_name": "C2Beacon"},
+        "node-application-install",
+        {"node_name": "server_1", "application_name": "c2-beacon"},
     )
     agent.store_action(action)
     game.step()
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "CONFIGURE_C2_BEACON",
+        "configure-c2-beacon",
         {
-            "node_id": 1,
-            "config": {
-                "c2_server_ip_address": "10.0.1.2",
-                "keep_alive_frequency": 5,
-                "masquerade_protocol": "TCP",
-                "masquerade_port": "HTTP",
-            },
+            "node_name": "server_1",
+            "c2_server_ip_address": "10.0.1.2",
+            "keep_alive_frequency": 5,
+            "masquerade_protocol": "TCP",
+            "masquerade_port": "HTTP",
         },
     )
     agent.store_action(action)
@@ -70,15 +68,15 @@ def test_c2_beacon_default(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgen
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "NODE_APPLICATION_EXECUTE",
-        {"node_id": 1, "application_id": 0},
+        "node-application-execute",
+        {"node_name": "server_1", "application_name": "c2-beacon"},
     )
     agent.store_action(action)
     game.step()
     assert agent.history[-1].response.status == "success"
 
     # Asserting that we've confirmed our connection
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     assert c2_beacon.c2_connection_active == True
 
 
@@ -93,9 +91,9 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # Installing a database on Server_2 for the ransomware to attack
     server_2: Server = game.simulation.network.get_node_by_hostname("server_2")
     server_2.software_manager.install(DatabaseService)
-    server_2.software_manager.software["DatabaseService"].start()
+    server_2.software_manager.software["database-service"].start()
     # Configuring the C2 to connect to client 1 (C2 Server)
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     c2_beacon.configure(c2_server_ip_address=IPv4Address("10.0.1.2"))
     c2_beacon.establish()
     assert c2_beacon.c2_connection_active == True
@@ -103,17 +101,15 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     # C2 Action 1: Installing the RansomwareScript & Database client via Terminal
 
     action = (
-        "C2_SERVER_TERMINAL_COMMAND",
+        "c2-server-terminal-command",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "ip_address": None,
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
             "commands": [
-                ["software_manager", "application", "install", "RansomwareScript"],
-                ["software_manager", "application", "install", "DatabaseClient"],
+                ["software_manager", "application", "install", "ransomware-script"],
+                ["software_manager", "application", "install", "database-client"],
             ],
         },
     )
@@ -122,10 +118,11 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert agent.history[-1].response.status == "success"
 
     action = (
-        "C2_SERVER_RANSOMWARE_CONFIGURE",
+        "c2-server-ransomware-configure",
         {
-            "node_id": 0,
-            "config": {"server_ip_address": "10.0.2.3", "payload": "ENCRYPT"},
+            "node_name": "client_1",
+            "server_ip_address": "10.0.2.3",
+            "payload": "ENCRYPT",
         },
     )
     agent.store_action(action)
@@ -134,16 +131,16 @@ def test_c2_server_ransomware(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
 
     # Stepping a few timesteps to allow for the RansowmareScript to finish installing.
 
-    action = ("DONOTHING", {})
+    action = ("do-nothing", {})
     agent.store_action(action)
     game.step()
     game.step()
     game.step()
 
     action = (
-        "C2_SERVER_RANSOMWARE_LAUNCH",
+        "c2-server-ransomware-launch",
         {
-            "node_id": 0,
+            "node_name": "client_1",
         },
     )
     agent.store_action(action)
@@ -165,10 +162,10 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # Installing a database on Server_2 (creates a database.db file.)
     server_2: Server = game.simulation.network.get_node_by_hostname("server_2")
     server_2.software_manager.install(DatabaseService)
-    server_2.software_manager.software["DatabaseService"].start()
+    server_2.software_manager.software["database-service"].start()
 
     # Configuring the C2 to connect to client 1 (C2 Server)
-    c2_beacon: C2Beacon = server_1.software_manager.software["C2Beacon"]
+    c2_beacon: C2Beacon = server_1.software_manager.software["c2-beacon"]
     c2_beacon.configure(c2_server_ip_address=IPv4Address("10.0.1.2"))
     c2_beacon.establish()
     assert c2_beacon.c2_connection_active == True
@@ -181,17 +178,15 @@ def test_c2_server_data_exfiltration(game_and_agent_fixture: Tuple[PrimaiteGame,
     # C2 Action: Data exfiltrate.
 
     action = (
-        "C2_SERVER_DATA_EXFILTRATE",
+        "c2-server-data-exfiltrate",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "target_file_name": "database.db",
             "target_folder_name": "database",
             "exfiltration_folder_name": "spoils",
             "target_ip_address": "10.0.2.3",
-            "account": {
-                "username": "admin",
-                "password": "admin",
-            },
+            "username": "admin",
+            "password": "admin",
         },
     )
     agent.store_action(action)

@@ -4,6 +4,9 @@
 #  |  client_1  |------|  switch_1  |------|  client_2  |
 #  --------------      --------------      --------------
 #
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: true
@@ -26,52 +29,33 @@ game:
 agents:
   - ref: client_2_green_user
     team: GREEN
-    type: ProbabilisticAgent
-    observation_space: null
+    type: probabilistic-agent
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_EXECUTE
       action_map:
         0:
-          action: DONOTHING
+          action: do-nothing
           options: {}
         1:
-          action: NODE_APPLICATION_EXECUTE
+          action: node-application-execute
           options:
-            node_id: 0
-            application_id: 0
-      options:
-        nodes:
-        - node_name: client_2
-          applications:
-            - application_name: WebBrowser
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
+            node_name: client_1
+            application_name: web-browser
     agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
-
+      action_probabilities:
+        0: 0.4
+        1: 0.6
 
 
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
@@ -100,51 +84,33 @@ agents:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - 80
-                - 5432
+                - HTTP
+                - POSTGRES_SERVER
               protocol_list:
                 - ICMP
                 - TCP
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
                 - switch_1:eth-1<->client_1:eth-1
                 - switch_1:eth-2<->client_2:eth-1
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {}
 
     action_space:
-      action_list:
-        - type: DONOTHING
-
       action_map:
           0:
-            action: DONOTHING
+            action: do-nothing
             options: {}
-      options:
-        nodes:
-        - node_name: switch
-        - node_name: client_1
-        - node_name: client_2
-        - node_name: client_3
-        max_folders_per_node: 2
-        max_files_per_folder: 2
-        max_services_per_node: 2
-        max_nics_per_node: 8
-        max_acl_rules: 10
-        ip_list:
-          - 192.168.10.21
-          - 192.168.10.22
-          - 192.168.10.23
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
+        - type: database-file-integrity
           weight: 0.5
           options:
             node_hostname: database_server
@@ -152,7 +118,7 @@ agents:
             file_name: database.db
 
 
-        - type: WEB_SERVER_404_PENALTY
+        - type: web-server-404-penalty
           weight: 0.5
           options:
             node_hostname: web_server
@@ -177,66 +143,46 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-      - type: NMAP
-        options:
-          fix_duration: 1
-      - type: RansomwareScript
-        options:
-          fix_duration: 1
-      - type: WebBrowser
+      - type: ransomware-script
+      - type: web-browser
         options:
           target_url: http://arcd.com/users/
-          fix_duration: 1
-      - type: DatabaseClient
+      - type: database-client
         options:
           db_server_ip: 192.168.1.10
           server_password: arcd
-          fix_duration: 1
-      - type: DataManipulationBot
+          fixing_duration: 1
+      - type: data-manipulation-bot
         options:
           port_scan_p_of_success: 0.8
           data_manipulation_p_of_success: 0.8
           payload: "DELETE"
           server_ip: 192.168.1.21
           server_password: arcd
-          fix_duration: 1
-      - type: DoSBot
+      - type: dos-bot
         options:
           target_ip_address: 192.168.10.21
           payload: SPOOF DATA
           port_scan_p_of_success: 0.8
-          fix_duration: 1
       services:
-      - type: DNSClient
+      - type: dns-client
+      - type: dns-server
         options:
-          dns_server: 192.168.1.10
-          fix_duration: 3
-      - type: DNSServer
-        options:
-          fix_duration: 3
           domain_mapping:
             arcd.com: 192.168.1.10
-      - type: DatabaseService
+      - type: database-service
         options:
+          fixing_duration: 5
           backup_server_ip: 192.168.1.10
-          fix_duration: 3
-      - type: WebServer
-        options:
-          fix_duration: 3
-      - type: FTPClient
-        options:
-          fix_duration: 3
-      - type: FTPServer
+      - type: web-server
+      - type: ftp-client
+      - type: ftp-server
         options:
           server_password: arcd
-          fix_duration: 3
-      - type: NTPClient
+      - type: ntp-client
         options:
           ntp_server_ip: 192.168.1.10
-          fix_duration: 3
-      - type: NTPServer
-        options:
-          fix_duration: 3
+      - type: ntp-server
     - hostname: client_2
       type: computer
       ip_address: 192.168.10.22
@@ -244,14 +190,12 @@ simulation:
       default_gateway: 192.168.10.1
       dns_server: 192.168.1.10
       applications:
-        - type: DatabaseClient
+        - type: database-client
           options:
             db_server_ip: 192.168.1.10
             server_password: arcd
       services:
-        - type: DNSClient
-          options:
-            dns_server: 192.168.1.10
+        - type: dns-client
 
     links:
     - endpoint_a_hostname: switch_1

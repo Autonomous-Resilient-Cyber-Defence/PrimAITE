@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 import yaml
 
@@ -7,8 +7,8 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 
@@ -17,18 +17,23 @@ def wireless_wan_network():
     network = Network()
 
     # Configure PC A
-    pc_a = Computer(
-        hostname="pc_a",
-        ip_address="192.168.0.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.0.1",
-        start_up_duration=0,
+    pc_a = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_a",
+            "ip_address": "192.168.0.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.0.1",
+            "start_up_duration": 0,
+        }
     )
     pc_a.power_on()
     network.add_node(pc_a)
 
     # Configure Router 1
-    router_1 = WirelessRouter(hostname="router_1", start_up_duration=0, airspace=network.airspace)
+    router_1 = WirelessRouter.from_config(
+        config={"type": "wireless-router", "hostname": "router_1", "start_up_duration": 0}, airspace=network.airspace
+    )
     router_1.power_on()
     network.add_node(router_1)
 
@@ -37,21 +42,29 @@ def wireless_wan_network():
     network.connect(pc_a.network_interface[1], router_1.network_interface[2])
 
     # Configure Router 1 ACLs
-    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=IPProtocol.ICMP, position=23)
+    router_1.acl.add_rule(
+        action=ACLAction.PERMIT, src_port=PORT_LOOKUP["ARP"], dst_port=PORT_LOOKUP["ARP"], position=22
+    )
+    router_1.acl.add_rule(action=ACLAction.PERMIT, protocol=PROTOCOL_LOOKUP["ICMP"], position=23)
 
     # Configure PC B
-    pc_b = Computer(
-        hostname="pc_b",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1",
-        start_up_duration=0,
+    pc_b: Computer = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "pc_b",
+            "ip_address": "192.168.2.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.2.1",
+            "start_up_duration": 0,
+        }
     )
     pc_b.power_on()
     network.add_node(pc_b)
 
     # Configure Router 2
-    router_2 = WirelessRouter(hostname="router_2", start_up_duration=0, airspace=network.airspace)
+    router_2: WirelessRouter = WirelessRouter.from_config(
+        config={"type": "wireless-router", "hostname": "router_2", "start_up_duration": 0}, airspace=network.airspace
+    )
     router_2.power_on()
     network.add_node(router_2)
 
@@ -95,8 +108,8 @@ def wireless_wan_network_from_config_yaml():
 def test_cross_wireless_wan_connectivity(wireless_wan_network):
     pc_a, pc_b, router_1, router_2 = wireless_wan_network
     # Ensure that PCs can ping across routers before any frequency change
-    assert pc_a.ping(pc_a.default_gateway), "PC A should ping its default gateway successfully."
-    assert pc_b.ping(pc_b.default_gateway), "PC B should ping its default gateway successfully."
+    assert pc_a.ping(pc_a.config.default_gateway), "PC A should ping its default gateway successfully."
+    assert pc_b.ping(pc_b.config.default_gateway), "PC B should ping its default gateway successfully."
 
     assert pc_a.ping(pc_b.network_interface[1].ip_address), "PC A should ping PC B across routers successfully."
     assert pc_b.ping(pc_a.network_interface[1].ip_address), "PC B should ping PC A across routers successfully."
@@ -106,8 +119,8 @@ def test_cross_wireless_wan_connectivity_from_yaml(wireless_wan_network_from_con
     pc_a = wireless_wan_network_from_config_yaml.get_node_by_hostname("pc_a")
     pc_b = wireless_wan_network_from_config_yaml.get_node_by_hostname("pc_b")
 
-    assert pc_a.ping(pc_a.default_gateway), "PC A should ping its default gateway successfully."
-    assert pc_b.ping(pc_b.default_gateway), "PC B should ping its default gateway successfully."
+    assert pc_a.ping(pc_a.config.default_gateway), "PC A should ping its default gateway successfully."
+    assert pc_b.ping(pc_b.config.default_gateway), "PC B should ping its default gateway successfully."
 
     assert pc_a.ping(pc_b.network_interface[1].ip_address), "PC A should ping PC B across routers successfully."
     assert pc_b.ping(pc_a.network_interface[1].ip_address), "PC B should ping PC A across routers successfully."

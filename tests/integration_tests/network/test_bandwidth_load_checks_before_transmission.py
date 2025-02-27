@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
@@ -19,11 +19,11 @@ def test_wireless_link_loading(wireless_wan_network):
     airspace = router_1.airspace
 
     client.software_manager.install(FTPClient)
-    ftp_client: FTPClient = client.software_manager.software.get("FTPClient")
+    ftp_client: FTPClient = client.software_manager.software.get("ftp-client")
     ftp_client.start()
 
     server.software_manager.install(FTPServer)
-    ftp_server: FTPServer = server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = server.software_manager.software.get("ftp-server")
     ftp_server.start()
 
     client.file_system.create_file(file_name="mixtape", size=10 * 10**6, file_type=FileType.MP3, folder_name="music")

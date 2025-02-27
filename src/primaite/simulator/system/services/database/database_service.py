@@ -1,31 +1,40 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.file_system.folder import Folder
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class DatabaseService(Service):
+class DatabaseService(Service, discriminator="database-service"):
     """
     A class for simulating a generic SQL Server service.
 
     This class inherits from the `Service` class and provides methods to simulate a SQL database.
     """
 
-    password: Optional[str] = None
-    """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for DatabaseService."""
+
+        type: str = "database-service"
+        backup_server_ip: Optional[IPv4Address] = None
+        db_password: Optional[str] = None
+        """Password that needs to be provided by clients if they want to connect to the DatabaseService."""
+
+    config: ConfigSchema = Field(default_factory=lambda: DatabaseService.ConfigSchema())
 
     backup_server_ip: IPv4Address = None
     """IP address of the backup server."""
@@ -37,11 +46,21 @@ class DatabaseService(Service):
     """File name of latest backup."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DatabaseService"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "database-service"
+        kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self._create_db_file()
+        self.backup_server_ip = self.config.backup_server_ip
+
+    @property
+    def password(self) -> Optional[str]:
+        """Convenience property for accessing the password."""
+        return self.config.db_password
+
+    @password.setter
+    def password(self, val: str) -> None:
+        self.config.db_password = val
 
     def install(self):
         """
@@ -51,7 +70,7 @@ class DatabaseService(Service):
         """
         super().install()
 
-        if not self.parent.software_manager.software.get("FTPClient"):
+        if not self.parent.software_manager.software.get("ftp-client"):
             self.parent.sys_log.info(f"{self.name}: Installing FTPClient to enable database backups")
             self.parent.software_manager.install(FTPClient)
 
@@ -75,7 +94,7 @@ class DatabaseService(Service):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(
@@ -109,7 +128,7 @@ class DatabaseService(Service):
             return False
 
         software_manager: SoftwareManager = self.software_manager
-        ftp_client_service: FTPClient = software_manager.software.get("FTPClient")
+        ftp_client_service: FTPClient = software_manager.software.get("ftp-client")
 
         if not ftp_client_service:
             self.sys_log.error(
@@ -206,7 +225,7 @@ class DatabaseService(Service):
                 SoftwareHealthState.FIXING,
                 SoftwareHealthState.COMPROMISED,
             ]:
-                if self.password == password:
+                if self.config.db_password == password:
                     status_code = 200  # ok
                     connection_id = self._generate_connection_id()
                     # try to create connection

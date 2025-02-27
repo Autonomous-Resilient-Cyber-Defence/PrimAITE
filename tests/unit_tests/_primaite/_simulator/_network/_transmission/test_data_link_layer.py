@@ -1,11 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol, Precedence
+from primaite.simulator.network.transmission.network_layer import IPPacket, Precedence
 from primaite.simulator.network.transmission.primaite_layer import AgentSource, DataStatus
-from primaite.simulator.network.transmission.transport_layer import Port, TCPFlags, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.transport_layer import TCPFlags, TCPHeader, UDPHeader
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 def test_frame_minimal_instantiation():
@@ -20,7 +22,7 @@ def test_frame_minimal_instantiation():
     )
 
     # Check network layer default values
-    assert frame.ip.protocol == IPProtocol.TCP
+    assert frame.ip.protocol == PROTOCOL_LOOKUP["TCP"]
     assert frame.ip.ttl == 64
     assert frame.ip.precedence == Precedence.ROUTINE
 
@@ -40,7 +42,7 @@ def test_frame_creation_fails_tcp_without_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.TCP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["TCP"]),
         )
 
 
@@ -49,7 +51,7 @@ def test_frame_creation_fails_udp_without_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.UDP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["UDP"]),
         )
 
 
@@ -58,7 +60,7 @@ def test_frame_creation_fails_tcp_with_udp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.TCP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["TCP"]),
             udp=UDPHeader(src_port=8080, dst_port=80),
         )
 
@@ -68,7 +70,7 @@ def test_frame_creation_fails_udp_with_tcp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.UDP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["UDP"]),
             udp=TCPHeader(src_port=8080, dst_port=80),
         )
 
@@ -77,7 +79,7 @@ def test_icmp_frame_creation():
     """Tests Frame creation for ICMP."""
     frame = Frame(
         ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-        ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.ICMP),
+        ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["ICMP"]),
         icmp=ICMPPacket(),
     )
     assert frame
@@ -88,5 +90,5 @@ def test_icmp_frame_creation_fails_without_icmp_header():
     with pytest.raises(ValueError):
         Frame(
             ethernet=EthernetHeader(src_mac_addr="aa:bb:cc:dd:ee:ff", dst_mac_addr="11:22:33:44:55:66"),
-            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=IPProtocol.ICMP),
+            ip=IPPacket(src_ip_address="192.168.0.10", dst_ip_address="192.168.0.20", protocol=PROTOCOL_LOOKUP["ICMP"]),
         )

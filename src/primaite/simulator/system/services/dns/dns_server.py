@@ -1,32 +1,42 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional
 
 from prettytable import MARKDOWN, PrettyTable
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.simulator.network.protocols.dns import DNSPacket
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class DNSServer(Service):
+class DNSServer(Service, discriminator="dns-server"):
     """Represents a DNS Server as a Service."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for DNSServer."""
+
+        type: str = "dns-server"
+        domain_mapping: dict = {}
+
+    config: ConfigSchema = Field(default_factory=lambda: DNSServer.ConfigSchema())
 
     dns_table: Dict[str, IPv4Address] = {}
     "A dict of mappings between domain names and IPv4 addresses."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DNSServer"
-        kwargs["port"] = Port.DNS
+        kwargs["name"] = "dns-server"
+        kwargs["port"] = PORT_LOOKUP["DNS"]
         # DNS uses UDP by default
         # it switches to TCP when the bytes exceed 512 (or 4096) bytes
         # TCP for now
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
+        self.dns_table = self.config.domain_mapping
         self.start()
 
     def describe_state(self) -> Dict:

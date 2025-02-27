@@ -1,29 +1,28 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Agents with predefined behaviours."""
-from typing import Dict, Optional, Tuple
+from typing import Dict, Tuple
 
 import numpy as np
 import pydantic
 from gymnasium.core import ObsType
+from numpy.random import Generator
+from pydantic import Field
 
-from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.interface import AbstractScriptedAgent
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction
+
+__all__ = "ProbabilisticAgent"
 
 
-class ProbabilisticAgent(AbstractScriptedAgent):
+class ProbabilisticAgent(AbstractScriptedAgent, discriminator="probabilistic-agent"):
     """Scripted agent which randomly samples its action space with prescribed probabilities for each action."""
 
-    class Settings(pydantic.BaseModel):
-        """Config schema for Probabilistic agent settings."""
+    rng: Generator = Field(default_factory=lambda: np.random.default_rng(np.random.randint(0, 65535)))
 
-        model_config = pydantic.ConfigDict(extra="forbid")
-        """Strict validation."""
-        action_probabilities: Dict[int, float]
+    class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        action_probabilities: Dict[int, float] = None
         """Probability to perform each action in the action map. The sum of probabilities should sum to 1."""
-        # TODO: give the option to still set a random seed, but have it vary each episode in a predictable way
-        #       for example if the user sets seed 123, have it be 123 + episode_num, so that each ep it's the next seed.
 
         @pydantic.field_validator("action_probabilities", mode="after")
         @classmethod
@@ -44,31 +43,20 @@ class ProbabilisticAgent(AbstractScriptedAgent):
                 )
             return v
 
-    def __init__(
-        self,
-        agent_name: str,
-        action_space: Optional[ActionManager],
-        observation_space: Optional[ObservationManager],
-        reward_function: Optional[RewardFunction],
-        settings: Dict = {},
-    ) -> None:
-        # If the action probabilities are not specified, create equal probabilities for all actions
-        if "action_probabilities" not in settings:
-            num_actions = len(action_space.action_map)
-            settings = {"action_probabilities": {i: 1 / num_actions for i in range(num_actions)}}
+    class ConfigSchema(AbstractScriptedAgent.ConfigSchema):
+        """Configuration schema for Probabilistic Agent."""
 
-        # The random number seed for np.random is dependent on whether a random number seed is set
-        # in the config file. If there is one it is processed by set_random_seed() in environment.py
-        # and as a consequence the the sequence of rng_seed's used here will be repeatable.
-        self.settings = ProbabilisticAgent.Settings(**settings)
-        rng_seed = np.random.randint(0, 65535)
-        self.rng = np.random.default_rng(rng_seed)
+        type: str = "probabilistic-agent"
+        agent_settings: "ProbabilisticAgent.AgentSettingsSchema" = Field(
+            default_factory=lambda: ProbabilisticAgent.AgentSettingsSchema()
+        )
 
-        # convert probabilities from
-        self.probabilities = np.asarray(list(self.settings.action_probabilities.values()))
+    config: "ProbabilisticAgent.ConfigSchema" = Field(default_factory=lambda: ProbabilisticAgent.ConfigSchema())
 
-        super().__init__(agent_name, action_space, observation_space, reward_function)
-        self.logger.debug(f"ProbabilisticAgent RNG seed: {rng_seed}")
+    @property
+    def probabilities(self) -> Dict[str, int]:
+        """Convenience method to view the probabilities of the Agent."""
+        return np.asarray(list(self.config.agent_settings.action_probabilities.values()))
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """

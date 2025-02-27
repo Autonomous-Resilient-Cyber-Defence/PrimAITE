@@ -1,12 +1,12 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from primaite.game.agent.observations.firewall_observation import FirewallObservation
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 def check_default_rules(acl_obs):
@@ -25,14 +25,15 @@ def check_default_rules(acl_obs):
 def test_firewall_observation():
     """Test adding/removing acl rules and enabling/disabling ports."""
     net = Network()
-    firewall = Firewall(hostname="firewall", operating_state=NodeOperatingState.ON)
+    firewall_cfg = {"type": "firewall", "hostname": "firewall"}
+    firewall = Firewall.from_config(config=firewall_cfg)
     firewall_observation = FirewallObservation(
         where=[],
         num_rules=7,
         ip_list=["10.0.0.1", "10.0.0.2"],
         wildcard_list=["0.0.0.255", "0.0.0.1"],
-        port_list=["HTTP", "DNS"],
-        protocol_list=["TCP"],
+        port_list=[80, 53],
+        protocol_list=["tcp"],
         include_users=False,
     )
 
@@ -62,13 +63,13 @@ def test_firewall_observation():
     # add a rule to the internal inbound and check that the observation is correct
     firewall.internal_inbound_acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port.HTTP,
-        dst_port=Port.HTTP,
+        src_port=PORT_LOOKUP["HTTP"],
+        dst_port=PORT_LOOKUP["HTTP"],
         position=5,
     )
 
@@ -116,7 +117,9 @@ def test_firewall_observation():
     assert all(observation["PORTS"][i]["operating_status"] == 2 for i in range(1, 4))
 
     # connect a switch to the firewall and check that only the correct port is updated
-    switch = Switch(hostname="switch", num_ports=1, operating_state=NodeOperatingState.ON)
+    switch: Switch = Switch.from_config(
+        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": "ON"}
+    )
     link = net.connect(firewall.network_interface[1], switch.network_interface[1])
     assert firewall.network_interface[1].enabled
     observation = firewall_observation.observe(firewall.describe_state())

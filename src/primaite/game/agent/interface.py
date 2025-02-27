@@ -1,11 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Interface for agents."""
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
 from prettytable import PrettyTable
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite.game.agent.actions import ActionManager
 from primaite.game.agent.agent_log import AgentLog
@@ -15,6 +17,8 @@ from primaite.interface.request import RequestFormat, RequestResponse
 
 if TYPE_CHECKING:
     pass
+
+__all__ = ("AgentHistoryItem", "AbstractAgent", "AbstractScriptedAgent", "ProxyAgent")
 
 
 class AgentHistoryItem(BaseModel):
@@ -43,119 +47,87 @@ class AgentHistoryItem(BaseModel):
     """The observation space data for this step."""
 
 
-class AgentStartSettings(BaseModel):
-    """Configuration values for when an agent starts performing actions."""
-
-    start_step: int = 5
-    "The timestep at which an agent begins performing it's actions"
-    frequency: int = 5
-    "The number of timesteps to wait between performing actions"
-    variance: int = 0
-    "The amount the frequency can randomly change to"
-
-    @model_validator(mode="after")
-    def check_variance_lt_frequency(self) -> "AgentStartSettings":
-        """
-        Make sure variance is equal to or lower than frequency.
-
-        This is because the calculation for the next execution time is now + (frequency +- variance). If variance were
-        greater than frequency, sometimes the bracketed term would be negative and the attack would never happen again.
-        """
-        if self.variance > self.frequency:
-            raise ValueError(
-                f"Agent start settings error: variance must be lower than frequency "
-                f"{self.variance=}, {self.frequency=}"
-            )
-        return self
-
-
-class AgentSettings(BaseModel):
-    """Settings for configuring the operation of an agent."""
-
-    start_settings: Optional[AgentStartSettings] = None
-    "Configuration for when an agent begins performing it's actions"
-    flatten_obs: bool = True
-    "Whether to flatten the observation space before passing it to the agent. True by default."
-    action_masking: bool = False
-    "Whether to return action masks at each step."
-
-    @classmethod
-    def from_config(cls, config: Optional[Dict]) -> "AgentSettings":
-        """Construct agent settings from a config dictionary.
-
-        :param config: A dict of options for the agent settings.
-        :type config: Dict
-        :return: The agent settings.
-        :rtype: AgentSettings
-        """
-        if config is None:
-            return cls()
-
-        return cls(**config)
-
-
-class AbstractAgent(ABC):
+class AbstractAgent(BaseModel, ABC):
     """Base class for scripted and RL agents."""
 
-    def __init__(
-        self,
-        agent_name: Optional[str],
-        action_space: Optional[ActionManager],
-        observation_space: Optional[ObservationManager],
-        reward_function: Optional[RewardFunction],
-        agent_settings: Optional[AgentSettings] = None,
-    ) -> None:
-        """
-        Initialize an agent.
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-        :param agent_name: Unique string identifier for the agent, for reporting and multi-agent purposes.
-        :type agent_name: Optional[str]
-        :param action_space: Action space for the agent.
-        :type action_space: Optional[ActionManager]
-        :param observation_space: Observation space for the agent.
-        :type observation_space: Optional[ObservationSpace]
-        :param reward_function: Reward function for the agent.
-        :type reward_function: Optional[RewardFunction]
-        :param agent_settings: Configurable Options for Abstracted Agents
-        :type agent_settings: Optional[AgentSettings]
-        """
-        self.agent_name: str = agent_name or "unnamed_agent"
-        self.action_manager: Optional[ActionManager] = action_space
-        self.observation_manager: Optional[ObservationManager] = observation_space
-        self.reward_function: Optional[RewardFunction] = reward_function
-        self.agent_settings = agent_settings or AgentSettings()
-        self.history: List[AgentHistoryItem] = []
-        self.logger = AgentLog(agent_name)
+    class AgentSettingsSchema(BaseModel, ABC):
+        """Schema for the 'agent_settings' key."""
 
-    def add_agent_action(self, item: AgentHistoryItem, table: PrettyTable) -> PrettyTable:
-        """Update the given table with information from given AgentHistoryItem."""
-        node, application = "unknown", "unknown"
-        if (node_id := item.parameters.get("node_id")) is not None:
-            node = self.action_manager.node_names[node_id]
-        if (application_id := item.parameters.get("application_id")) is not None:
-            application = self.action_manager.application_names[node_id][application_id]
-        if (application_name := item.parameters.get("application_name")) is not None:
-            application = application_name
-        table.add_row([item.timestep, item.action, node, application, item.response.status])
-        return table
+        model_config = ConfigDict(extra="forbid")
+
+    class ConfigSchema(BaseModel, ABC):
+        """Configuration Schema for AbstractAgents."""
+
+        model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
+        type: str
+        ref: str = ""
+        """name of the agent."""
+        team: Optional[Literal["BLUE", "GREEN", "RED"]] = None
+        agent_settings: AbstractAgent.AgentSettingsSchema = Field(default=lambda: AbstractAgent.AgentSettingsSchema())
+        action_space: ActionManager.ConfigSchema = Field(default_factory=lambda: ActionManager.ConfigSchema())
+        observation_space: ObservationManager.ConfigSchema = Field(
+            default_factory=lambda: ObservationManager.ConfigSchema()
+        )
+        reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+        thresholds: Optional[Dict] = {}
+        # TODO: this is only relevant to some observations, need to refactor the way thresholds are dealt with (#3085)
+        """A dict containing the observation thresholds."""
+
+    config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
+
+    logger: AgentLog = None
+    history: List[AgentHistoryItem] = []
+
+    action_manager: ActionManager = Field(default_factory=lambda: ActionManager())
+    observation_manager: ObservationManager = Field(default_factory=lambda: ObservationManager())
+    reward_function: RewardFunction = Field(default_factory=lambda: RewardFunction())
+
+    _registry: ClassVar[Dict[str, Type[AbstractAgent]]] = {}
+
+    def __init__(self, **kwargs):
+        """Initialise and setup agent logger."""
+        super().__init__(**kwargs)
+        self.logger: AgentLog = AgentLog(agent_name=kwargs["config"]["ref"])
+
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if discriminator is None:
+            return
+        if discriminator in cls._registry:
+            raise ValueError(f"Cannot create a new agent under reserved name {discriminator}")
+        cls._registry[discriminator] = cls
+
+    def model_post_init(self, __context: Any) -> None:
+        """Overwrite the default empty action, observation, and rewards with ones defined through the config."""
+        self.action_manager = ActionManager(config=self.config.action_space)
+        self.config.observation_space.options.thresholds = self.config.thresholds
+        self.observation_manager = ObservationManager(config=self.config.observation_space)
+        self.reward_function = RewardFunction(config=self.config.reward_function)
+        return super().model_post_init(__context)
 
     def show_history(self, ignored_actions: Optional[list] = None):
         """
-        Print an agent action provided it's not the DONOTHING action.
+        Print an agent action provided it's not the do-nothing action.
 
         :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
-                                If not provided, defaults to ignore DONOTHING actions.
+                                If not provided, defaults to ignore do-nothing actions.
         """
         if not ignored_actions:
-            ignored_actions = ["DONOTHING"]
+            ignored_actions = ["do-nothing"]
         table = PrettyTable()
-        table.field_names = ["Step", "Action", "Node", "Application", "Response"]
-        print(f"Actions for '{self.agent_name}':")
+        table.field_names = ["Step", "Action", "Params", "Response", "Response Data"]
+        print(f"Actions for '{self.config.ref}':")
         for item in self.history:
             if item.action in ignored_actions:
                 pass
             else:
-                table = self.add_agent_action(item=item, table=table)
+                # format dict by putting each key-value entry on a separate line and putting a blank line on the end.
+                param_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.parameters.items()], ""])
+                data_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.response.data], ""])
+
+                table.add_row([item.timestep, item.action, param_string, item.response.status, data_string])
         print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
@@ -194,9 +166,9 @@ class AbstractAgent(ABC):
         """
         # in RL agent, this method will send CAOS observation to RL agent, then receive a int 0-39,
         # then use a bespoke conversion to take 1-40 int back into CAOS action
-        return ("DO_NOTHING", {})
+        return ("do-nothing", {})
 
-    def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> List[str]:
+    def format_request(self, action: Tuple[str, Dict], options: Dict[str, int]) -> RequestFormat:
         # this will take something like APPLICATION.EXECUTE and add things like target_ip_address in simulator.
         # therefore the execution definition needs to be a mapping from CAOS into SIMULATOR
         """Format action into format expected by the simulator, and apply execution definition if applicable."""
@@ -228,9 +200,23 @@ class AbstractAgent(ABC):
         """Update the most recent history item with the reward value."""
         self.history[-1].reward = self.reward_function.current_reward
 
+    @classmethod
+    def from_config(cls, config: Dict) -> AbstractAgent:
+        """Grab the relevant agent class and construct an instance from a config dict."""
+        agent_type = config["type"]
+        agent_class = cls._registry[agent_type]
+        return agent_class(config=config)
 
-class AbstractScriptedAgent(AbstractAgent):
+
+class AbstractScriptedAgent(AbstractAgent, ABC):
     """Base class for actors which generate their own behaviour."""
+
+    class ConfigSchema(AbstractAgent.ConfigSchema, ABC):
+        """Configuration Schema for AbstractScriptedAgents."""
+
+        type: str = "AbstractScriptedAgent"
+
+    config: ConfigSchema = Field(default_factory=lambda: AbstractScriptedAgent.ConfigSchema())
 
     @abstractmethod
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
@@ -238,26 +224,23 @@ class AbstractScriptedAgent(AbstractAgent):
         return super().get_action(obs=obs, timestep=timestep)
 
 
-class ProxyAgent(AbstractAgent):
+class ProxyAgent(AbstractAgent, discriminator="proxy-agent"):
     """Agent that sends observations to an RL model and receives actions from that model."""
 
-    def __init__(
-        self,
-        agent_name: Optional[str],
-        action_space: Optional[ActionManager],
-        observation_space: Optional[ObservationManager],
-        reward_function: Optional[RewardFunction],
-        agent_settings: Optional[AgentSettings] = None,
-    ) -> None:
-        super().__init__(
-            agent_name=agent_name,
-            action_space=action_space,
-            observation_space=observation_space,
-            reward_function=reward_function,
-        )
-        self.most_recent_action: ActType
-        self.flatten_obs: bool = agent_settings.flatten_obs if agent_settings else False
-        self.action_masking: bool = agent_settings.action_masking if agent_settings else False
+    config: "ProxyAgent.ConfigSchema" = Field(default_factory=lambda: ProxyAgent.ConfigSchema())
+    most_recent_action: ActType = None
+
+    class AgentSettingsSchema(AbstractAgent.AgentSettingsSchema):
+        """Schema for the `agent_settings` part of the agent config."""
+
+        flatten_obs: bool = False
+        action_masking: bool = False
+
+    class ConfigSchema(AbstractAgent.ConfigSchema):
+        """Configuration Schema for Proxy Agent."""
+
+        type: str = "Proxy_Agent"
+        agent_settings: ProxyAgent.AgentSettingsSchema = Field(default_factory=lambda: ProxyAgent.AgentSettingsSchema())
 
     def get_action(self, obs: ObsType, timestep: int = 0) -> Tuple[str, Dict]:
         """
@@ -279,3 +262,8 @@ class ProxyAgent(AbstractAgent):
         The environment is responsible for calling this method when it receives an action from the agent policy.
         """
         self.most_recent_action = action
+
+    @property
+    def flatten_obs(self) -> bool:
+        """Return agent flatten_obs param."""
+        return self.config.agent_settings.flatten_obs

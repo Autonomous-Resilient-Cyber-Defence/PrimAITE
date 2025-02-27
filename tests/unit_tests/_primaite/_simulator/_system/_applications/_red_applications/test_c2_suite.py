@@ -1,14 +1,14 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
 from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -16,19 +16,27 @@ def basic_c2_network() -> Network:
     network = Network()
 
     # Creating two generic nodes for the C2 Server and the C2 Beacon.
+    computer_a_cfg = {
+        "type": "computer",
+        "hostname": "computer_a",
+        "ip_address": "192.168.0.1",
+        "subnet_mask": "255.255.255.252",
+        "start_up_duration": 0,
+    }
+    computer_a = Computer.from_config(config=computer_a_cfg)
 
-    computer_a = Computer(
-        hostname="computer_a",
-        ip_address="192.168.0.1",
-        subnet_mask="255.255.255.252",
-        start_up_duration=0,
-    )
     computer_a.power_on()
     computer_a.software_manager.install(software_class=C2Server)
 
-    computer_b = Computer(
-        hostname="computer_b", ip_address="192.168.0.2", subnet_mask="255.255.255.252", start_up_duration=0
-    )
+    computer_b_cfg = {
+        "type": "computer",
+        "hostname": "computer_b",
+        "ip_address": "192.168.0.2",
+        "subnet_mask": "255.255.255.252",
+        "start_up_duration": 0,
+    }
+
+    computer_b = Computer.from_config(config=computer_b_cfg)
 
     computer_b.power_on()
     computer_b.software_manager.install(software_class=C2Beacon)
@@ -44,8 +52,8 @@ def setup_c2(given_network: Network):
     computer_a: Computer = network.get_node_by_hostname("computer_a")
     computer_b: Computer = network.get_node_by_hostname("computer_b")
 
-    c2_beacon: C2Beacon = computer_b.software_manager.software.get("C2Beacon")
-    c2_server: C2Server = computer_a.software_manager.software.get("C2Server")
+    c2_beacon: C2Beacon = computer_b.software_manager.software.get("c2-beacon")
+    c2_server: C2Server = computer_a.software_manager.software.get("c2-server")
 
     c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=2)
     c2_server.run()
@@ -128,20 +136,20 @@ def test_c2_handle_switching_port(basic_c2_network):
     assert c2_server.c2_connection_active is True
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
-    assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_beacon.c2_config.masquerade_port is Port.HTTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.config.keep_alive_frequency is 2
+    assert c2_beacon.config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_beacon.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
-    assert c2_server.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.masquerade_port is Port.HTTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.config.keep_alive_frequency is 2
+    assert c2_server.config.masquerade_port is PORT_LOOKUP["HTTP"]
+    assert c2_server.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(
         c2_server_ip_address="192.168.0.1",
         keep_alive_frequency=2,
-        masquerade_port=Port.FTP,
-        masquerade_protocol=IPProtocol.TCP,
+        masquerade_port=PORT_LOOKUP["FTP"],
+        masquerade_protocol=PROTOCOL_LOOKUP["TCP"],
     )
 
     # Asserting that the c2 applications have established a c2 connection
@@ -150,11 +158,11 @@ def test_c2_handle_switching_port(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.masquerade_port is Port.FTP
-    assert c2_beacon.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_beacon.config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_beacon.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
-    assert c2_server.c2_config.masquerade_port is Port.FTP
-    assert c2_server.c2_config.masquerade_protocol is IPProtocol.TCP
+    assert c2_server.config.masquerade_port is PORT_LOOKUP["FTP"]
+    assert c2_server.config.masquerade_protocol is PROTOCOL_LOOKUP["TCP"]
 
 
 def test_c2_handle_switching_frequency(basic_c2_network):
@@ -174,8 +182,8 @@ def test_c2_handle_switching_frequency(basic_c2_network):
     assert c2_server.c2_connection_active is True
 
     # Assert to confirm that both the C2 server and the C2 beacon are configured correctly.
-    assert c2_beacon.c2_config.keep_alive_frequency is 2
-    assert c2_server.c2_config.keep_alive_frequency is 2
+    assert c2_beacon.config.keep_alive_frequency is 2
+    assert c2_server.config.keep_alive_frequency is 2
 
     # Configuring the C2 Beacon.
     c2_beacon.configure(c2_server_ip_address="192.168.0.1", keep_alive_frequency=10)
@@ -186,8 +194,8 @@ def test_c2_handle_switching_frequency(basic_c2_network):
 
     # Assert to confirm that both the C2 server and the C2 beacon
     # Have reconfigured their C2 settings.
-    assert c2_beacon.c2_config.keep_alive_frequency is 10
-    assert c2_server.c2_config.keep_alive_frequency is 10
+    assert c2_beacon.config.keep_alive_frequency is 10
+    assert c2_server.config.keep_alive_frequency is 10
 
     # Now skipping 9 time steps to confirm keep alive inactivity
     for i in range(9):

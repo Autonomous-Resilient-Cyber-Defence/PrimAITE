@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 Rewards
 #######
@@ -23,7 +23,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: DUMMY
+            - type: dummy
               weight: 1.0
 
 
@@ -36,7 +36,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: DATABASE_FILE_INTEGRITY
+            - type: database-file-integrity
               weight: 1.0
               options:
                 node_hostname: server_1
@@ -53,7 +53,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: WEB_SERVER_404_PENALTY
+            - type: web-server-404-penalty
               node_hostname: web_server
               weight: 1.0
               options:
@@ -70,7 +70,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: WEBPAGE_UNAVAILABLE_PENALTY
+            - type: webpage-unavailable-penalty
               node_hostname: computer_1
               weight: 1.0
               options:
@@ -86,7 +86,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY
+            - type: green-admin-database-unreachable-penalty
               weight: 1.0
               options:
                 node_hostname: admin_pc_1
@@ -104,7 +104,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: SHARED_REWARD
+            - type: shared-reward
               weight: 1.0
               options:
                 agent_name: scripted_agent
@@ -119,7 +119,7 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: ACTION_PENALTY
+            - type: action-penalty
               weight: 1.0
               options:
                   action_penalty: -0.3

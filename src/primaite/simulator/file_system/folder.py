@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 import warnings
@@ -46,7 +46,7 @@ class Folder(FileSystemItemABC):
         :param sys_log: The SysLog instance to us to create system logs.
         """
         super().__init__(**kwargs)
-
+        self._scanned_this_step: bool = False
         self.sys_log.info(f"Created file /{self.name} (id: {self.uuid})")
 
     def _init_request_manager(self) -> RequestManager:
@@ -83,6 +83,7 @@ class Folder(FileSystemItemABC):
         state = super().describe_state()
         state["files"] = {file.name: file.describe_state() for uuid, file in self.files.items()}
         state["deleted_files"] = {file.name: file.describe_state() for uuid, file in self.deleted_files.items()}
+        state["scanned_this_step"] = self._scanned_this_step
         return state
 
     def show(self, markdown: bool = False):
@@ -135,7 +136,7 @@ class Folder(FileSystemItemABC):
     def pre_timestep(self, timestep: int) -> None:
         """Apply pre-timestep logic."""
         super().pre_timestep(timestep)
-
+        self._scanned_this_step = False
         for file in self.files.values():
             file.pre_timestep(timestep)
 
@@ -148,9 +149,17 @@ class Folder(FileSystemItemABC):
                 for file_id in self.files:
                     file = self.get_file_by_id(file_uuid=file_id)
                     file.scan()
-                    if file.visible_health_status == FileSystemItemHealthStatus.CORRUPT:
-                        self.health_status = FileSystemItemHealthStatus.CORRUPT
+                # set folder health to worst file's health by generating a list of file healths. If no files, use 0
+                self.health_status = FileSystemItemHealthStatus(
+                    max(
+                        [f.health_status.value for f in self.files.values()]
+                        or [
+                            0,
+                        ]
+                    )
+                )
                 self.visible_health_status = self.health_status
+                self._scanned_this_step = True
 
     def _reveal_to_red_timestep(self) -> None:
         """Apply reveal to red timestep."""
@@ -387,8 +396,8 @@ class Folder(FileSystemItemABC):
 
         Return False if corruption is detected, otherwise True
         """
-        warnings.warn("NODE_FOLDER_CHECKHASH is currently not implemented.")
-        self.sys_log.error("NODE_FOLDER_CHECKHASH is currently not implemented.")
+        warnings.warn("node-folder-checkhash is currently not implemented.")
+        self.sys_log.error("node-folder-checkhash is currently not implemented.")
         return False
 
         if self.deleted:

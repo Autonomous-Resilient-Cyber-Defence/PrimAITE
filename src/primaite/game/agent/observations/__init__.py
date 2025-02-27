@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 # flake8: noqa
 # Pre-import all the observations when we load up the observations module so that they can be resolved by the parser.
 from primaite.game.agent.observations.acl_observation import ACLObservation
@@ -17,5 +17,5 @@ from primaite.game.agent.observations.software_observation import ApplicationObs
 __all__ = [
     "ACLObservation", "FileObservation", "FolderObservation", "FirewallObservation", "HostObservation",
     "LinksObservation", "NICObservation", "PortObservation", "NodesObservation", "NestedObservation",
-    "ObservationManager", "ApplicationObservation", "ServiceObservation",]
+    "ObservationManager", "ApplicationObservation", "ServiceObservation", "RouterObservation", "LinkObservation",]
 # fmt: on

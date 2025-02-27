@@ -1,13 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from abc import abstractmethod
-from typing import Optional
+from typing import Any, Optional
 
 from primaite.simulator.network.hardware.base import NetworkInterface, Node
 from primaite.simulator.network.transmission.data_link_layer import Frame
 from primaite.simulator.system.services.arp.arp import ARP
 
 
-class NetworkNode(Node):
+class NetworkNode(Node, discriminator="network-node"):
     """
     Represents an abstract base class for a network node that can receive and process network frames.
 
@@ -15,6 +15,11 @@ class NetworkNode(Node):
     behavior that allows these devices to handle incoming network traffic. Implementations of this class must
     provide functionality for receiving and processing frames received on their network interfaces.
     """
+
+    class ConfigSchema(Node.ConfigSchema):
+        """Config schema for Node baseclass."""
+
+        num_ports: Any = None  # temporarily unset to appease extra="forbid"
 
     @abstractmethod
     def receive_frame(self, frame: Frame, from_network_interface: NetworkInterface):
@@ -40,4 +45,4 @@ class NetworkNode(Node):
         :return: ARP Cache for given NetworkNode
         :rtype: Optional[ARP]
         """
-        return self.software_manager.software.get("ARP")
+        return self.software_manager.software.get("arp")

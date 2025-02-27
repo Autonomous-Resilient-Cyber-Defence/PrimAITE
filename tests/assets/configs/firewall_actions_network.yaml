@@ -30,6 +30,9 @@
 #                        |  external_computer  |------|  switch_3  |------|  external_server  |
 #                        -----------------------      --------------      ---------------------
 #
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: true
@@ -51,13 +54,13 @@ game:
 agents:
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
@@ -77,199 +80,174 @@ agents:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - 80
-                - 5432
+                - HTTP
+                - POSTGRES_SERVER
               protocol_list:
                 - ICMP
                 - TCP
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
                 - client_1:eth-1<->switch_1:eth-1
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {}
 
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: FIREWALL_ACL_ADDRULE
-        - type: FIREWALL_ACL_REMOVERULE
-        - type: NETWORK_PORT_DISABLE
-        - type: NETWORK_PORT_ENABLE
       action_map:
           0:
-            action: DONOTHING
+            action: do-nothing
             options: {}
           1:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
+              type: firewall-acl-add-rule
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
-              permission: 1
-              source_ip_id: 2 # client 1
-              dest_ip_id: 1 # ALL
-              source_port_id: 1
-              dest_port_id: 1
-              protocol_id: 1
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: PERMIT
+              src_ip: 192.168.0.10
+              dst_ip: ALL
+              src_port: ALL
+              dst_port: ALL
+              protocol_name: ALL
+              src_wildcard: NONE
+              dst_wildcard: NONE
           2:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: inbound
               position: 1
           3:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: outbound
               position: 1
-              permission: 2
-              source_ip_id: 2 # client 1
-              dest_ip_id: 1 # ALL
-              source_port_id: 2
-              dest_port_id: 3
-              protocol_id: 2
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: DENY
+              src_ip: 192.168.0.10 # client 1
+              dst_ip: ALL
+              src_port: ARP
+              dst_port: DNS
+              protocol_name: icmp
+              src_wildcard: NONE
+              dst_wildcard: NONE
           4:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: internal
               firewall_port_direction: outbound
               position: 1
           5:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: inbound
               position: 1
-              permission: 2
-              source_ip_id: 3 # dmz_server
-              dest_ip_id: 2 # client_1
-              source_port_id: 4
-              dest_port_id: 4
-              protocol_id: 4
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: DENY
+              src_ip: 192.168.10.10 # dmz_server
+              dst_ip: 192.168.0.10 # client_1
+              src_port: HTTP
+              dst_port: HTTP
+              protocol_name: UDP
+              src_wildcard: NONE
+              dst_wildcard: NONE
           6:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: inbound
               position: 1
           7:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: outbound
               position: 2
-              permission: 2
-              source_ip_id: 3 # dmz_server
-              dest_ip_id: 2 # client_1
-              source_port_id: 4
-              dest_port_id: 4
-              protocol_id: 3
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: DENY
+              src_ip: 192.168.10.10 # dmz_server
+              dst_ip: 192.168.0.10 # client_1
+              src_port: HTTP
+              dst_port: HTTP
+              protocol_name: TCP
+              src_wildcard: NONE
+              dst_wildcard: NONE
           8:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: dmz
               firewall_port_direction: outbound
               position: 2
           9:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: inbound
               position: 10
-              permission: 2
-              source_ip_id: 4 # external_computer
-              dest_ip_id: 3 # dmz
-              source_port_id: 5
-              dest_port_id: 5
-              protocol_id: 2
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: DENY
+              src_ip: 192.168.20.10 # external_computer
+              dst_ip: 192.168.10.10 # dmz
+              src_port: POSTGRES_SERVER
+              dst_port: POSTGRES_SERVER
+              protocol_name: icmp
+              src_wildcard: NONE
+              dst_wildcard: NONE
           10:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: inbound
               position: 10
           11:
-            action: FIREWALL_ACL_ADDRULE
+            action: firewall-acl-add-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
-              permission: 2
-              source_ip_id: 4 # external_computer
-              dest_ip_id: 2 # client_1
-              source_port_id: 1
-              dest_port_id: 1
-              protocol_id: 1
-              source_wildcard_id: 0
-              dest_wildcard_id: 0
+              permission: DENY
+              src_ip: 192.168.20.10 # external_computer
+              dst_ip: 192.168.0.10 # client_1
+              src_port: ALL
+              dst_port: ALL
+              protocol_name: NONE
+              src_wildcard: NONE
+              dst_wildcard: NONE
           12:
-            action: FIREWALL_ACL_REMOVERULE
+            action: firewall-acl-remove-rule
             options:
               target_firewall_nodename: firewall
               firewall_port_name: external
               firewall_port_direction: outbound
               position: 1
           13:
-            action: NETWORK_PORT_DISABLE
+            action: network-port-disable
             options:
+              type: network-port-disable
               target_nodename: firewall
-              port_id: 3
+              port_num: 3
           14:
-            action: NETWORK_PORT_ENABLE
+            action: network-port-enable
             options:
+              type: network-port-enable
               target_nodename: firewall
-              port_id: 3
-      options:
-        nodes:
-        - node_name: client_1
-        - node_name: dmz_server
-        - node_name: external_computer
-        ip_list:
-          - 192.168.0.10
-          - 192.168.10.10
-          - 192.168.20.10
-        max_folders_per_node: 2
-        max_files_per_folder: 2
-        max_services_per_node: 2
-        max_nics_per_node: 8
-        max_acl_rules: 10
-    reward_function:
-      reward_components:
-        - type: DUMMY
+              port_num: 3
 
-    agent_settings:
-      start_settings:
-        start_step: 5
-        frequency: 4
-        variance: 3
 
 
 
@@ -426,7 +404,7 @@ simulation:
         start_up_duration: 0
         shut_down_duration: 0
         services:
-          - type: DNSServer
+          - type: dns-server
     links:
       - endpoint_a_hostname: client_1
         endpoint_a_port: 1

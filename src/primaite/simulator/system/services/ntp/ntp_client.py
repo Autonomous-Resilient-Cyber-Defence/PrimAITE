@@ -1,29 +1,40 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from datetime import datetime
 from ipaddress import IPv4Address
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class NTPClient(Service):
+class NTPClient(Service, discriminator="ntp-client"):
     """Represents a NTP client as a service."""
 
-    ntp_server: Optional[IPv4Address] = None
-    "The NTP server the client sends requests to."
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for NTPClient."""
+
+        type: str = "ntp-client"
+        ntp_server_ip: Optional[IPV4Address] = None
+        "The NTP server the client sends requests to."
+
+    config: ConfigSchema = Field(default_factory=lambda: NTPClient.ConfigSchema())
+
     time: Optional[datetime] = None
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "NTPClient"
-        kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["name"] = "ntp-client"
+        kwargs["port"] = PORT_LOOKUP["NTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)
+        self.ntp_server = self.config.ntp_server_ip
         self.start()
 
     def configure(self, ntp_server_ip_address: IPv4Address) -> None:
@@ -33,8 +44,8 @@ class NTPClient(Service):
         :param ntp_server_ip_address: IPv4 address of NTP server.
         :param ntp_client_ip_Address: IPv4 address of NTP client.
         """
-        self.ntp_server = ntp_server_ip_address
-        self.sys_log.info(f"{self.name}: ntp_server: {self.ntp_server}")
+        self.config.ntp_server_ip = ntp_server_ip_address
+        self.sys_log.info(f"{self.name}: ntp_server: {self.config.ntp_server_ip}")
 
     def describe_state(self) -> Dict:
         """
@@ -55,7 +66,7 @@ class NTPClient(Service):
         payload: NTPPacket,
         session_id: Optional[str] = None,
         dest_ip_address: IPv4Address = None,
-        dest_port: Port = Port.NTP,
+        dest_port: Port = PORT_LOOKUP["NTP"],
         **kwargs,
     ) -> bool:
         """Requests NTP data from NTP server.
@@ -96,10 +107,10 @@ class NTPClient(Service):
 
     def request_time(self) -> None:
         """Send request to ntp_server."""
-        if self.ntp_server:
+        if self.config.ntp_server_ip:
             self.software_manager.session_manager.receive_payload_from_software_manager(
                 payload=NTPPacket(),
-                dst_ip_address=self.ntp_server,
+                dst_ip_address=self.config.ntp_server_ip,
                 src_port=self.port,
                 dst_port=self.port,
                 ip_protocol=self.protocol,

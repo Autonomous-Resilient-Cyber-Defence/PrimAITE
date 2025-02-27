@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Tuple
 
@@ -18,14 +18,14 @@ def dns_client_and_dns_server(client_server) -> Tuple[DNSClient, Computer, DNSSe
 
     # Install DNS Client on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     dns_client.start()
     # set server as DNS Server
     dns_client.dns_server = IPv4Address(server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address)
 
     # Install DNS Server on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     dns_server.start()
     # register arcd.com as a domain
     dns_server.dns_register(
@@ -72,7 +72,7 @@ def test_dns_client_requests_offline_dns_server(dns_client_and_dns_server):
 
     server.power_off()
 
-    for i in range(server.shut_down_duration + 1):
+    for i in range(server.config.shut_down_duration + 1):
         server.apply_timestep(timestep=i)
 
     assert server.operating_state == NodeOperatingState.OFF

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -12,11 +12,13 @@ from primaite.game.agent.observations.nic_observations import NICObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.software_observation import ApplicationObservation, ServiceObservation
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
 
-class HostObservation(AbstractObservation, identifier="HOST"):
+class HostObservation(AbstractObservation, discriminator="host"):
     """Host observation, provides status information about a host within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -44,7 +46,7 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         """Number of spaces for network interface observations on this host."""
         include_nmne: Optional[bool] = None
         """Whether network interface observations should include number of malicious network events."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Whether to include the number of accesses to files observations on this host."""
@@ -213,25 +215,31 @@ class HostObservation(AbstractObservation, identifier="HOST"):
         if node_state is NOT_PRESENT_IN_STATE:
             return self.default_observation
 
-        obs = {}
+        is_on = node_state["operating_state"] == 1
+        if not is_on:
+            obs = {**self.default_observation}
+
+        else:
+            obs = {}
+            if self.services:
+                obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
+            if self.applications:
+                obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
+            if self.folders:
+                obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
+            if self.nics:
+                obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
+            if self.include_num_access:
+                obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
+                obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
+            if self.include_users:
+                sess = node_state["services"]["user-session-manager"]
+                obs["users"] = {
+                    "local_login": 1 if sess["current_local_user"] else 0,
+                    "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
+                }
+
         obs["operating_status"] = node_state["operating_state"]
-        if self.services:
-            obs["SERVICES"] = {i + 1: service.observe(state) for i, service in enumerate(self.services)}
-        if self.applications:
-            obs["APPLICATIONS"] = {i + 1: app.observe(state) for i, app in enumerate(self.applications)}
-        if self.folders:
-            obs["FOLDERS"] = {i + 1: folder.observe(state) for i, folder in enumerate(self.folders)}
-        if self.nics:
-            obs["NICS"] = {i + 1: nic.observe(state) for i, nic in enumerate(self.nics)}
-        if self.include_num_access:
-            obs["num_file_creations"] = node_state["file_system"]["num_file_creations"]
-            obs["num_file_deletions"] = node_state["file_system"]["num_file_deletions"]
-        if self.include_users:
-            sess = node_state["services"]["UserSessionManager"]
-            obs["users"] = {
-                "local_login": 1 if sess["current_local_user"] else 0,
-                "remote_sessions": min(self.max_users, len(sess["active_remote_sessions"])),
-            }
         return obs
 
     @property

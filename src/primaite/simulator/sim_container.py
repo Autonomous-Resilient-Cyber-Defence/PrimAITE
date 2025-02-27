@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Dict
 
 from primaite.interface.request import RequestResponse
@@ -38,8 +38,8 @@ class Simulation(SimComponent):
         rm.add_request("network", RequestType(func=self.network._request_manager))
         # pass through domain requests to the domain object
         rm.add_request("domain", RequestType(func=self.domain._request_manager))
-        # if 'do_nothing' is requested, just return a success
-        rm.add_request("do_nothing", RequestType(func=lambda request, context: RequestResponse(status="success")))
+        # if 'do-nothing' is requested, just return a success
+        rm.add_request("do-nothing", RequestType(func=lambda request, context: RequestResponse(status="success")))
         return rm
 
     def describe_state(self) -> Dict:

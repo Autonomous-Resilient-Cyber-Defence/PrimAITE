@@ -1,10 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Optional
+from typing import Any, ClassVar, Dict, List, Literal, Optional
+
+from pydantic import Field
 
 from primaite import getLogger
+from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.network.hardware.base import (
     IPWiredNetworkInterface,
     Link,
@@ -22,7 +25,7 @@ from primaite.simulator.system.services.dns.dns_client import DNSClient
 from primaite.simulator.system.services.icmp.icmp import ICMP
 from primaite.simulator.system.services.ntp.ntp_client import NTPClient
 from primaite.simulator.system.services.terminal.terminal import Terminal
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 _LOGGER = getLogger(__name__)
 
@@ -44,8 +47,8 @@ class HostARP(ARP):
 
         :return: The MAC address of the default gateway if present in the ARP cache; otherwise, None.
         """
-        if self.software_manager.node.default_gateway:
-            return self.get_arp_cache_mac_address(self.software_manager.node.default_gateway)
+        if self.software_manager.node.config.default_gateway:
+            return self.get_arp_cache_mac_address(self.software_manager.node.config.default_gateway)
 
     def get_default_gateway_network_interface(self) -> Optional[NIC]:
         """
@@ -53,8 +56,11 @@ class HostARP(ARP):
 
         :return: The NIC associated with the default gateway if it exists in the ARP cache; otherwise, None.
         """
-        if self.software_manager.node.default_gateway and self.software_manager.node.has_enabled_network_interface:
-            return self.get_arp_cache_network_interface(self.software_manager.node.default_gateway)
+        if (
+            self.software_manager.node.config.default_gateway
+            and self.software_manager.node.has_enabled_network_interface
+        ):
+            return self.get_arp_cache_network_interface(self.software_manager.node.config.default_gateway)
 
     def _get_arp_cache_mac_address(
         self, ip_address: IPV4Address, is_reattempt: bool = False, is_default_gateway_attempt: bool = False
@@ -73,7 +79,7 @@ class HostARP(ARP):
         if arp_entry:
             return arp_entry.mac_address
 
-        if ip_address == self.software_manager.node.default_gateway:
+        if ip_address == self.software_manager.node.config.default_gateway:
             is_reattempt = True
         if not is_reattempt:
             self.send_arp_request(ip_address)
@@ -81,11 +87,11 @@ class HostARP(ARP):
                 ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
             )
         else:
-            if self.software_manager.node.default_gateway:
+            if self.software_manager.node.config.default_gateway:
                 if not is_default_gateway_attempt:
-                    self.send_arp_request(self.software_manager.node.default_gateway)
+                    self.send_arp_request(self.software_manager.node.config.default_gateway)
                     return self._get_arp_cache_mac_address(
-                        ip_address=self.software_manager.node.default_gateway,
+                        ip_address=self.software_manager.node.config.default_gateway,
                         is_reattempt=True,
                         is_default_gateway_attempt=True,
                     )
@@ -116,7 +122,7 @@ class HostARP(ARP):
         if arp_entry:
             return self.software_manager.node.network_interfaces[arp_entry.network_interface_uuid]
         else:
-            if ip_address == self.software_manager.node.default_gateway:
+            if ip_address == self.software_manager.node.config.default_gateway:
                 is_reattempt = True
             if not is_reattempt:
                 self.send_arp_request(ip_address)
@@ -124,11 +130,11 @@ class HostARP(ARP):
                     ip_address=ip_address, is_reattempt=True, is_default_gateway_attempt=is_default_gateway_attempt
                 )
             else:
-                if self.software_manager.node.default_gateway:
+                if self.software_manager.node.config.default_gateway:
                     if not is_default_gateway_attempt:
-                        self.send_arp_request(self.software_manager.node.default_gateway)
+                        self.send_arp_request(self.software_manager.node.config.default_gateway)
                         return self._get_arp_cache_network_interface(
-                            ip_address=self.software_manager.node.default_gateway,
+                            ip_address=self.software_manager.node.config.default_gateway,
                             is_reattempt=True,
                             is_default_gateway_attempt=True,
                         )
@@ -262,7 +268,7 @@ class NIC(IPWiredNetworkInterface):
         return f"Port {self.port_name if self.port_name else self.port_num}: {self.mac_address}/{self.ip_address}"
 
 
-class HostNode(Node):
+class HostNode(Node, discriminator="host-node"):
     """
     Represents a host node in the network.
 
@@ -308,15 +314,15 @@ class HostNode(Node):
     """
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "HostARP": HostARP,
-        "ICMP": ICMP,
-        "DNSClient": DNSClient,
-        "NTPClient": NTPClient,
-        "WebBrowser": WebBrowser,
-        "NMAP": NMAP,
-        "UserSessionManager": UserSessionManager,
-        "UserManager": UserManager,
-        "Terminal": Terminal,
+        "host-arp": HostARP,
+        "icmp": ICMP,
+        "dns-client": DNSClient,
+        "ntp-client": NTPClient,
+        "web-browser": WebBrowser,
+        "nmap": NMAP,
+        "user-session-manager": UserSessionManager,
+        "user-manager": UserManager,
+        "terminal": Terminal,
     }
     """List of system software that is automatically installed on nodes."""
 
@@ -325,9 +331,35 @@ class HostNode(Node):
     network_interface: Dict[int, NIC] = {}
     "The NICs on the node by port id."
 
-    def __init__(self, ip_address: IPV4Address, subnet_mask: IPV4Address, **kwargs):
+    class ConfigSchema(Node.ConfigSchema):
+        """Configuration Schema for HostNode class."""
+
+        type: Literal["host-node"] = "host-node"
+        hostname: str = "HostNode"
+        subnet_mask: IPV4Address = "255.255.255.0"
+        ip_address: IPV4Address
+        services: Any = None  # temporarily unset to appease extra="forbid"
+        applications: Any = None  # temporarily unset to appease extra="forbid"
+        folders: List[Dict] = {}  # temporarily unset to appease extra="forbid"
+        network_interfaces: Any = None  # temporarily unset to appease extra="forbid"
+
+    config: ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
+
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.connect_nic(NIC(ip_address=ip_address, subnet_mask=subnet_mask))
+        self.connect_nic(NIC(ip_address=kwargs["config"].ip_address, subnet_mask=kwargs["config"].subnet_mask))
+
+        for folder in self.config.folders:
+            # handle empty foler defined by just a string
+            self.file_system.create_folder(folder["folder_name"])
+
+            for file in folder.get("files", []):
+                self.file_system.create_file(
+                    folder_name=folder["folder_name"],
+                    file_name=file["file_name"],
+                    size=file.get("size", 0),
+                    file_type=FileType[file.get("type", "UNKNOWN").upper()],
+                )
 
     @property
     def nmap(self) -> Optional[NMAP]:
@@ -337,7 +369,7 @@ class HostNode(Node):
         :return: NMAP application installed on the Node.
         :rtype: Optional[NMAP]
         """
-        return self.software_manager.software.get("NMAP")
+        return self.software_manager.software.get("nmap")
 
     @property
     def arp(self) -> Optional[ARP]:
@@ -347,7 +379,7 @@ class HostNode(Node):
         :return: ARP Cache for given HostNode
         :rtype: Optional[ARP]
         """
-        return self.software_manager.software.get("ARP")
+        return self.software_manager.software.get("arp")
 
     def default_gateway_hello(self):
         """
@@ -356,7 +388,7 @@ class HostNode(Node):
         This method is invoked to ensure the host node can communicate with its default gateway, primarily to confirm
         network connectivity and populate the ARP cache with the gateway's MAC address.
         """
-        if self.operating_state == NodeOperatingState.ON and self.default_gateway:
+        if self.operating_state == NodeOperatingState.ON and self.config.default_gateway:
             self.software_manager.arp.get_default_gateway_mac_address()
 
     def receive_frame(self, frame: Frame, from_network_interface: NIC):
@@ -379,8 +411,8 @@ class HostNode(Node):
             dst_port = frame.udp.dst_port
 
         can_accept_nmap = False
-        if self.software_manager.software.get("NMAP"):
-            if self.software_manager.software["NMAP"].operating_state == ApplicationOperatingState.RUNNING:
+        if self.software_manager.software.get("nmap"):
+            if self.software_manager.software["nmap"].operating_state == ApplicationOperatingState.RUNNING:
                 can_accept_nmap = True
 
         accept_nmap = can_accept_nmap and frame.payload.__class__.__name__ == "PortScanPayload"

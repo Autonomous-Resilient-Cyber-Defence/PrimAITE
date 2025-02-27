@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """
 Manages the reward function for the agent.
 
@@ -12,7 +12,7 @@ the structure:
 ```yaml
     reward_function:
         reward_components:
-            - type: DATABASE_FILE_INTEGRITY
+            - type: database-file-integrity
             weight: 0.5
             options:
                 node_name: database_server
@@ -20,16 +20,17 @@ the structure:
                 file_name: database.db
 
 
-            - type: WEB_SERVER_404_PENALTY
+            - type: web-server-404-penalty
             weight: 0.5
             options:
                 node_name: web_server
                 service_ref: web_server_database_client
 ```
 """
-from abc import abstractmethod
-from typing import Callable, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING, Union
+from abc import ABC, abstractmethod
+from typing import Any, Callable, ClassVar, Dict, Iterable, List, Optional, Tuple, Type, TYPE_CHECKING, Union
 
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from typing_extensions import Never
 
 from primaite import getLogger
@@ -42,25 +43,28 @@ _LOGGER = getLogger(__name__)
 WhereType = Optional[Iterable[Union[str, int]]]
 
 
-class AbstractReward:
+class AbstractReward(BaseModel, ABC):
     """Base class for reward function components."""
 
-    @abstractmethod
-    def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state.
+    class ConfigSchema(BaseModel, ABC):
+        """Config schema for AbstractReward."""
 
-        :param state: Current simulation state
-        :type state: Dict
-        :param last_action_response: Current agent history state
-        :type last_action_response: AgentHistoryItem state
-        :return: Reward value
-        :rtype: float
-        """
-        return 0.0
+        type: str = ""
+
+    config: ConfigSchema
+
+    _registry: ClassVar[Dict[str, Type["AbstractReward"]]] = {}
+
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        if discriminator is None:
+            return
+        if discriminator in cls._registry:
+            raise ValueError(f"Duplicate reward {discriminator}")
+        cls._registry[discriminator] = cls
 
     @classmethod
-    @abstractmethod
-    def from_config(cls, config: dict) -> "AbstractReward":
+    def from_config(cls, config: Dict) -> "AbstractReward":
         """Create a reward function component from a config dictionary.
 
         :param config: dict of options for the reward component's constructor
@@ -68,11 +72,28 @@ class AbstractReward:
         :return: The reward component.
         :rtype: AbstractReward
         """
-        return cls()
+        if config["type"] not in cls._registry:
+            raise ValueError(f"Invalid reward type {config['type']}")
+        reward_class = cls._registry[config["type"]]
+        reward_obj = reward_class(config=reward_class.ConfigSchema(**config))
+        return reward_obj
+
+    @abstractmethod
+    def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
+        """Calculate the reward for the current state.
+
+        :param state: Current simulation state
+        :type state: Dict
+        :param last_action_response: Current agent history state
+        :type last_action_response: AgentHistoryItem state
+        :return: Reward value
+        :rtype: float
+        """
+        return 0.0
 
 
-class DummyReward(AbstractReward):
-    """Dummy reward function component which always returns 0."""
+class DummyReward(AbstractReward, discriminator="dummy"):
+    """Dummy reward function component which always returns 0.0."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
@@ -86,41 +107,21 @@ class DummyReward(AbstractReward):
         """
         return 0.0
 
-    @classmethod
-    def from_config(cls, config: dict) -> "DummyReward":
-        """Create a reward function component from a config dictionary.
 
-        :param config: dict of options for the reward component's constructor. Should be empty.
-        :type config: dict
-        :return: The reward component.
-        :rtype: DummyReward
-        """
-        return cls()
-
-
-class DatabaseFileIntegrity(AbstractReward):
+class DatabaseFileIntegrity(AbstractReward, discriminator="database-file-integrity"):
     """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
-    def __init__(self, node_hostname: str, folder_name: str, file_name: str) -> None:
-        """Initialise the reward component.
+    config: "DatabaseFileIntegrity.ConfigSchema"
+    location_in_state: List[str] = [""]
+    reward: float = 0.0
 
-        :param node_hostname: Hostname of the node which contains the database file.
-        :type node_hostname: str
-        :param folder_name: folder which contains the database file.
-        :type folder_name: str
-        :param file_name: name of the database file.
-        :type file_name: str
-        """
-        self.location_in_state = [
-            "network",
-            "nodes",
-            node_hostname,
-            "file_system",
-            "folders",
-            folder_name,
-            "files",
-            file_name,
-        ]
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """ConfigSchema for DatabaseFileIntegrity."""
+
+        type: str = "database-file-integrity"
+        node_hostname: str
+        folder_name: str
+        file_name: str
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
@@ -132,6 +133,17 @@ class DatabaseFileIntegrity(AbstractReward):
         :return: Reward value
         :rtype: float
         """
+        self.location_in_state = [
+            "network",
+            "nodes",
+            self.config.node_hostname,
+            "file_system",
+            "folders",
+            self.config.folder_name,
+            "files",
+            self.config.file_name,
+        ]
+
         database_file_state = access_from_nested_dict(state, self.location_in_state)
         if database_file_state is NOT_PRESENT_IN_STATE:
             _LOGGER.debug(
@@ -148,44 +160,21 @@ class DatabaseFileIntegrity(AbstractReward):
         else:
             return 0
 
-    @classmethod
-    def from_config(cls, config: Dict) -> "DatabaseFileIntegrity":
-        """Create a reward function component from a config dictionary.
 
-        :param config: dict of options for the reward component's constructor
-        :type config: Dict
-        :return: The reward component.
-        :rtype: DatabaseFileIntegrity
-        """
-        node_hostname = config.get("node_hostname")
-        folder_name = config.get("folder_name")
-        file_name = config.get("file_name")
-        if not (node_hostname and folder_name and file_name):
-            msg = f"{cls.__name__} could not be initialised with parameters {config}"
-            _LOGGER.error(msg)
-            raise ValueError(msg)
-
-        return cls(node_hostname=node_hostname, folder_name=folder_name, file_name=file_name)
-
-
-class WebServer404Penalty(AbstractReward):
+class WebServer404Penalty(AbstractReward, discriminator="web-server-404-penalty"):
     """Reward function component which penalises the agent when the web server returns a 404 error."""
 
-    def __init__(self, node_hostname: str, service_name: str, sticky: bool = True) -> None:
-        """Initialise the reward component.
+    config: "WebServer404Penalty.ConfigSchema"
+    location_in_state: List[str] = [""]
+    reward: float = 0.0
 
-        :param node_hostname: Hostname of the node which contains the web server service.
-        :type node_hostname: str
-        :param service_name: Name of the web server service.
-        :type service_name: str
-        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
-            the reward if there were any responses this timestep.
-        :type sticky: bool
-        """
-        self.sticky: bool = sticky
-        self.reward: float = 0.0
-        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
-        self.location_in_state = ["network", "nodes", node_hostname, "services", service_name]
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """ConfigSchema for WebServer404Penalty."""
+
+        type: str = "web-server-404-penalty"
+        node_hostname: str
+        service_name: str
+        sticky: bool = True
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the reward for the current state.
@@ -197,6 +186,13 @@ class WebServer404Penalty(AbstractReward):
         :return: Reward value
         :rtype: float
         """
+        self.location_in_state = [
+            "network",
+            "nodes",
+            self.config.node_hostname,
+            "services",
+            self.config.service_name,
+        ]
         web_service_state = access_from_nested_dict(state, self.location_in_state)
 
         # if webserver is no longer installed on the node, return 0
@@ -211,54 +207,27 @@ class WebServer404Penalty(AbstractReward):
                 return 1.0 if status == 200 else -1.0 if status == 404 else 0.0
 
             self.reward = sum(map(status2rew, codes)) / len(codes)  # convert form HTTP codes to rewards and average
-        elif not self.sticky:  # there are no codes, but reward is not sticky, set reward to 0
+        elif not self.config.sticky:  # there are no codes, but reward is not sticky, set reward to 0
             self.reward = 0.0
         else:  # skip calculating if sticky and no new codes. instead, reuse last step's value
             pass
 
         return self.reward
 
-    @classmethod
-    def from_config(cls, config: Dict) -> "WebServer404Penalty":
-        """Create a reward function component from a config dictionary.
 
-        :param config: dict of options for the reward component's constructor
-        :type config: Dict
-        :return: The reward component.
-        :rtype: WebServer404Penalty
-        """
-        node_hostname = config.get("node_hostname")
-        service_name = config.get("service_name")
-        if not (node_hostname and service_name):
-            msg = (
-                f"{cls.__name__} could not be initialised from config because node_name and service_ref were not "
-                "found in reward config."
-            )
-            _LOGGER.warning(msg)
-            raise ValueError(msg)
-        sticky = config.get("sticky", True)
-
-        return cls(node_hostname=node_hostname, service_name=service_name, sticky=sticky)
-
-
-class WebpageUnavailablePenalty(AbstractReward):
+class WebpageUnavailablePenalty(AbstractReward, discriminator="webpage-unavailable-penalty"):
     """Penalises the agent when the web browser fails to fetch a webpage."""
 
-    def __init__(self, node_hostname: str, sticky: bool = True) -> None:
-        """
-        Initialise the reward component.
+    config: "WebpageUnavailablePenalty.ConfigSchema"
+    reward: float = 0.0
+    location_in_state: List[str] = [""]  # Calculate in __init__()?
 
-        :param node_hostname: Hostname of the node which has the web browser.
-        :type node_hostname: str
-        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
-            the reward if there were any responses this timestep.
-        :type sticky: bool
-        """
-        self._node: str = node_hostname
-        self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "WebBrowser"]
-        self.sticky: bool = sticky
-        self.reward: float = 0.0
-        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """ConfigSchema for WebpageUnavailablePenalty."""
+
+        type: str = "webpage-unavailable-penalty"
+        node_hostname: str = ""
+        sticky: bool = True
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """
@@ -274,6 +243,13 @@ class WebpageUnavailablePenalty(AbstractReward):
         :return: Reward value
         :rtype: float
         """
+        self.location_in_state = [
+            "network",
+            "nodes",
+            self.config.node_hostname,
+            "applications",
+            "web-browser",
+        ]
         web_browser_state = access_from_nested_dict(state, self.location_in_state)
 
         if web_browser_state is NOT_PRESENT_IN_STATE:
@@ -283,14 +259,14 @@ class WebpageUnavailablePenalty(AbstractReward):
         request_attempted = last_action_response.request == [
             "network",
             "node",
-            self._node,
+            self.config.node_hostname,
             "application",
-            "WebBrowser",
+            "web-browser",
             "execute",
         ]
 
         # skip calculating if sticky and no new codes, reusing last step value
-        if not request_attempted and self.sticky:
+        if not request_attempted and self.config.sticky:
             return self.reward
 
         if last_action_response.response.status != "success":
@@ -298,7 +274,7 @@ class WebpageUnavailablePenalty(AbstractReward):
         elif web_browser_state is NOT_PRESENT_IN_STATE or not web_browser_state["history"]:
             _LOGGER.debug(
                 "Web browser reward could not be calculated because the web browser history on node",
-                f"{self._node} was not reported in the simulation state. Returning 0.0",
+                f"{self.config.node_hostname} was not reported in the simulation state. Returning 0.0",
             )
             self.reward = 0.0
         else:
@@ -312,37 +288,19 @@ class WebpageUnavailablePenalty(AbstractReward):
 
         return self.reward
 
-    @classmethod
-    def from_config(cls, config: dict) -> AbstractReward:
-        """
-        Build the reward component object from config.
 
-        :param config: Configuration dictionary.
-        :type config: Dict
-        """
-        node_hostname = config.get("node_hostname")
-        sticky = config.get("sticky", True)
-        return cls(node_hostname=node_hostname, sticky=sticky)
-
-
-class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
+class GreenAdminDatabaseUnreachablePenalty(AbstractReward, discriminator="green-admin-database-unreachable-penalty"):
     """Penalises the agent when the green db clients fail to connect to the database."""
 
-    def __init__(self, node_hostname: str, sticky: bool = True) -> None:
-        """
-        Initialise the reward component.
+    config: "GreenAdminDatabaseUnreachablePenalty.ConfigSchema"
+    reward: float = 0.0
 
-        :param node_hostname: Hostname of the node where the database client sits.
-        :type node_hostname: str
-        :param sticky: If True, calculate the reward based on the most recent response status. If False, only calculate
-            the reward if there were any responses this timestep.
-        :type sticky: bool
-        """
-        self._node: str = node_hostname
-        self.location_in_state: List[str] = ["network", "nodes", node_hostname, "applications", "DatabaseClient"]
-        self.sticky: bool = sticky
-        self.reward: float = 0.0
-        """Reward value calculated last time any responses were seen. Used for persisting sticky rewards."""
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """ConfigSchema for GreenAdminDatabaseUnreachablePenalty."""
+
+        type: str = "green-admin-database-unreachable-penalty"
+        node_hostname: str
+        sticky: bool = True
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """
@@ -362,16 +320,16 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
         request_attempted = last_action_response.request == [
             "network",
             "node",
-            self._node,
+            self.config.node_hostname,
             "application",
-            "DatabaseClient",
+            "database-client",
             "execute",
         ]
 
         if request_attempted:  # if agent makes request, always recalculate fresh value
             last_action_response.reward_info = {"connection_attempt_status": last_action_response.response.status}
             self.reward = 1.0 if last_action_response.response.status == "success" else -1.0
-        elif not self.sticky:  # if no new request and not sticky, set reward to 0
+        elif not self.config.sticky:  # if no new request and not sticky, set reward to 0
             last_action_response.reward_info = {"connection_attempt_status": "n/a"}
             self.reward = 0.0
         else:  # if no new request and sticky, reuse reward value from last step
@@ -380,47 +338,30 @@ class GreenAdminDatabaseUnreachablePenalty(AbstractReward):
 
         return self.reward
 
-    @classmethod
-    def from_config(cls, config: Dict) -> AbstractReward:
-        """
-        Build the reward component object from config.
 
-        :param config: Configuration dictionary.
-        :type config: Dict
-        """
-        node_hostname = config.get("node_hostname")
-        sticky = config.get("sticky", True)
-        return cls(node_hostname=node_hostname, sticky=sticky)
-
-
-class SharedReward(AbstractReward):
+class SharedReward(AbstractReward, discriminator="shared-reward"):
     """Adds another agent's reward to the overall reward."""
 
-    def __init__(self, agent_name: Optional[str] = None) -> None:
+    config: "SharedReward.ConfigSchema"
+
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """Config schema for SharedReward."""
+
+        type: str = "shared-reward"
+        agent_name: str
+
+    def default_callback(agent_name: str) -> Never:
         """
-        Initialise the shared reward.
+        Default callback to prevent calling this reward until it's properly initialised.
 
-        The agent_name is a placeholder value. It starts off as none, but it must be set before this reward can work
-        correctly.
-
-        :param agent_name: The name whose reward is an input
-        :type agent_name: Optional[str]
+        SharedReward should not be used until the game layer replaces self.callback with a reference to the
+        function that retrieves the desired agent's reward. Therefore, we define this default callback that raises
+        an error.
         """
-        self.agent_name = agent_name
-        """Agent whose reward to track."""
+        raise RuntimeError("Attempted to calculate SharedReward but it was not initialised properly.")
 
-        def default_callback(agent_name: str) -> Never:
-            """
-            Default callback to prevent calling this reward until it's properly initialised.
-
-            SharedReward should not be used until the game layer replaces self.callback with a reference to the
-            function that retrieves the desired agent's reward. Therefore, we define this default callback that raises
-            an error.
-            """
-            raise RuntimeError("Attempted to calculate SharedReward but it was not initialised properly.")
-
-        self.callback: Callable[[str], float] = default_callback
-        """Method that retrieves an agent's current reward given the agent's name."""
+    callback: Callable[[str], float] = default_callback
+    """Method that retrieves an agent's current reward given the agent's name."""
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Simply access the other agent's reward and return it.
@@ -432,36 +373,25 @@ class SharedReward(AbstractReward):
         :return: Reward value
         :rtype: float
         """
-        return self.callback(self.agent_name)
-
-    @classmethod
-    def from_config(cls, config: Dict) -> "SharedReward":
-        """
-        Build the SharedReward object from config.
-
-        :param config: Configuration dictionary
-        :type config: Dict
-        """
-        agent_name = config.get("agent_name")
-        return cls(agent_name=agent_name)
+        return self.callback(self.config.agent_name)
 
 
-class ActionPenalty(AbstractReward):
-    """Apply a negative reward when taking any action except DONOTHING."""
+class ActionPenalty(AbstractReward, discriminator="action-penalty"):
+    """Apply a negative reward when taking any action except do-nothing."""
 
-    def __init__(self, action_penalty: float, do_nothing_penalty: float) -> None:
-        """
-        Initialise the reward.
+    config: "ActionPenalty.ConfigSchema"
 
-        Reward or penalise agents for doing nothing or taking actions.
+    class ConfigSchema(AbstractReward.ConfigSchema):
+        """Config schema for ActionPenalty.
 
-        :param action_penalty: Reward to give agents for taking any action except DONOTHING
+        :param action_penalty: Reward to give agents for taking any action except do-nothing
         :type action_penalty: float
-        :param do_nothing_penalty: Reward to give agent for taking the DONOTHING action
+        :param do_nothing_penalty: Reward to give agent for taking the do-nothing action
         :type do_nothing_penalty: float
         """
-        self.action_penalty = action_penalty
-        self.do_nothing_penalty = do_nothing_penalty
+
+        action_penalty: float = -1.0
+        do_nothing_penalty: float = 0.0
 
     def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
         """Calculate the penalty to be applied.
@@ -473,39 +403,81 @@ class ActionPenalty(AbstractReward):
         :return: Reward value
         :rtype: float
         """
-        if last_action_response.action == "DONOTHING":
-            return self.do_nothing_penalty
+        if last_action_response.action == "do-nothing":
+            return self.config.do_nothing_penalty
+
         else:
-            return self.action_penalty
+            return self.config.action_penalty
 
+
+class _SingleComponentConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    type: str
+    options: AbstractReward.ConfigSchema
+    weight: float = 1.0
+
+    @model_validator(mode="before")
     @classmethod
-    def from_config(cls, config: Dict) -> "ActionPenalty":
-        """Build the ActionPenalty object from config."""
-        action_penalty = config.get("action_penalty", -1.0)
-        do_nothing_penalty = config.get("do_nothing_penalty", 0.0)
-        return cls(action_penalty=action_penalty, do_nothing_penalty=do_nothing_penalty)
+    def resolve_obs_options_type(cls, data: Any) -> Any:
+        """
+        When constructing the model from a dict, resolve the correct reward class based on `type` field.
+
+        Workaround: The `options` field is statically typed as AbstractReward. Therefore, it falls over when
+        passing in data that adheres to a subclass schema rather than the plain AbstractReward schema. There is
+        a way to do this properly using discriminated union, but most advice on the internet assumes that the full
+        list of types between which to discriminate is known ahead-of-time. That is not the case for us, because of
+        our plugin architecture.
+
+        We may be able to revisit and implement a better solution when needed using the following resources as
+        research starting points:
+        https://docs.pydantic.dev/latest/concepts/unions/#discriminated-unions
+        https://github.com/pydantic/pydantic/issues/7366
+        https://github.com/pydantic/pydantic/issues/7462
+        https://github.com/pydantic/pydantic/pull/7983
+        """
+        if not isinstance(data, dict):
+            return data
+
+        assert "type" in data, ValueError('Reward component definition is missing the "type" key.')
+        rew_type = data["type"]
+        rew_class = AbstractReward._registry[rew_type]
+
+        # if no options are passed in, try to create a default schema. Only works if there are no mandatory fields.
+        if "options" not in data:
+            data["options"] = rew_class.ConfigSchema()
+
+        # if options are passed as a dict, validate against schema
+        elif isinstance(data["options"], dict):
+            data["options"] = rew_class.ConfigSchema(**data["options"])
+
+        return data
 
 
-class RewardFunction:
+class RewardFunction(BaseModel):
     """Manages the reward function for the agent."""
 
-    rew_class_identifiers: Dict[str, Type[AbstractReward]] = {
-        "DUMMY": DummyReward,
-        "DATABASE_FILE_INTEGRITY": DatabaseFileIntegrity,
-        "WEB_SERVER_404_PENALTY": WebServer404Penalty,
-        "WEBPAGE_UNAVAILABLE_PENALTY": WebpageUnavailablePenalty,
-        "GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY": GreenAdminDatabaseUnreachablePenalty,
-        "SHARED_REWARD": SharedReward,
-        "ACTION_PENALTY": ActionPenalty,
-    }
-    """List of reward class identifiers."""
+    model_config = ConfigDict(extra="forbid")
 
-    def __init__(self):
-        """Initialise the reward function object."""
-        self.reward_components: List[Tuple[AbstractReward, float]] = []
-        "attribute reward_components keeps track of reward components and the weights assigned to each."
-        self.current_reward: float = 0.0
-        self.total_reward: float = 0.0
+    class ConfigSchema(BaseModel):
+        """Config Schema for RewardFunction."""
+
+        model_config = ConfigDict(extra="forbid")
+
+        reward_components: Iterable[_SingleComponentConfig] = []
+
+    config: ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+
+    reward_components: List[Tuple[AbstractReward, float]] = []
+
+    current_reward: float = 0.0
+    total_reward: float = 0.0
+
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        for rew_config in self.config.reward_components:
+            rew_class = AbstractReward._registry[rew_config.type]
+            rew_instance = rew_class(config=rew_config.options)
+            self.register_component(component=rew_instance, weight=rew_config.weight)
 
     def register_component(self, component: AbstractReward, weight: float = 1.0) -> None:
         """Add a reward component to the reward function.
@@ -534,7 +506,7 @@ class RewardFunction:
 
     @classmethod
     def from_config(cls, config: Dict) -> "RewardFunction":
-        """Create a reward function from a config dictionary.
+        """Create a reward function from a config dictionary and its related reward class.
 
         :param config: dict of options for the reward manager's constructor
         :type config: Dict
@@ -545,8 +517,11 @@ class RewardFunction:
 
         for rew_component_cfg in config["reward_components"]:
             rew_type = rew_component_cfg["type"]
+            # XXX: If options key is missing add key then add type key.
+            if "options" not in rew_component_cfg:
+                rew_component_cfg["options"] = {}
+            rew_component_cfg["options"]["type"] = rew_type
             weight = rew_component_cfg.get("weight", 1.0)
-            rew_class = cls.rew_class_identifiers[rew_type]
-            rew_instance = rew_class.from_config(config=rew_component_cfg.get("options", {}))
+            rew_instance = AbstractReward.from_config(rew_component_cfg["options"])
             new.register_component(component=rew_instance, weight=weight)
         return new

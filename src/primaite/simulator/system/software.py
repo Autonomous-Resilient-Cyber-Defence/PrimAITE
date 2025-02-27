@@ -1,22 +1,22 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import copy
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from datetime import datetime
 from enum import Enum
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, Optional, Set, TYPE_CHECKING, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.file_system.file_system import FileSystem, Folder
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.session_manager import Session
 from primaite.simulator.system.core.sys_log import SysLog
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.software_manager import SoftwareManager
@@ -70,7 +70,7 @@ class SoftwareCriticality(Enum):
     "The highest level of criticality."
 
 
-class Software(SimComponent):
+class Software(SimComponent, ABC):
     """
     A base class representing software in a simulator environment.
 
@@ -78,14 +78,22 @@ class Software(SimComponent):
     It outlines the fundamental attributes and behaviors expected of any software in the simulation.
     """
 
+    class ConfigSchema(BaseModel, ABC):
+        """Configurable options for all software."""
+
+        model_config = ConfigDict(extra="forbid")
+        starting_health_state: SoftwareHealthState = SoftwareHealthState.GOOD
+        criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
+        fixing_duration: int = 2
+
+    config: ConfigSchema = Field(default_factory=lambda: Software.ConfigSchema())
+
     name: str
     "The name of the software."
     health_state_actual: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The actual health state of the software."
     health_state_visible: SoftwareHealthState = SoftwareHealthState.UNUSED
     "The health state of the software visible to the red agent."
-    criticality: SoftwareCriticality = SoftwareCriticality.LOWEST
-    "The criticality level of the software."
     fixing_count: int = 0
     "The count of patches applied to the software, defaults to 0."
     scanning_count: int = 0
@@ -100,10 +108,12 @@ class Software(SimComponent):
     "The FileSystem of the Node the Software is installed on."
     folder: Optional[Folder] = None
     "The folder on the file system the Software uses."
-    fixing_duration: int = 2
-    "The number of ticks it takes to patch the software."
     _fixing_countdown: Optional[int] = None
     "Current number of ticks left to patch the software."
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.health_state_actual = self.config.starting_health_state  # don't remove this
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -152,7 +162,7 @@ class Software(SimComponent):
             {
                 "health_state_actual": self.health_state_actual.value,
                 "health_state_visible": self.health_state_visible.value,
-                "criticality": self.criticality.value,
+                "criticality": self.config.criticality.value,
                 "fixing_count": self.fixing_count,
                 "scanning_count": self.scanning_count,
                 "revealed_to_red": self.revealed_to_red,
@@ -201,7 +211,7 @@ class Software(SimComponent):
     def fix(self) -> bool:
         """Perform a fix on the software."""
         if self.health_state_actual in (SoftwareHealthState.COMPROMISED, SoftwareHealthState.GOOD):
-            self._fixing_countdown = self.fixing_duration
+            self._fixing_countdown = self.config.fixing_duration
             self.set_health_state(SoftwareHealthState.FIXING)
             return True
         return False
@@ -233,7 +243,7 @@ class Software(SimComponent):
         super().pre_timestep(timestep)
 
 
-class IOSoftware(Software):
+class IOSoftware(Software, ABC):
     """
     Represents software in a simulator environment that is capable of input/output operations.
 
@@ -242,6 +252,13 @@ class IOSoftware(Software):
     OSI Model), process them according to their internals, and send a response payload back to the SessionManager if
     required.
     """
+
+    class ConfigSchema(Software.ConfigSchema, ABC):
+        """Configuration options for all IO Software."""
+
+        listen_on_ports: Set[Port] = Field(default_factory=set)
+
+    config: ConfigSchema = Field(default_factory=lambda: IOSoftware.ConfigSchema())
 
     installing_count: int = 0
     "The number of times the software has been installed. Default is 0."
@@ -260,6 +277,10 @@ class IOSoftware(Software):
     _connections: Dict[str, Dict] = {}
     "Active connections."
 
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
+        self.listen_on_ports = self.config.listen_on_ports
+
     @abstractmethod
     def describe_state(self) -> Dict:
         """
@@ -277,7 +298,7 @@ class IOSoftware(Software):
                 "max_sessions": self.max_sessions,
                 "tcp": self.tcp,
                 "udp": self.udp,
-                "port": self.port.value,
+                "port": self.port,
             }
         )
         return state
@@ -294,7 +315,7 @@ class IOSoftware(Software):
         """
         if self.software_manager and self.software_manager.node.operating_state != NodeOperatingState.ON:
             self.software_manager.node.sys_log.error(
-                f"{self.name} Error: {self.software_manager.node.hostname} is not powered on."
+                f"{self.name} Error: {self.software_manager.node.config.hostname} is not powered on."
             )
             return False
         return True
@@ -386,8 +407,8 @@ class IOSoftware(Software):
         payload: Any,
         session_id: Optional[str] = None,
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
-        dest_port: Optional[Port] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        dest_port: Optional[int] = None,
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         **kwargs,
     ) -> bool:
         """

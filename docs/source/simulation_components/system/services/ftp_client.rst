@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _FTPClient:
 
@@ -15,7 +15,7 @@ Key features
 - Connects to the :ref:`FTPServer` via the ``SoftwareManager``.
 - Simulates FTP requests and FTPPacket transfer across a network
 - Allows the emulation of FTP commands between an FTP client and server:
-    - PORT: specifies the port that server should connect to on the client (currently only uses ``Port.FTP``)
+    - PORT: specifies the port that server should connect to on the client (currently only uses ``Port["FTP"]``)
     - STOR: stores a file from client to server
     - RETR: retrieves a file from the FTP server
     - QUIT: disconnect from server
@@ -60,7 +60,7 @@ Python
 
     # Install FTPClient on server
     server.software_manager.install(FTPClient)
-    ftp_client: FTPClient = server.software_manager.software.get("FTPClient")
+    ftp_client: FTPClient = server.software_manager.software.get("ftp-client")
     ftp_client.start()
 
 
@@ -78,7 +78,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ftp_client
-                    type: FTPClient
+                    type: ftp-client
 
 Configuration
 =============

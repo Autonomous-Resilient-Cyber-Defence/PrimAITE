@@ -1,12 +1,12 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 
 ``simulation``
 ==============
 In this section the network layout is defined. This part of the config follows a hierarchical structure. Almost every component defines a ``ref`` field which acts as a human-readable unique identifier, used by other parts of the config, such as agents.
-
+# TODO: ref field is no longer real
 At the top level of the network are ``nodes``, ``links`` and ``airspace``.
 
 e.g.

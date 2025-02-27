@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _DatabaseClient:
 
@@ -59,7 +59,7 @@ Python
     # install DatabaseClient
     client.software_manager.install(DatabaseClient)
 
-    database_client: DatabaseClient = client.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client.software_manager.software.get("database-client")
 
     # Configure the DatabaseClient
     database_client.configure(server_ip_address=IPv4Address("192.168.0.1"))  # address of the DatabaseService
@@ -83,7 +83,7 @@ Via Configuration
                 ...
                 applications:
                     - ref: database_client
-                    type: DatabaseClient
+                    type: database-client
                     options:
                         db_server_ip: 192.168.0.1
 

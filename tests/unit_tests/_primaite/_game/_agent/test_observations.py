@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import json
 from typing import List
 
@@ -22,17 +22,17 @@ class TestFileSystemRequiresScan:
     def test_obs_config(self, yaml_option_string, expected_val):
         """Check that the default behaviour is to set FileSystemRequiresScan to True."""
         obs_cfg_yaml = f"""
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
                 - hostname: domain_controller
                 - hostname: web_server
                   services:
-                    - service_name: WebServer
+                    - service_name: web-server
                 - hostname: database_server
                   folders:
                     - folder_name: database
@@ -70,15 +70,15 @@ class TestFileSystemRequiresScan:
               wildcard_list:
                 - 0.0.0.1
               port_list:
-                - 80
-                - 5432
+                - HTTP
+                - POSTGRES_SERVER
               protocol_list:
                 - ICMP
                 - TCP
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -92,14 +92,14 @@ class TestFileSystemRequiresScan:
                 - switch_2:eth-1<->client_1:eth-1
                 - switch_2:eth-2<->client_2:eth-1
                 - switch_2:eth-7<->security_suite:eth-2
-          - type: "NONE"
+          - type: "none"
             label: ICS
             options: {{}}
 
         """
 
         cfg = yaml.safe_load(obs_cfg_yaml)
-        manager = ObservationManager.from_config(cfg)
+        manager = ObservationManager(config=cfg)
 
         hosts: List[HostObservation] = manager.obs.components["NODES"].hosts
         for i, host in enumerate(hosts):
@@ -120,17 +120,23 @@ class TestFileSystemRequiresScan:
         assert obs_not_requiring_scan.observe(file_state)["health_status"] == 3
 
     def test_folder_require_scan(self):
-        folder_state = {"health_status": 3, "visible_status": 1}
+        folder_state = {"health_status": 3, "visible_status": 1, "scanned_this_step": False}
 
         obs_requiring_scan = FolderObservation(
             [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=True
         )
-        assert obs_requiring_scan.observe(folder_state)["health_status"] == 1
+        assert obs_requiring_scan.observe(folder_state)["health_status"] == 0
 
         obs_not_requiring_scan = FolderObservation(
             [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=False
         )
         assert obs_not_requiring_scan.observe(folder_state)["health_status"] == 3
+
+        folder_state = {"health_status": 3, "visible_status": 1, "scanned_this_step": True}
+        obs_requiring_scan = FolderObservation(
+            [], files=[], num_files=0, include_num_access=False, file_system_requires_scan=True
+        )
+        assert obs_requiring_scan.observe(folder_state)["health_status"] == 1
 
 
 class TestServicesRequiresScan:
@@ -145,18 +151,18 @@ class TestServicesRequiresScan:
     def test_obs_config(self, yaml_option_string, expected_val):
         """Check that the default behaviour is to set service_requires_scan to True."""
         obs_cfg_yaml = f"""
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
                 - hostname: domain_controller
                 - hostname: web_server
                   services:
-                    - service_name: WebServer
-                    - service_name: DNSClient
+                    - service_name: web-server
+                    - service_name: dns-client
                 - hostname: database_server
                   folders:
                     - folder_name: database
@@ -164,7 +170,7 @@ class TestServicesRequiresScan:
                       - file_name: database.db
                 - hostname: backup_server
                   services:
-                    - service_name: FTPServer
+                    - service_name: ftp-server
                 - hostname: security_suite
                 - hostname: client_1
                 - hostname: client_2
@@ -204,7 +210,7 @@ class TestServicesRequiresScan:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -218,7 +224,7 @@ class TestServicesRequiresScan:
                 - switch_2:eth-1<->client_1:eth-1
                 - switch_2:eth-2<->client_2:eth-1
                 - switch_2:eth-7<->security_suite:eth-2
-          - type: "NONE"
+          - type: none
             label: ICS
             options: {{}}
 
@@ -257,10 +263,10 @@ class TestApplicationsRequiresScan:
     def test_obs_config(self, yaml_option_string, expected_val):
         """Check that the default behaviour is to set applications_requires_scan to True."""
         obs_cfg_yaml = f"""
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               hosts:
@@ -275,11 +281,11 @@ class TestApplicationsRequiresScan:
                 - hostname: security_suite
                 - hostname: client_1
                   applications:
-                    - application_name: WebBrowser
+                    - application_name: web-browser
                 - hostname: client_2
                   applications:
-                    - application_name: WebBrowser
-                    - application_name: DatabaseClient
+                    - application_name: web-browser
+                    - application_name: database-client
               num_services: 0
               num_applications: 3
               num_folders: 1
@@ -316,7 +322,7 @@ class TestApplicationsRequiresScan:
                 - UDP
               num_rules: 10
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -330,7 +336,7 @@ class TestApplicationsRequiresScan:
                 - switch_2:eth-1<->client_1:eth-1
                 - switch_2:eth-2<->client_2:eth-1
                 - switch_2:eth-7<->security_suite:eth-2
-          - type: "NONE"
+          - type: none
             label: ICS
             options: {{}}
 

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import json
 import random
 import sys
@@ -111,7 +111,7 @@ class PrimaiteGymEnv(gymnasium.Env):
         :return: Action mask
         :rtype: List[bool]
         """
-        if not self.agent.action_masking:
+        if not self.agent.config.agent_settings.action_masking:
             return np.asarray([True] * len(self.agent.action_manager.action_map))
         else:
             return self.game.action_mask(self._agent_name)

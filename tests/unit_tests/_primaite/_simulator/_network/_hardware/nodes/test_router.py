@@ -1,14 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 def test_wireless_router_from_config():
     cfg = {
-        "ref": "router_1",
         "type": "router",
         "hostname": "router_1",
         "num_ports": 6,
@@ -50,9 +49,9 @@ def test_wireless_router_from_config():
         },
     }
 
-    rt = Router.from_config(cfg=cfg)
+    rt = Router.from_config(config=cfg)
 
-    assert rt.num_ports == 6
+    assert rt.config.num_ports == 6
 
     assert rt.network_interface[1].ip_address == IPv4Address("192.168.1.1")
     assert rt.network_interface[1].subnet_mask == IPv4Address("255.255.255.0")
@@ -67,12 +66,12 @@ def test_wireless_router_from_config():
 
     r0 = rt.acl.acl[0]
     assert r0.action == ACLAction.PERMIT
-    assert r0.src_port == r0.dst_port == Port.POSTGRES_SERVER
+    assert r0.src_port == r0.dst_port == PORT_LOOKUP["POSTGRES_SERVER"]
     assert r0.src_ip_address == r0.dst_ip_address == r0.dst_wildcard_mask == r0.src_wildcard_mask == r0.protocol == None
 
     r1 = rt.acl.acl[1]
     assert r1.action == ACLAction.PERMIT
-    assert r1.protocol == IPProtocol.ICMP
+    assert r1.protocol == PROTOCOL_LOOKUP["ICMP"]
     assert (
         r1.src_ip_address
         == r1.dst_ip_address

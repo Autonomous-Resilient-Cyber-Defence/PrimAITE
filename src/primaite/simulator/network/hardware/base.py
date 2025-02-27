@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 import re
@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Dict, List, Optional, Type, TypeVar, Union
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel, Field, validate_call
+from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
 from primaite.exceptions import NetworkError
@@ -21,8 +21,6 @@ from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.nmne import NMNEConfig
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.packet_capture import PacketCapture
 from primaite.simulator.system.core.session_manager import SessionManager
@@ -33,7 +31,9 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.software import IOSoftware, Software
 from primaite.utils.converters import convert_dict_enum_keys_to_enum_values
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 IOSoftwareClass = TypeVar("IOSoftwareClass", bound=IOSoftware)
 
@@ -203,16 +203,16 @@ class NetworkInterface(SimComponent, ABC):
         # Initialise basic frame data variables
         direction = "inbound" if inbound else "outbound"  # Direction of the traffic
         ip_address = str(frame.ip.src_ip_address if inbound else frame.ip.dst_ip_address)  # Source or destination IP
-        protocol = frame.ip.protocol.name  # Network protocol used in the frame
+        protocol = frame.ip.protocol  # Network protocol used in the frame
 
         # Initialise port variable; will be determined based on protocol type
         port = None
 
         # Determine the source or destination port based on the protocol (TCP/UDP)
         if frame.tcp:
-            port = frame.tcp.src_port.value if inbound else frame.tcp.dst_port.value
+            port = frame.tcp.src_port if inbound else frame.tcp.dst_port
         elif frame.udp:
-            port = frame.udp.src_port.value if inbound else frame.udp.dst_port.value
+            port = frame.udp.src_port if inbound else frame.udp.dst_port
 
         # Convert frame payload to string for keyword checking
         frame_str = str(frame.payload)
@@ -274,20 +274,20 @@ class NetworkInterface(SimComponent, ABC):
 
         # Identify the protocol and port from the frame
         if frame.tcp:
-            protocol = IPProtocol.TCP
+            protocol = PROTOCOL_LOOKUP["TCP"]
             port = frame.tcp.dst_port
         elif frame.udp:
-            protocol = IPProtocol.UDP
+            protocol = PROTOCOL_LOOKUP["UDP"]
             port = frame.udp.dst_port
         elif frame.icmp:
-            protocol = IPProtocol.ICMP
+            protocol = PROTOCOL_LOOKUP["ICMP"]
 
         # Ensure the protocol is in the capture dict
         if protocol not in self.traffic:
             self.traffic[protocol] = {}
 
         # Handle non-ICMP protocols that use ports
-        if protocol != IPProtocol.ICMP:
+        if protocol != PROTOCOL_LOOKUP["ICMP"]:
             if port not in self.traffic[protocol]:
                 self.traffic[protocol][port] = {"inbound": 0, "outbound": 0}
             self.traffic[protocol][port][direction] += frame.size_Mbits
@@ -431,7 +431,7 @@ class WiredNetworkInterface(NetworkInterface, ABC):
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(
-            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+            hostname=self._connected_node.config.hostname, port_num=self.port_num, port_name=self.port_name
         )
         if self._connected_link:
             self._connected_link.endpoint_up()
@@ -639,10 +639,8 @@ class IPWiredNetworkInterface(WiredNetworkInterface, Layer3Interface, ABC):
         `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
         """
         super().enable()
-        try:
+        if hasattr(self._connected_node, "default_gateway_hello"):
             self._connected_node.default_gateway_hello()
-        except AttributeError:
-            pass
         return True
 
     @abstractmethod
@@ -824,7 +822,7 @@ class User(SimComponent):
         return self.model_dump()
 
 
-class UserManager(Service):
+class UserManager(Service, discriminator="user-manager"):
     """
     Manages users within the PrimAITE system, handling creation, authentication, and administration.
 
@@ -833,18 +831,25 @@ class UserManager(Service):
     :param disabled_admins: A dictionary of currently disabled admin users by their usernames
     """
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for UserManager."""
+
+        type: str = "user-manager"
+
+    config: "UserManager.ConfigSchema" = Field(default_factory=lambda: UserManager.ConfigSchema())
+
     users: Dict[str, User] = {}
 
     def __init__(self, **kwargs):
         """
-        Initializes a UserManager instanc.
+        Initializes a UserManager instance.
 
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserManager"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["name"] = "user-manager"
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
 
         self.start()
@@ -1044,7 +1049,7 @@ class UserManager(Service):
 
     @property
     def _user_session_manager(self) -> "UserSessionManager":
-        return self.software_manager.software["UserSessionManager"]  # noqa
+        return self.software_manager.software["user-session-manager"]  # noqa
 
 
 class UserSession(SimComponent):
@@ -1144,12 +1149,19 @@ class RemoteUserSession(UserSession):
         return state
 
 
-class UserSessionManager(Service):
+class UserSessionManager(Service, discriminator="user-session-manager"):
     """
     Manages user sessions on a Node, including local and remote sessions.
 
     This class handles authentication, session management, and session timeouts for users interacting with the Node.
     """
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for UserSessionManager."""
+
+        type: str = "user-session-manager"
+
+    config: "UserSessionManager.ConfigSchema" = Field(default_factory=lambda: UserSessionManager.ConfigSchema())
 
     local_session: Optional[UserSession] = None
     """The current local user session, if any."""
@@ -1179,9 +1191,9 @@ class UserSessionManager(Service):
         :param username: The username for the default admin user
         :param password: The password for the default admin user
         """
-        kwargs["name"] = "UserSessionManager"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["name"] = "user-session-manager"
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
         super().__init__(**kwargs)
         self.start()
 
@@ -1197,7 +1209,7 @@ class UserSessionManager(Service):
             """Request should take the form [username, password, remote_ip_address]."""
             username, password, remote_ip_address = request
             response = RequestResponse.from_bool(self.remote_login(username, password, remote_ip_address))
-            response.data = {"remote_hostname": self.parent.hostname, "username": username}
+            response.data = {"remote_hostname": self.parent.config.hostname, "username": username}
             return response
 
         rm.add_request("remote_login", RequestType(func=_remote_login))
@@ -1230,7 +1242,7 @@ class UserSessionManager(Service):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.parent.hostname} User Sessions"
+        table.title = f"{self.parent.config.hostname} User Sessions"
 
         def _add_session_to_table(user_session: UserSession):
             """
@@ -1289,7 +1301,7 @@ class UserSessionManager(Service):
 
         :return: The UserManager instance.
         """
-        return self.software_manager.software["UserManager"]  # noqa
+        return self.software_manager.software["user-manager"]  # noqa
 
     def pre_timestep(self, timestep: int) -> None:
         """Apply any pre-timestep logic that helps make sure we have the correct observations."""
@@ -1326,7 +1338,7 @@ class UserSessionManager(Service):
             software_manager: SoftwareManager = self.software_manager
             software_manager.send_payload_to_session_manager(
                 payload={"type": "user_timeout", "connection_id": session.uuid},
-                dest_port=Port.SSH,
+                dest_port=PORT_LOOKUP["SSH"],
                 dest_ip_address=session.remote_ip_address,
             )
 
@@ -1483,7 +1495,7 @@ class UserSessionManager(Service):
         return self.local_session is not None
 
 
-class Node(SimComponent):
+class Node(SimComponent, ABC):
     """
     A basic Node class that represents a node on the network.
 
@@ -1494,19 +1506,12 @@ class Node(SimComponent):
     :param operating_state: The node operating state, either ON or OFF.
     """
 
-    hostname: str
-    "The node hostname on the network."
-    default_gateway: Optional[IPV4Address] = None
-    "The default gateway IP address for forwarding network traffic to other networks."
     operating_state: NodeOperatingState = NodeOperatingState.OFF
     "The hardware state of the node."
     network_interfaces: Dict[str, NetworkInterface] = {}
     "The Network Interfaces on the node."
     network_interface: Dict[int, NetworkInterface] = {}
     "The Network Interfaces on the node by port id."
-    dns_server: Optional[IPv4Address] = None
-    "List of IP addresses of DNS servers used for name resolution."
-
     accounts: Dict[str, Account] = {}
     "All accounts on the node."
     applications: Dict[str, Application] = {}
@@ -1523,35 +1528,97 @@ class Node(SimComponent):
     session_manager: SessionManager
     software_manager: SoftwareManager
 
-    revealed_to_red: bool = False
-    "Informs whether the node has been revealed to a red agent."
-
-    start_up_duration: int = 3
-    "Time steps needed for the node to start up."
-
-    start_up_countdown: int = 0
-    "Time steps needed until node is booted up."
-
-    shut_down_duration: int = 3
-    "Time steps needed for the node to shut down."
-
-    shut_down_countdown: int = 0
-    "Time steps needed until node is shut down."
-
-    is_resetting: bool = False
-    "If true, the node will try turning itself off then back on again."
-
-    node_scan_duration: int = 10
-    "How many timesteps until the whole node is scanned. Default 10 time steps."
-
-    node_scan_countdown: int = 0
-    "Time steps until scan is complete"
-
-    red_scan_countdown: int = 0
-    "Time steps until reveal to red scan is complete."
-
     SYSTEM_SOFTWARE: ClassVar[Dict[str, Type[Software]]] = {}
     "Base system software that must be preinstalled."
+
+    _registry: ClassVar[Dict[str, Type["Node"]]] = {}
+    """Registry of application types. Automatically populated when subclasses are defined."""
+
+    # TODO: this should not be set for abstract classes.
+    _discriminator: ClassVar[str]
+    """discriminator for this particular class, used for printing and logging. Each subclass redefines this."""
+
+    class ConfigSchema(BaseModel, ABC):
+        """Configuration Schema for Node based classes."""
+
+        model_config = ConfigDict(arbitrary_types_allowed=True, extra="forbid")
+        """Configure pydantic to allow arbitrary types, let the instance have attributes not present in the model."""
+
+        type: str
+
+        hostname: str
+        "The node hostname on the network."
+
+        revealed_to_red: bool = False
+        "Informs whether the node has been revealed to a red agent."
+
+        start_up_duration: int = 3
+        "Time steps needed for the node to start up."
+
+        start_up_countdown: int = 0
+        "Time steps needed until node is booted up."
+
+        shut_down_duration: int = 3
+        "Time steps needed for the node to shut down."
+
+        shut_down_countdown: int = 0
+        "Time steps needed until node is shut down."
+
+        is_resetting: bool = False
+        "If true, the node will try turning itself off then back on again."
+
+        node_scan_duration: int = 10
+        "How many timesteps until the whole node is scanned. Default 10 time steps."
+
+        node_scan_countdown: int = 0
+        "Time steps until scan is complete"
+
+        red_scan_countdown: int = 0
+        "Time steps until reveal to red scan is complete."
+
+        dns_server: Optional[IPv4Address] = None
+        "List of IP addresses of DNS servers used for name resolution."
+
+        default_gateway: Optional[IPV4Address] = None
+        "The default gateway IP address for forwarding network traffic to other networks."
+
+        operating_state: Any = None
+
+        users: List[Dict] = []  # Temporary to appease "extra=forbid"
+
+    config: ConfigSchema = Field(default_factory=lambda: Node.ConfigSchema())
+    """Configuration items within Node"""
+
+    @property
+    def dns_server(self) -> Optional[IPv4Address]:
+        """Convenience method to access the dns_server IP."""
+        return self.config.dns_server
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "Node":
+        """Create Node object from a given configuration dictionary."""
+        if config["type"] not in cls._registry:
+            msg = f"Configuration contains an invalid Node type: {config['type']}"
+            return ValueError(msg)
+        obj = cls(config=cls.ConfigSchema(**config))
+        return obj
+
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
+        """
+        Register a node type.
+
+        :param discriminator: Uniquely specifies an node class by name. Used for finding items by config.
+        :type discriminator: str
+        :raises ValueError: When attempting to register an node with a name that is already allocated.
+        """
+        super().__init_subclass__(**kwargs)
+        if discriminator is None:
+            return
+        discriminator = discriminator.lower()
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new node {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
+        cls._discriminator = discriminator
 
     def __init__(self, **kwargs):
         """
@@ -1561,11 +1628,11 @@ class Node(SimComponent):
         provided.
         """
         if not kwargs.get("sys_log"):
-            kwargs["sys_log"] = SysLog(kwargs["hostname"])
+            kwargs["sys_log"] = SysLog(kwargs["config"].hostname)
         if not kwargs.get("session_manager"):
             kwargs["session_manager"] = SessionManager(sys_log=kwargs.get("sys_log"))
         if not kwargs.get("root"):
-            kwargs["root"] = SIM_OUTPUT.path / kwargs["hostname"]
+            kwargs["root"] = SIM_OUTPUT.path / kwargs["config"].hostname
         if not kwargs.get("file_system"):
             kwargs["file_system"] = FileSystem(sys_log=kwargs["sys_log"], sim_root=kwargs["root"] / "fs")
         if not kwargs.get("software_manager"):
@@ -1574,27 +1641,32 @@ class Node(SimComponent):
                 sys_log=kwargs.get("sys_log"),
                 session_manager=kwargs.get("session_manager"),
                 file_system=kwargs.get("file_system"),
-                dns_server=kwargs.get("dns_server"),
+                dns_server=kwargs["config"].dns_server,
             )
         super().__init__(**kwargs)
+        self.operating_state = (
+            NodeOperatingState.ON if not (p := kwargs["config"].operating_state) else NodeOperatingState[p.upper()]
+        )
         self._install_system_software()
         self.session_manager.node = self
         self.session_manager.software_manager = self.software_manager
+        for user in self.config.users:
+            self.user_manager.add_user(**user, bypass_can_perform_action=True)
 
     @property
     def user_manager(self) -> Optional[UserManager]:
         """The Nodes User Manager."""
-        return self.software_manager.software.get("UserManager")  # noqa
+        return self.software_manager.software.get("user-manager")  # noqa
 
     @property
     def user_session_manager(self) -> Optional[UserSessionManager]:
         """The Nodes User Session Manager."""
-        return self.software_manager.software.get("UserSessionManager")  # noqa
+        return self.software_manager.software.get("user-session-manager")  # noqa
 
     @property
     def terminal(self) -> Optional[Terminal]:
-        """The Nodes Terminal."""
-        return self.software_manager.software.get("Terminal")
+        """The Node's Terminal."""
+        return self.software_manager.software.get("terminal")
 
     def local_login(self, username: str, password: str) -> Optional[str]:
         """
@@ -1670,7 +1742,7 @@ class Node(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return f"Cannot perform request on node '{self.node.hostname}' because it is not powered on."
+            return f"Cannot perform request on node '{self.node.config.hostname}' because it is not powered on."
 
     class _NodeIsOffValidator(RequestPermissionValidator):
         """
@@ -1689,7 +1761,7 @@ class Node(SimComponent):
         @property
         def fail_message(self) -> str:
             """Message that is reported when a request is rejected by this validator."""
-            return f"Cannot perform request on node '{self.node.hostname}' because it is not turned off."
+            return f"Cannot perform request on node '{self.node.config.hostname}' because it is not turned off."
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -1713,11 +1785,11 @@ class Node(SimComponent):
             if self.software_manager.software.get(application_name):
                 self.sys_log.info(f"Can't install {application_name}. It's already installed.")
                 return RequestResponse(status="success", data={"reason": "already installed"})
-            application_class = Application._application_registry[application_name]
+            application_class = Application._registry[application_name]
             self.software_manager.install(application_class)
             application_instance = self.software_manager.software.get(application_name)
             self.applications[application_instance.uuid] = application_instance
-            _LOGGER.debug(f"Added application {application_instance.name} to node {self.hostname}")
+            _LOGGER.debug(f"Added application {application_instance.name} to node {self.config.hostname}")
             self._application_request_manager.add_request(
                 application_name, RequestType(func=application_instance._request_manager)
             )
@@ -1831,7 +1903,7 @@ class Node(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "hostname": self.hostname,
+                "hostname": self.config.hostname,
                 "operating_state": self.operating_state.value,
                 "NICs": {
                     eth_num: network_interface.describe_state()
@@ -1841,7 +1913,7 @@ class Node(SimComponent):
                 "applications": {app.name: app.describe_state() for app in self.applications.values()},
                 "services": {svc.name: svc.describe_state() for svc in self.services.values()},
                 "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
-                "revealed_to_red": self.revealed_to_red,
+                "revealed_to_red": self.config.revealed_to_red,
             }
         )
         return state
@@ -1853,14 +1925,14 @@ class Node(SimComponent):
 
     def show_open_ports(self, markdown: bool = False):
         """Prints a table of the open ports on the Node."""
-        table = PrettyTable(["Port", "Name"])
+        table = PrettyTable(["Port"])
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Open Ports"
+        table.title = f"{self.config.hostname} Open Ports"
         for port in self.software_manager.get_open_ports():
-            if port.value > 0:
-                table.add_row([port.value, port.name])
+            if port > 0:
+                table.add_row([port])
         print(table.get_string(sortby="Port"))
 
     @property
@@ -1884,7 +1956,7 @@ class Node(SimComponent):
         if markdown:
             table.set_style(MARKDOWN)
         table.align = "l"
-        table.title = f"{self.hostname} Network Interface Cards"
+        table.title = f"{self.config.hostname} Network Interface Cards"
         for port, network_interface in self.network_interface.items():
             ip_address = ""
             if hasattr(network_interface, "ip_address"):
@@ -1919,38 +1991,38 @@ class Node(SimComponent):
             network_interface.apply_timestep(timestep=timestep)
 
         # count down to boot up
-        if self.start_up_countdown > 0:
-            self.start_up_countdown -= 1
+        if self.config.start_up_countdown > 0:
+            self.config.start_up_countdown -= 1
         else:
             if self.operating_state == NodeOperatingState.BOOTING:
                 self.operating_state = NodeOperatingState.ON
-                self.sys_log.info(f"{self.hostname}: Turned on")
+                self.sys_log.info(f"{self.config.hostname}: Turned on")
                 for network_interface in self.network_interfaces.values():
                     network_interface.enable()
 
                 self._start_up_actions()
 
         # count down to shut down
-        if self.shut_down_countdown > 0:
-            self.shut_down_countdown -= 1
+        if self.config.shut_down_countdown > 0:
+            self.config.shut_down_countdown -= 1
         else:
             if self.operating_state == NodeOperatingState.SHUTTING_DOWN:
                 self.operating_state = NodeOperatingState.OFF
-                self.sys_log.info(f"{self.hostname}: Turned off")
+                self.sys_log.info(f"{self.config.hostname}: Turned off")
                 self._shut_down_actions()
 
                 # if resetting turn back on
-                if self.is_resetting:
-                    self.is_resetting = False
+                if self.config.is_resetting:
+                    self.config.is_resetting = False
                     self.power_on()
 
         # time steps which require the node to be on
         if self.operating_state == NodeOperatingState.ON:
             # node scanning
-            if self.node_scan_countdown > 0:
-                self.node_scan_countdown -= 1
+            if self.config.node_scan_countdown > 0:
+                self.config.node_scan_countdown -= 1
 
-                if self.node_scan_countdown == 0:
+                if self.config.node_scan_countdown == 0:
                     # scan everything!
                     for process_id in self.processes:
                         self.processes[process_id].scan()
@@ -1966,10 +2038,10 @@ class Node(SimComponent):
                     # scan file system
                     self.file_system.scan(instant_scan=True)
 
-            if self.red_scan_countdown > 0:
-                self.red_scan_countdown -= 1
+            if self.config.red_scan_countdown > 0:
+                self.config.red_scan_countdown -= 1
 
-                if self.red_scan_countdown == 0:
+                if self.config.red_scan_countdown == 0:
                     # scan processes
                     for process_id in self.processes:
                         self.processes[process_id].reveal_to_red()
@@ -2026,7 +2098,7 @@ class Node(SimComponent):
 
         to the red agent.
         """
-        self.node_scan_countdown = self.node_scan_duration
+        self.config.node_scan_countdown = self.config.node_scan_duration
         return True
 
     def reveal_to_red(self) -> bool:
@@ -2042,12 +2114,12 @@ class Node(SimComponent):
 
         `revealed_to_red` to `True`.
         """
-        self.red_scan_countdown = self.node_scan_duration
+        self.config.red_scan_countdown = self.config.node_scan_duration
         return True
 
     def power_on(self) -> bool:
         """Power on the Node, enabling its NICs if it is in the OFF state."""
-        if self.start_up_duration <= 0:
+        if self.config.start_up_duration <= 0:
             self.operating_state = NodeOperatingState.ON
             self._start_up_actions()
             self.sys_log.info("Power on")
@@ -2056,14 +2128,14 @@ class Node(SimComponent):
             return True
         if self.operating_state == NodeOperatingState.OFF:
             self.operating_state = NodeOperatingState.BOOTING
-            self.start_up_countdown = self.start_up_duration
+            self.config.start_up_countdown = self.config.start_up_duration
             return True
 
         return False
 
     def power_off(self) -> bool:
         """Power off the Node, disabling its NICs if it is in the ON state."""
-        if self.shut_down_duration <= 0:
+        if self.config.shut_down_duration <= 0:
             self._shut_down_actions()
             self.operating_state = NodeOperatingState.OFF
             self.sys_log.info("Power off")
@@ -2072,7 +2144,7 @@ class Node(SimComponent):
             for network_interface in self.network_interfaces.values():
                 network_interface.disable()
             self.operating_state = NodeOperatingState.SHUTTING_DOWN
-            self.shut_down_countdown = self.shut_down_duration
+            self.config.shut_down_countdown = self.config.shut_down_duration
             return True
         return False
 
@@ -2084,7 +2156,7 @@ class Node(SimComponent):
         Applying more timesteps will eventually turn the node back on.
         """
         if self.operating_state.ON:
-            self.is_resetting = True
+            self.config.is_resetting = True
             self.sys_log.info("Resetting")
             self.power_off()
             return True
@@ -2189,10 +2261,6 @@ class Node(SimComponent):
         for app_id in self.applications:
             self.applications[app_id].close()
 
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
-
     def _start_up_actions(self):
         """Actions to perform when the node is starting up."""
         # Turn on all the services in the node
@@ -2202,10 +2270,6 @@ class Node(SimComponent):
         # Turn on all the applications in the node
         for app_id in self.applications:
             self.applications[app_id].run()
-
-        # Turn off all processes in the node
-        # for process_id in self.processes:
-        #     self.processes[process_id]
 
     def _install_system_software(self) -> None:
         """Preinstall required software."""

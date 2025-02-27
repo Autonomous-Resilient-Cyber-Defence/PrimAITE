@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from pprint import pprint
 
 from primaite.game.agent.observations.acl_observation import ACLObservation
@@ -8,15 +8,17 @@ from primaite.simulator.network.container import Network
 from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 def test_router_observation():
     """Test adding/removing acl rules and enabling/disabling ports."""
     net = Network()
-    router = Router(hostname="router", num_ports=5, operating_state=NodeOperatingState.ON)
+    router = Router.from_config(
+        config={"type": "router", "hostname": "router", "num_ports": 5, "operating_state": "ON"}
+    )
 
     ports = [PortObservation(where=["NICs", i]) for i in range(1, 6)]
     acl = ACLObservation(
@@ -24,8 +26,8 @@ def test_router_observation():
         num_rules=7,
         ip_list=["10.0.0.1", "10.0.0.2"],
         wildcard_list=["0.0.0.255", "0.0.0.1"],
-        port_list=["HTTP", "DNS"],
-        protocol_list=["TCP"],
+        port_list=[80, 53],
+        protocol_list=["tcp"],
     )
     router_observation = RouterObservation(where=[], ports=ports, num_ports=8, acl=acl, include_users=False)
 
@@ -39,13 +41,13 @@ def test_router_observation():
     # Add an ACL rule to the router
     router.acl.add_rule(
         action=ACLAction.DENY,
-        protocol=IPProtocol.TCP,
+        protocol=PROTOCOL_LOOKUP["TCP"],
         src_ip_address="10.0.0.1",
         src_wildcard_mask="0.0.0.1",
         dst_ip_address="10.0.0.2",
         dst_wildcard_mask="0.0.0.1",
-        src_port=Port.HTTP,
-        dst_port=Port.HTTP,
+        src_port=PORT_LOOKUP["HTTP"],
+        dst_port=PORT_LOOKUP["HTTP"],
         position=5,
     )
     # Observe the state using the RouterObservation instance
@@ -89,7 +91,9 @@ def test_router_observation():
     assert all(observed_output["PORTS"][i]["operating_status"] == 2 for i in range(1, 6))
 
     # connect a switch to the router and check that only the correct port is updated
-    switch = Switch(hostname="switch", num_ports=1, operating_state=NodeOperatingState.ON)
+    switch: Switch = Switch.from_config(
+        config={"type": "switch", "hostname": "switch", "num_ports": 1, "operating_state": "ON"}
+    )
     link = net.connect(router.network_interface[1], switch.network_interface[1])
     assert router.network_interface[1].enabled
     observed_output = router_observation.observe(router.describe_state())

@@ -1,10 +1,10 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from enum import Enum
 from ipaddress import IPv4Address
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestResponse
@@ -15,22 +15,28 @@ from primaite.simulator.network.protocols.http import (
     HttpResponsePacket,
     HttpStatusCode,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.dns.dns_client import DNSClient
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class WebBrowser(Application, identifier="WebBrowser"):
+class WebBrowser(Application, discriminator="web-browser"):
     """
     Represents a web browser in the simulation environment.
 
     The application requests and loads web pages using its domain name and requesting IP addresses using DNS.
     """
 
-    target_url: Optional[str] = None
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for WebBrowser."""
+
+        type: str = "web-browser"
+        target_url: Optional[str] = None
+
+    config: "WebBrowser.ConfigSchema" = Field(default_factory=lambda: WebBrowser.ConfigSchema())
 
     domain_name_ip_address: Optional[IPv4Address] = None
     "The IP address of the domain name for the webpage."
@@ -42,11 +48,11 @@ class WebBrowser(Application, identifier="WebBrowser"):
     """Keep a log of visited websites and information about the visit, such as response code."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "WebBrowser"
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "web-browser"
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         # default for web is port 80
         if kwargs.get("port") is None:
-            kwargs["port"] = Port.HTTP
+            kwargs["port"] = PORT_LOOKUP["HTTP"]
 
         super().__init__(**kwargs)
         self.run()
@@ -86,7 +92,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         :param: url: The address of the web page the browser requests
         :type: url: str
         """
-        url = url or self.target_url
+        url = url or self.config.target_url
         if not self._can_perform_action():
             return False
 
@@ -102,7 +108,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
             return False
 
         # get the IP address of the domain name via DNS
-        dns_client: DNSClient = self.software_manager.software.get("DNSClient")
+        dns_client: DNSClient = self.software_manager.software.get("dns-client")
         domain_exists = dns_client.check_domain_exists(target_domain=parsed_url.hostname)
 
         # if domain does not exist, the request fails
@@ -126,7 +132,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         if self.send(
             payload=payload,
             dest_ip_address=self.domain_name_ip_address,
-            dest_port=parsed_url.port if parsed_url.port else Port.HTTP,
+            dest_port=parsed_url.port if parsed_url.port else PORT_LOOKUP["HTTP"],
         ):
             self.sys_log.info(
                 f"{self.name}: Received HTTP {payload.request_method.name} "
@@ -154,7 +160,7 @@ class WebBrowser(Application, identifier="WebBrowser"):
         self,
         payload: HttpRequestPacket,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = Port.HTTP,
+        dest_port: Optional[Port] = PORT_LOOKUP["HTTP"],
         session_id: Optional[str] = None,
         **kwargs,
     ) -> bool:

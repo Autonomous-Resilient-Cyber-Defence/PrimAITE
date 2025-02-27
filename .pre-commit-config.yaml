@@ -1,10 +1,10 @@
 repos:
-  - repo: local
-    hooks:
-      - id: ensure-copyright-clause
-        name: ensure copyright clause
-        entry: python copyright_clause_pre_commit_hook.py
-        language: python
+  # - repo: local
+  #   hooks:
+  #     - id: ensure-copyright-clause
+  #       name: ensure copyright clause
+  #       entry: python copyright_clause_pre_commit_hook.py
+  #       language: python
   - repo: http://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -31,7 +31,7 @@ repos:
       - id: isort
         args: [ "--profile", "black" ]
   - repo: http://github.com/PyCQA/flake8
-    rev: 6.0.0
+    rev: 6.1.0
     hooks:
       - id: flake8
         additional_dependencies:

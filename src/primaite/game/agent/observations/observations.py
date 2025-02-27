@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """Manages the observation space for the agent."""
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Iterable, List, Optional, Type, Union
@@ -19,7 +19,7 @@ class AbstractObservation(ABC):
     class ConfigSchema(ABC, BaseModel):
         """Config schema for observations."""
 
-        thresholds: Optional[Dict] = None
+        thresholds: Optional[Dict] = {}
         """A dict containing the observation thresholds."""
 
         model_config = ConfigDict(extra="forbid")
@@ -34,18 +34,20 @@ class AbstractObservation(ABC):
         """Initialise an observation. This method must be overwritten."""
         self.default_observation: ObsType
 
-    def __init_subclass__(cls, identifier: str, **kwargs: Any) -> None:
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
         """
         Register an observation type.
 
-        :param identifier: Identifier used to uniquely specify observation component types.
-        :type identifier: str
+        :param discriminator: discriminator used to uniquely specify observation component types.
+        :type discriminator: str
         :raises ValueError: When attempting to create a component with a name that is already in use.
         """
         super().__init_subclass__(**kwargs)
-        if identifier in cls._registry:
-            raise ValueError(f"Duplicate observation component type {identifier}")
-        cls._registry[identifier] = cls
+        if discriminator is None:
+            return
+        if discriminator in cls._registry:
+            raise ValueError(f"Duplicate observation component type {discriminator}")
+        cls._registry[discriminator] = cls
 
     @abstractmethod
     def observe(self, state: Dict) -> Any:

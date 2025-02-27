@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _Common Configuration:
 
@@ -22,8 +22,8 @@ options
 
 The configuration options are the attributes that fall under the options for an application or service.
 
-fix_duration
-""""""""""""
+fixing_duration
+"""""""""""""""
 
 Optional. Default value is ``2``.
 

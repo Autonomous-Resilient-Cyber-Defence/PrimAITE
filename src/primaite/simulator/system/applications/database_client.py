@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from ipaddress import IPv4Address
@@ -6,16 +6,16 @@ from typing import Any, Dict, Optional, Union
 from uuid import uuid4
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.core.software_manager import SoftwareManager
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 class DatabaseClientConnection(BaseModel):
@@ -37,7 +37,7 @@ class DatabaseClientConnection(BaseModel):
     @property
     def client(self) -> Optional[DatabaseClient]:
         """The DatabaseClient that holds this connection."""
-        return self.parent_node.software_manager.software.get("DatabaseClient")
+        return self.parent_node.software_manager.software.get("database-client")
 
     def query(self, sql: str) -> bool:
         """
@@ -61,17 +61,25 @@ class DatabaseClientConnection(BaseModel):
         return str(self)
 
 
-class DatabaseClient(Application, identifier="DatabaseClient"):
+class DatabaseClient(Application, discriminator="database-client"):
     """
     A DatabaseClient application.
 
     Extends the Application class to provide functionality for connecting, querying, and disconnecting from a
     Database Service. It mainly operates over TCP protocol.
-
-    :ivar server_ip_address: The IPv4 address of the Database Service server, defaults to None.
     """
 
+    class ConfigSchema(Application.ConfigSchema):
+        """ConfigSchema for DatabaseClient."""
+
+        type: str = "database-client"
+        db_server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
+
+    config: ConfigSchema = Field(default_factory=lambda: DatabaseClient.ConfigSchema())
+
     server_ip_address: Optional[IPv4Address] = None
+    """The IPv4 address of the Database Service server, defaults to None."""
     server_password: Optional[str] = None
     _query_success_tracker: Dict[str, bool] = {}
     """Keep track of connections that were established or verified during this step. Used for rewards."""
@@ -89,10 +97,12 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
     """Native Client Connection for using the client directly (similar to psql in a terminal)."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DatabaseClient"
-        kwargs["port"] = Port.POSTGRES_SERVER
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "database-client"
+        kwargs["port"] = PORT_LOOKUP["POSTGRES_SERVER"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
+        self.server_ip_address = self.config.db_server_ip
+        self.server_password = self.config.server_password
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -307,6 +317,9 @@ class DatabaseClient(Application, identifier="DatabaseClient"):
         :return: DatabaseClientConnection object
         """
         if not self._can_perform_action():
+            return None
+        if self.server_ip_address is None:
+            self.sys_log.warning(f"{self.name}: Database server IP address not provided.")
             return None
 
         connection_request_id = str(uuid4())

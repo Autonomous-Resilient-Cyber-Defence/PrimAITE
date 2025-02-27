@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -12,11 +12,14 @@ from primaite.game.agent.observations.firewall_observation import FirewallObserv
 from primaite.game.agent.observations.host_observations import HostObservation
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 from primaite.game.agent.observations.router_observation import RouterObservation
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.ipv4_address import StrIP
+from primaite.utils.validation.port import Port
 
 _LOGGER = getLogger(__name__)
 
 
-class NodesObservation(AbstractObservation, identifier="NODES"):
+class NodesObservation(AbstractObservation, discriminator="nodes"):
     """Nodes observation, provides status information about nodes within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -40,7 +43,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """Number of network interface cards (NICs)."""
         include_nmne: Optional[bool] = None
         """Flag to include nmne."""
-        monitored_traffic: Optional[Dict] = None
+        monitored_traffic: Optional[Dict[IPProtocol, List[Port]]] = None
         """A dict containing which traffic types are to be included in the observation."""
         include_num_access: Optional[bool] = None
         """Flag to include the number of accesses."""
@@ -56,13 +59,13 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
         """If True, report user session information."""
         num_ports: Optional[int] = None
         """Number of ports."""
-        ip_list: Optional[List[str]] = None
+        ip_list: Optional[List[StrIP]] = None
         """List of IP addresses for encoding ACLs."""
         wildcard_list: Optional[List[str]] = None
         """List of IP wildcards for encoding ACLs."""
-        port_list: Optional[List[int]] = None
+        port_list: Optional[List[Port]] = None
         """List of ports for encoding ACLs."""
-        protocol_list: Optional[List[str]] = None
+        protocol_list: Optional[List[IPProtocol]] = None
         """List of protocols for encoding ACLs."""
         num_rules: Optional[int] = None
         """Number of rules ACL rules to show."""
@@ -205,7 +208,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 host_config.applications_requires_scan = config.applications_requires_scan
             if host_config.include_users is None:
                 host_config.include_users = config.include_users
-            if host_config.thresholds is None:
+            if not host_config.thresholds:
                 host_config.thresholds = config.thresholds
 
         for router_config in config.routers:
@@ -223,7 +226,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 router_config.num_rules = config.num_rules
             if router_config.include_users is None:
                 router_config.include_users = config.include_users
-            if router_config.thresholds is None:
+            if not router_config.thresholds:
                 router_config.thresholds = config.thresholds
 
         for firewall_config in config.firewalls:
@@ -239,7 +242,7 @@ class NodesObservation(AbstractObservation, identifier="NODES"):
                 firewall_config.num_rules = config.num_rules
             if firewall_config.include_users is None:
                 firewall_config.include_users = config.include_users
-            if firewall_config.thresholds is None:
+            if not firewall_config.thresholds:
                 firewall_config.thresholds = config.thresholds
 
         hosts = [HostObservation.from_config(config=c, parent_where=where) for c in config.hosts]

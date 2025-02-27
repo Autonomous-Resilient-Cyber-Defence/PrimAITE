@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from pathlib import Path
 from typing import Union
 
@@ -43,23 +43,23 @@ def simulation(example_network) -> Simulation:
     computer: Computer = example_network.get_node_by_hostname("client_1")
     server: Server = example_network.get_node_by_hostname("server_1")
 
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     # set dns server
     dns_client.dns_server = server.network_interface[1].ip_address
 
     # Install Web Server service on server
     server.software_manager.install(WebServer)
-    web_server_service: WebServer = server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = server.software_manager.software.get("web-server")
     web_server_service.start()
 
     # Install DNS Server service on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     # register arcd.com to DNS
     dns_server.dns_register(
         domain_name="arcd.com",
@@ -75,7 +75,15 @@ def test_nic(simulation):
 
     nic: NIC = pc.network_interface[1]
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
+    nic_obs = NICObservation(where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=True)
+
+    # The Simulation object created by the fixture also creates the
+    # NICObservation class with the NICObservation.capture_nmnme class variable
+    # set to False. Under normal (non-test) circumstances this class variable
+    # is set from a config file such as data_manipulation.yaml. So although
+    # capture_nmne is set to True in the NetworkInterface class it's still False
+    # in the NICObservation class so we set it now.
+    nic_obs.capture_nmne = True
 
     # The Simulation object created by the fixture also creates the
     # NICObservation class with the NICObservation.capture_nmnme class variable
@@ -116,7 +124,7 @@ def test_nic_categories(simulation):
     """Test the NIC observation nmne count categories."""
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
 
-    nic_obs = NICObservation(where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=True)
+    nic_obs = NICObservation(where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=True)
 
     assert nic_obs.high_nmne_threshold == 10  # default
     assert nic_obs.med_nmne_threshold == 5  # default
@@ -126,7 +134,7 @@ def test_nic_categories(simulation):
 def test_config_nic_categories(simulation):
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.hostname, "NICs", 1],
+        where=["network", "nodes", pc.config.hostname, "NICs", 1],
         thresholds={"nmne": {"low": 3, "medium": 6, "high": 9}},
         include_nmne=True,
     )
@@ -138,7 +146,7 @@ def test_config_nic_categories(simulation):
     with pytest.raises(Exception):
         # should throw an error
         NICObservation(
-            where=["network", "nodes", pc.hostname, "NICs", 1],
+            where=["network", "nodes", pc.config.hostname, "NICs", 1],
             thresholds={"nmne": {"low": 9, "medium": 6, "high": 9}},
             include_nmne=True,
         )
@@ -146,20 +154,27 @@ def test_config_nic_categories(simulation):
     with pytest.raises(Exception):
         # should throw an error
         NICObservation(
-            where=["network", "nodes", pc.hostname, "NICs", 1],
+            where=["network", "nodes", pc.config.hostname, "NICs", 1],
             thresholds={"nmne": {"low": 3, "medium": 9, "high": 9}},
             include_nmne=True,
         )
 
 
 def test_nic_monitored_traffic(simulation):
-    monitored_traffic = {"icmp": ["NONE"], "tcp": ["DNS"]}
+    monitored_traffic = {
+        "icmp": ["NONE"],
+        "tcp": [
+            53,
+        ],
+    }
 
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     pc2: Computer = simulation.network.get_node_by_hostname("client_2")
 
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.hostname, "NICs", 1], include_nmne=False, monitored_traffic=monitored_traffic
+        where=["network", "nodes", pc.config.hostname, "NICs", 1],
+        include_nmne=False,
+        monitored_traffic=monitored_traffic,
     )
 
     simulation.pre_timestep(0)  # apply timestep to whole sim
@@ -186,8 +201,8 @@ def test_nic_monitored_traffic(simulation):
     assert traffic_obs["tcp"][53]["outbound"] == 0
 
     # send a database query
-    browser: WebBrowser = pc.software_manager.software.get("WebBrowser")
-    browser.target_url = f"http://arcd.com/"
+    browser: WebBrowser = pc.software_manager.software.get("web-browser")
+    browser.config.target_url = f"http://arcd.com/"
     browser.get_webpage()
 
     traffic_obs = nic_obs.observe(simulation.describe_state()).get("TRAFFIC")

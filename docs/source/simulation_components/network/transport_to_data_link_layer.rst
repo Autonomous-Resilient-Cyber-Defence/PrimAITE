@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 Transport Layer to Data Link Layer
 ==================================
@@ -104,7 +104,7 @@ address of 'aa:bb:cc:dd:ee:ff' to port 8080 on the host 10.0.0.10 which has a NI
     ip_packet = IPPacket(
         src_ip_address="192.168.0.100",
         dst_ip_address="10.0.0.10",
-        protocol=IPProtocol.TCP
+        protocol=IPProtocol["TCP"]
     )
     # Data Link Layer
     ethernet_header = EthernetHeader(

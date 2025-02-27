@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from uuid import uuid4
 
 import pytest
@@ -22,7 +22,7 @@ def test_scan(service):
 
 def test_start_service(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
     service.start()
 
     assert service.operating_state == ServiceOperatingState.RUNNING
@@ -43,7 +43,7 @@ def test_pause_and_resume_service(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
     service.resume()
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
 
     service.start()
     assert service.health_state_actual == SoftwareHealthState.GOOD
@@ -58,11 +58,11 @@ def test_pause_and_resume_service(service):
 
 def test_restart(service):
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
     service.restart()
     # Service is STOPPED. Restart will only work if the service was PAUSED or RUNNING
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
 
     service.start()
     assert service.operating_state == ServiceOperatingState.RUNNING
@@ -148,7 +148,7 @@ def test_service_fixing(service):
     service.fix()
     assert service.health_state_actual == SoftwareHealthState.FIXING
 
-    for i in range(service.fixing_duration + 1):
+    for i in range(service.config.fixing_duration + 1):
         service.apply_timestep(i)
 
     assert service.health_state_actual == SoftwareHealthState.GOOD
@@ -157,11 +157,11 @@ def test_service_fixing(service):
 def test_enable_disable(service):
     service.disable()
     assert service.operating_state == ServiceOperatingState.DISABLED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
 
     service.enable()
     assert service.operating_state == ServiceOperatingState.STOPPED
-    assert service.health_state_actual == SoftwareHealthState.UNUSED
+    assert service.health_state_actual == SoftwareHealthState.GOOD
 
 
 def test_overwhelm_service(service):

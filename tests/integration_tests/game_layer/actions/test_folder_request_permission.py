@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import uuid
 from typing import Tuple
 
@@ -32,9 +32,9 @@ def test_create_folder(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
     assert client_1.file_system.get_folder(folder_name=random_folder) is None
 
     action = (
-        "NODE_FOLDER_CREATE",
+        "node-folder-create",
         {
-            "node_id": 0,
+            "node_name": "client_1",
             "folder_name": random_folder,
         },
     )
@@ -52,18 +52,18 @@ def test_folder_scan_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAge
 
     folder = client_1.file_system.get_folder(folder_name="downloads")
     assert folder.health_status == FileSystemItemHealthStatus.GOOD
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     folder.corrupt()
 
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
-    assert folder.visible_health_status == FileSystemItemHealthStatus.GOOD
+    assert folder.visible_health_status == FileSystemItemHealthStatus.NONE
 
     action = (
-        "NODE_FOLDER_SCAN",
+        "node-folder-scan",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)
@@ -87,10 +87,10 @@ def test_folder_repair_action(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyA
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "NODE_FOLDER_REPAIR",
+        "node-folder-repair",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)
@@ -111,10 +111,10 @@ def test_folder_restore_action(game_and_agent_fixture: Tuple[PrimaiteGame, Proxy
     assert folder.health_status == FileSystemItemHealthStatus.CORRUPT
 
     action = (
-        "NODE_FOLDER_RESTORE",
+        "node-folder-restore",
         {
-            "node_id": 0,  # client_1,
-            "folder_id": 0,  # downloads
+            "node_name": "client_1",  # client_1,
+            "folder_name": "downloads",  # downloads
         },
     )
     agent.store_action(action)

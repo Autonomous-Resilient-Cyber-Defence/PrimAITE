@@ -1,14 +1,17 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.database_client import DatabaseClient
+from primaite.utils.validation.ipv4_address import ipv4_validator, IPV4Address
+from primaite.utils.validation.port import Port, PORT_LOOKUP, port_validator
 
 _LOGGER = getLogger(__name__)
 
@@ -29,8 +32,22 @@ class DoSAttackStage(IntEnum):
     "Attack is completed."
 
 
-class DoSBot(DatabaseClient, identifier="DoSBot"):
+class DoSBot(DatabaseClient, discriminator="dos-bot"):
     """A bot that simulates a Denial of Service attack."""
+
+    class ConfigSchema(DatabaseClient.ConfigSchema):
+        """ConfigSchema for DoSBot."""
+
+        type: str = "dos-bot"
+        target_ip_address: Optional[IPV4Address] = None
+        target_port: Port = PORT_LOOKUP["POSTGRES_SERVER"]
+        payload: Optional[str] = None
+        repeat: bool = False
+        port_scan_p_of_success: float = 0.1
+        dos_intensity: float = 1.0
+        max_sessions: int = 1000
+
+    config: "DoSBot.ConfigSchema" = Field(default_factory=lambda: DoSBot.ConfigSchema())
 
     target_ip_address: Optional[IPv4Address] = None
     """IP address of the target service."""
@@ -55,8 +72,14 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.name = "DoSBot"
-        self.max_sessions = 1000  # override normal max sessions
+        self.name = "dos-bot"
+        self.target_ip_address = self.config.target_ip_address
+        self.target_port = self.config.target_port
+        self.payload = self.config.payload
+        self.repeat = self.config.repeat
+        self.port_scan_p_of_success = self.config.port_scan_p_of_success
+        self.dos_intensity = self.config.dos_intensity
+        self.max_sessions = self.config.max_sessions
 
     def _init_request_manager(self) -> RequestManager:
         """
@@ -83,9 +106,9 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
             :rtype: RequestResponse
             """
             if "target_ip_address" in request[-1]:
-                request[-1]["target_ip_address"] = IPv4Address(request[-1]["target_ip_address"])
+                request[-1]["target_ip_address"] = ipv4_validator(request[-1]["target_ip_address"])
             if "target_port" in request[-1]:
-                request[-1]["target_port"] = Port[request[-1]["target_port"]]
+                request[-1]["target_port"] = port_validator(request[-1]["target_port"])
             return RequestResponse.from_bool(self.configure(**request[-1]))
 
         rm.add_request("configure", request_type=RequestType(func=_configure))
@@ -94,7 +117,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
     def configure(
         self,
         target_ip_address: IPv4Address,
-        target_port: Optional[Port] = Port.POSTGRES_SERVER,
+        target_port: Optional[int] = PORT_LOOKUP["POSTGRES_SERVER"],
         payload: Optional[str] = None,
         repeat: bool = False,
         port_scan_p_of_success: float = 0.1,
@@ -105,7 +128,7 @@ class DoSBot(DatabaseClient, identifier="DoSBot"):
         Configure the Denial of Service bot.
 
         :param: target_ip_address: The IP address of the Node containing the target service.
-        :param: target_port: The port of the target service. Optional - Default is `Port.HTTP`
+        :param: target_port: The port of the target service. Optional - Default is `Port["HTTP"]`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
         :param: port_scan_p_of_success: The chance of the port scan being successful. Optional - Default is 0.1 (10%)

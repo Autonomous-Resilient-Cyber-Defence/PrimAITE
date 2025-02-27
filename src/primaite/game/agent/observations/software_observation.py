@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from typing import Dict, List, Optional
@@ -10,7 +10,7 @@ from primaite.game.agent.observations.observations import AbstractObservation, W
 from primaite.game.agent.utils import access_from_nested_dict, NOT_PRESENT_IN_STATE
 
 
-class ServiceObservation(AbstractObservation, identifier="SERVICE"):
+class ServiceObservation(AbstractObservation, discriminator="service"):
     """Service observation, shows status of a service in the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):
@@ -81,7 +81,7 @@ class ServiceObservation(AbstractObservation, identifier="SERVICE"):
         )
 
 
-class ApplicationObservation(AbstractObservation, identifier="APPLICATION"):
+class ApplicationObservation(AbstractObservation, discriminator="application"):
     """Application observation, shows the status of an application within the simulation environment."""
 
     class ConfigSchema(AbstractObservation.ConfigSchema):

@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from copy import deepcopy
 from ipaddress import IPv4Address, IPv4Network
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
@@ -8,12 +8,12 @@ from prettytable import MARKDOWN, PrettyTable
 from primaite.simulator.core import RequestType
 from primaite.simulator.file_system.file_system import FileSystem
 from primaite.simulator.network.transmission.data_link_layer import Frame
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application, ApplicationOperatingState
 from primaite.simulator.system.core.sys_log import SysLog
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
 from primaite.simulator.system.software import IOSoftware
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 if TYPE_CHECKING:
     from primaite.simulator.system.core.session_manager import SessionManager
@@ -60,12 +60,12 @@ class SoftwareManager:
     @property
     def arp(self) -> "ARP":
         """Provides access to the ARP service instance, if installed."""
-        return self.software.get("ARP")  # noqa
+        return self.software.get("arp")  # noqa
 
     @property
     def icmp(self) -> "ICMP":
         """Provides access to the ICMP service instance, if installed."""
-        return self.software.get("ICMP")  # noqa
+        return self.software.get("icmp")  # noqa
 
     def get_open_ports(self) -> List[Port]:
         """
@@ -106,7 +106,7 @@ class SoftwareManager:
                 return True
         return False
 
-    def install(self, software_class: Type[IOSoftware], **install_kwargs):
+    def install(self, software_class: Type[IOSoftware], software_config: Optional[IOSoftware.ConfigSchema] = None):
         """
         Install an Application or Service.
 
@@ -115,13 +115,22 @@ class SoftwareManager:
         if software_class in self._software_class_to_name_map:
             self.sys_log.warning(f"Cannot install {software_class} as it is already installed")
             return
-        software = software_class(
-            software_manager=self,
-            sys_log=self.sys_log,
-            file_system=self.file_system,
-            dns_server=self.dns_server,
-            **install_kwargs,
-        )
+        if software_config is None:
+            software = software_class(
+                software_manager=self,
+                sys_log=self.sys_log,
+                file_system=self.file_system,
+                dns_server=self.dns_server,
+            )
+        else:
+            software = software_class(
+                software_manager=self,
+                sys_log=self.sys_log,
+                file_system=self.file_system,
+                dns_server=self.dns_server,
+                config=software_config,
+            )
+
         software.parent = self.node
         if isinstance(software, Application):
             self.node.applications[software.uuid] = software
@@ -131,6 +140,7 @@ class SoftwareManager:
         elif isinstance(software, Service):
             self.node.services[software.uuid] = software
             self.node._service_request_manager.add_request(software.name, RequestType(func=software._request_manager))
+            software.start()
         software.install()
         software.software_manager = self
         self.software[software.name] = software
@@ -191,7 +201,7 @@ class SoftwareManager:
         dest_ip_address: Optional[Union[IPv4Address, IPv4Network]] = None,
         src_port: Optional[Port] = None,
         dest_port: Optional[Port] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -234,7 +244,7 @@ class SoftwareManager:
         :param session: The transport session the payload originates from.
         """
         if payload.__class__.__name__ == "PortScanPayload":
-            self.software.get("NMAP").receive(payload=payload, session_id=session_id)
+            self.software.get("nmap").receive(payload=payload, session_id=session_id)
             return
         main_receiver = self.port_protocol_mapping.get((port, protocol), None)
         if main_receiver:
@@ -267,7 +277,7 @@ class SoftwareManager:
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Software Manager"
-        for software in self.port_protocol_mapping.values():
+        for software in self.software.values():
             software_type = "Service" if isinstance(software, Service) else "Application"
             table.add_row(
                 [
@@ -275,8 +285,8 @@ class SoftwareManager:
                     software_type,
                     software.operating_state.name,
                     software.health_state_actual.name,
-                    software.port.value if software.port != Port.NONE else None,
-                    software.protocol.value,
+                    software.port if software.port != PORT_LOOKUP["NONE"] else None,
+                    software.protocol,
                 ]
             )
         print(table)

@@ -1,9 +1,9 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests import TEST_ASSETS_ROOT
 
 DATA_MANIPULATION_CONFIG = TEST_ASSETS_ROOT / "configs" / "data_manipulation.yaml"
@@ -13,9 +13,9 @@ DATA_MANIPULATION_CONFIG = TEST_ASSETS_ROOT / "configs" / "data_manipulation.yam
 def env_with_ssh() -> PrimaiteGymEnv:
     """Build data manipulation environment with SSH port open on router."""
     env = PrimaiteGymEnv(DATA_MANIPULATION_CONFIG)
-    env.agent.flatten_obs = False
+    env.agent.config.agent_settings.flatten_obs = False
     router: Router = env.game.simulation.network.get_node_by_hostname("router_1")
-    router.acl.add_rule(ACLAction.PERMIT, src_port=Port.SSH, dst_port=Port.SSH, position=3)
+    router.acl.add_rule(ACLAction.PERMIT, src_port=PORT_LOOKUP["SSH"], dst_port=PORT_LOOKUP["SSH"], position=3)
     return env
 
 

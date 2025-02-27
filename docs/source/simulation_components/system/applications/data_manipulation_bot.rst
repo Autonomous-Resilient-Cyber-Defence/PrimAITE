@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _DataManipulationBot:
 
@@ -77,7 +77,7 @@ Python
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)
     client_1.software_manager.install(DataManipulationBot)
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
     data_manipulation_bot.configure(server_ip_address=IPv4Address("192.168.1.14"), payload="DELETE")
     data_manipulation_bot.run()
 
@@ -95,39 +95,7 @@ If not using the data manipulation bot manually, it needs to be used with a data
       agents:
         - ref: data_manipulation_red_bot
           team: RED
-          type: RedDatabaseCorruptingAgent
-
-          observation_space:
-            type: UC2RedObservation
-            options:
-              nodes:
-                - node_name: client_1
-                  observations:
-                  - logon_status
-                  - operating_status
-                  applications:
-                  - application_ref: data_manipulation_bot
-                    observations:
-                      operating_status
-                      health_status
-                  folders: {}
-
-          action_space:
-            action_list:
-              - type: DONOTHING
-              - type: NODE_APPLICATION_EXECUTE
-            options:
-              nodes:
-              - node_name: client_1
-                applications:
-                  - application_ref: data_manipulation_bot
-              max_folders_per_node: 1
-              max_files_per_folder: 1
-              max_services_per_node: 1
-
-          reward_function:
-            reward_components:
-              - type: DUMMY
+          type: red-database-corrupting-agent
 
           agent_settings:
             start_settings:
@@ -144,14 +112,14 @@ If not using the data manipulation bot manually, it needs to be used with a data
           # ... additional configuration here
           applications:
           - ref: data_manipulation_bot
-            type: DataManipulationBot
+            type: data-manipulation-bot
             options:
               port_scan_p_of_success: 0.1
               data_manipulation_p_of_success: 0.1
               payload: "DELETE"
               server_ip: 192.168.1.14
           - ref: web_server_database_client
-            type: DatabaseClient
+            type: database-client
             options:
               db_server_ip: 192.168.1.14
 

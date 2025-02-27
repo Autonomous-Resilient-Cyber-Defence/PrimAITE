@@ -1,16 +1,17 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
+from functools import cached_property
 from typing import Any, Dict, List, Optional
 
 from gymnasium import spaces
 from gymnasium.core import ObsType
-from pydantic import BaseModel, ConfigDict, model_validator, ValidationError
+from pydantic import BaseModel, computed_field, ConfigDict, Field, model_validator, ValidationError
 
 from primaite.game.agent.observations.observations import AbstractObservation, WhereType
 
 
-class NestedObservation(AbstractObservation, identifier="CUSTOM"):
+class NestedObservation(AbstractObservation, discriminator="custom"):
     """Observation type that allows combining other observations into a gymnasium.spaces.Dict space."""
 
     class NestedObservationItem(BaseModel):
@@ -18,7 +19,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
 
         model_config = ConfigDict(extra="forbid")
         type: str
-        """Select observation class. It maps to the identifier of the obs class by checking the registry."""
+        """Select observation class. It maps to the discriminator of the obs class by checking the registry."""
         label: str
         """Dict key in the final observation space."""
         options: Dict
@@ -47,7 +48,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
     def __init__(self, components: Dict[str, AbstractObservation]) -> None:
         """Initialise nested observation."""
         self.components: Dict[str, AbstractObservation] = components
-        """Maps label: observation object"""
+        """Maps label observation object"""
 
         self.default_observation = {label: obs.default_observation for label, obs in self.components.items()}
         """Default observation is just the default observations of constituents."""
@@ -83,7 +84,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
 
         ```yaml
             observation_space:
-            - type: CUSTOM
+            - type: custom
                 options:
                 components:
 
@@ -120,7 +121,7 @@ class NestedObservation(AbstractObservation, identifier="CUSTOM"):
         return cls(components=instances)
 
 
-class NullObservation(AbstractObservation, identifier="NONE"):
+class NullObservation(AbstractObservation, discriminator="none"):
     """Empty observation that acts as a placeholder."""
 
     def __init__(self) -> None:
@@ -142,7 +143,7 @@ class NullObservation(AbstractObservation, identifier="NONE"):
         return cls()
 
 
-class ObservationManager:
+class ObservationManager(BaseModel):
     """
     Manage the observations of an Agent.
 
@@ -152,15 +153,66 @@ class ObservationManager:
       3. Formatting this information so an agent can use it to make decisions.
     """
 
-    def __init__(self, obs: AbstractObservation) -> None:
-        """Initialise observation space.
+    model_config = ConfigDict(extra="forbid", arbitrary_types_allowed=True)
 
-        :param observation: Observation object
-        :type observation: AbstractObservation
-        """
-        self.obs: AbstractObservation = obs
-        self.current_observation: ObsType
-        """Cached copy of the observation at the time it was most recently calculated."""
+    class ConfigSchema(BaseModel):
+        """Config Schema for Observation Manager."""
+
+        model_config = ConfigDict(extra="forbid")
+        type: str = "none"
+        """discriminator name for the top-level observation."""
+        options: AbstractObservation.ConfigSchema = Field(
+            default_factory=lambda: NullObservation.ConfigSchema(), validate_default=True
+        )
+        """Options to pass into the top-level observation during creation."""
+
+        @model_validator(mode="before")
+        @classmethod
+        def resolve_obs_options_type(cls, data: Any) -> Any:
+            """
+            When constructing the model from a dict, resolve the correct observation class based on `type` field.
+
+            Workaround: The `options` field is statically typed as AbstractObservation. Therefore, it falls over when
+            passing in data that adheres to a subclass schema rather than the plain AbstractObservation schema. There is
+            a way to do this properly using discriminated union, but most advice on the internet assumes that the full
+            list of types between which to discriminate is known ahead-of-time. That is not the case for us, because of
+            our plugin architecture.
+
+            We may be able to revisit and implement a better solution when needed using the following resources as
+            research starting points:
+            https://docs.pydantic.dev/latest/concepts/unions/#discriminated-unions
+            https://github.com/pydantic/pydantic/issues/7366
+            https://github.com/pydantic/pydantic/issues/7462
+            https://github.com/pydantic/pydantic/pull/7983
+            """
+            if not isinstance(data, dict):
+                return data
+
+            # (TODO: duplicate default definition between here and the actual model)
+            obs_type = data["type"] if "type" in data else "none"
+            obs_class = AbstractObservation._registry[obs_type]
+
+            # if no options are passed in, try to create a default schema. Only works if there are no mandatory fields
+            if "options" not in data:
+                data["options"] = obs_class.ConfigSchema()
+
+            # if options passed as a dict, validate against schema
+            elif isinstance(data["options"], dict):
+                data["options"] = obs_class.ConfigSchema(**data["options"])
+
+            return data
+
+    config: ConfigSchema = Field(default_factory=lambda: ObservationManager.ConfigSchema())
+
+    current_observation: ObsType = 0
+
+    @computed_field
+    @cached_property
+    def obs(self) -> AbstractObservation:
+        """Create the main observation component for the observation manager from the config."""
+        obs_class = AbstractObservation._registry[self.config.type]
+        obs_instance = obs_class.from_config(config=self.config.options)
+        return obs_instance
 
     def update(self, state: Dict) -> Dict:
         """
@@ -185,7 +237,7 @@ class ObservationManager:
         :param config: Dictionary containing the configuration for this observation space.
             If None, a blank observation space is created.
             Otherwise, this must be a Dict with a type field and options field.
-            type: string that corresponds to one of the observation identifiers that are provided when subclassing
+            type: string that corresponds to one of the observation discriminators that are provided when subclassing
             AbstractObservation
             options: this must adhere to the chosen observation type's ConfigSchema nested class.
         :type config: Dict
@@ -194,10 +246,5 @@ class ObservationManager:
         """
         if config is None:
             return cls(NullObservation())
-        obs_type = config["type"]
-        obs_class = AbstractObservation._registry[obs_type]
-        observation = obs_class.from_config(
-            config=obs_class.ConfigSchema(**config["options"], thresholds=thresholds),
-        )
-        obs_manager = cls(observation)
+        obs_manager = cls(config=config)
         return obs_manager

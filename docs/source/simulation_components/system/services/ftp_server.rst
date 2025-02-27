@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _FTPServer:
 
@@ -55,7 +55,7 @@ Python
 
     # Install FTPServer on server
     server.software_manager.install(FTPServer)
-    ftp_server: FTPServer = server.software_manager.software.get("FTPServer")
+    ftp_server: FTPServer = server.software_manager.software.get("ftp-server")
     ftp_server.start()
 
     ftp_server.server_password = "test"
@@ -74,7 +74,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ftp_server
-                    type: FTPServer
+                    type: ftp-server
                     options:
                         server_password: test
 

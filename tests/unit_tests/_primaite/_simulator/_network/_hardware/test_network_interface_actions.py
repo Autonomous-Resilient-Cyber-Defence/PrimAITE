@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.simulator.network.hardware.base import NetworkInterface, Node
@@ -7,7 +7,10 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 
 @pytest.fixture
 def node() -> Node:
-    return Computer(hostname="test", ip_address="192.168.1.2", subnet_mask="255.255.255.0")
+    computer_cfg = {"type": "computer", "hostname": "test", "ip_address": "192.168.1.2", "subnet_mask": "255.255.255.0"}
+    computer = Computer.from_config(config=computer_cfg)
+
+    return computer
 
 
 def test_nic_enabled_validator(node):

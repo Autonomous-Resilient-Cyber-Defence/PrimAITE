@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Tuple
 
 import pytest
@@ -20,23 +20,23 @@ def web_client_and_web_server(client_server) -> Tuple[WebBrowser, Computer, WebS
 
     # Install Web Browser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.run()
 
     # Install DNS Client service on computer
     computer.software_manager.install(DNSClient)
-    dns_client: DNSClient = computer.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = computer.software_manager.software.get("dns-client")
     # set dns server
     dns_client.dns_server = server.network_interfaces[next(iter(server.network_interfaces))].ip_address
 
     # Install Web Server service on server
     server.software_manager.install(WebServer)
-    web_server_service: WebServer = server.software_manager.software.get("WebServer")
+    web_server_service: WebServer = server.software_manager.software.get("web-server")
     web_server_service.start()
 
     # Install DNS Server service on server
     server.software_manager.install(DNSServer)
-    dns_server: DNSServer = server.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = server.software_manager.software.get("dns-server")
     # register arcd.com to DNS
     dns_server.dns_register(
         domain_name="arcd.com",
@@ -51,7 +51,7 @@ def test_web_page_get_users_page_request_with_domain_name(web_client_and_web_ser
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -66,7 +66,7 @@ def test_web_page_get_users_page_request_with_ip_address(web_client_and_web_serv
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://{web_server_ip}/"
+    web_browser_app.config.target_url = f"http://{web_server_ip}/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -81,7 +81,7 @@ def test_web_page_request_from_shut_down_server(web_client_and_web_server):
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     web_server_ip = server.network_interfaces.get(next(iter(server.network_interfaces))).ip_address
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
 
     assert web_browser_app.get_webpage() is True
@@ -94,7 +94,7 @@ def test_web_page_request_from_shut_down_server(web_client_and_web_server):
 
     server.power_off()
 
-    for i in range(server.shut_down_duration + 1):
+    for i in range(server.config.shut_down_duration + 1):
         server.apply_timestep(timestep=i)
 
     # node should be off
@@ -108,7 +108,7 @@ def test_web_page_request_from_closed_web_browser(web_client_and_web_server):
     web_browser_app, computer, web_server_service, server = web_client_and_web_server
 
     assert web_browser_app.operating_state == ApplicationOperatingState.RUNNING
-    web_browser_app.target_url = f"http://arcd.com/"
+    web_browser_app.config.target_url = f"http://arcd.com/"
     assert web_browser_app.get_webpage() is True
 
     # latest response should have status code 200

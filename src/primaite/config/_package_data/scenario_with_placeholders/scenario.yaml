@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 io_settings:
   save_agent_actions: true
   save_step_metadata: false
@@ -26,12 +29,12 @@ agents:
 
   - ref: defender
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
     observation_space:
-      type: CUSTOM
+      type: custom
       options:
         components:
-          - type: NODES
+          - type: nodes
             label: NODES
             options:
               routers: []
@@ -46,7 +49,7 @@ agents:
               include_num_access: false
               include_nmne: true
 
-          - type: LINKS
+          - type: links
             label: LINKS
             options:
               link_references:
@@ -54,69 +57,50 @@ agents:
                 - server:eth-1<->switch_1:eth-2
 
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_SHUTDOWN
-        - type: NODE_STARTUP
-        - type: HOST_NIC_ENABLE
-        - type: HOST_NIC_DISABLE
       action_map:
         0:
-          action: DONOTHING
+          action: do-nothing
           options: {}
         1:
-          action: NODE_SHUTDOWN
+          action: node-shutdown
           options:
-            node_id: 0
+            node_name: client_1
         2:
-          action: NODE_SHUTDOWN
+          action: node-shutdown
           options:
-            node_id: 1
+            node_name: server
         3:
-          action: NODE_STARTUP
+          action: node-startup
           options:
-            node_id: 0
+            node_name: client_1
         4:
-          action: NODE_STARTUP
+          action: node-startup
           options:
-            node_id: 1
+            node_name: server
         5:
-          action: HOST_NIC_DISABLE
+          action: host-nic-disable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client_1
+            nic_num: 1
         6:
-          action: HOST_NIC_DISABLE
+          action: host-nic-disable
           options:
-            node_id: 1
-            nic_id: 0
+            node_name: server
+            nic_num: 1
         7:
-          action: HOST_NIC_ENABLE
+          action: host-nic-enable
           options:
-            node_id: 0
-            nic_id: 0
+            node_name: client_1
+            nic_num: 1
         8:
-          action: HOST_NIC_ENABLE
+          action: host-nic-enable
           options:
-            node_id: 1
-            nic_id: 0
-      options:
-        nodes:
-        - node_name: client
-        - node_name: server
-
-        max_folders_per_node: 0
-        max_files_per_folder: 0
-        max_services_per_node: 0
-        max_nics_per_node: 1
-        max_acl_rules: 0
-        ip_list:
-          - 192.168.1.2
-          - 192.168.1.3
+            node_name: server
+            nic_num: 1
 
     reward_function:
       reward_components:
-        - type: DATABASE_FILE_INTEGRITY
+        - type: database-file-integrity
           weight: 0.40
           options:
             node_hostname: database_server
@@ -140,10 +124,10 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       applications:
-        - type: DatabaseClient
+        - type: database-client
           options:
             db_server_ip: 192.168.1.3
-        - type: DataManipulationBot
+        - type: data-manipulation-bot
           options:
             server_ip: 192.168.1.3
             payload: "DELETE"
@@ -158,7 +142,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.1.1
       services:
-        - type: DatabaseService
+        - type: database-service
 
     links:
     - endpoint_a_hostname: client

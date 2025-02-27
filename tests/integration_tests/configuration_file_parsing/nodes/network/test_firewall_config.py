@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 
 import pytest
@@ -9,8 +9,8 @@ from primaite.simulator.network.hardware.nodes.host.computer import Computer
 from primaite.simulator.network.hardware.nodes.host.server import Server
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 from tests.integration_tests.configuration_file_parsing import BASIC_FIREWALL, DMZ_NETWORK, load_config
 
 
@@ -68,44 +68,44 @@ def test_firewall_acl_rules_correctly_added(dmz_config):
     # ICMP and ARP should be allowed internal_inbound
     assert firewall.internal_inbound_acl.num_rules == 2
     assert firewall.internal_inbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.internal_inbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.internal_inbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.internal_inbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.internal_inbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     assert firewall.internal_inbound_acl.acl[23].action == ACLAction.PERMIT
-    assert firewall.internal_inbound_acl.acl[23].protocol == IPProtocol.ICMP
+    assert firewall.internal_inbound_acl.acl[23].protocol == PROTOCOL_LOOKUP["ICMP"]
     assert firewall.internal_inbound_acl.implicit_action == ACLAction.DENY
 
     # ICMP and ARP should be allowed internal_outbound
     assert firewall.internal_outbound_acl.num_rules == 2
     assert firewall.internal_outbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.internal_outbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.internal_outbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.internal_outbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.internal_outbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     assert firewall.internal_outbound_acl.acl[23].action == ACLAction.PERMIT
-    assert firewall.internal_outbound_acl.acl[23].protocol == IPProtocol.ICMP
+    assert firewall.internal_outbound_acl.acl[23].protocol == PROTOCOL_LOOKUP["ICMP"]
     assert firewall.internal_outbound_acl.implicit_action == ACLAction.DENY
 
     # ICMP and ARP should be allowed dmz_inbound
     assert firewall.dmz_inbound_acl.num_rules == 2
     assert firewall.dmz_inbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.dmz_inbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.dmz_inbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.dmz_inbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.dmz_inbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     assert firewall.dmz_inbound_acl.acl[23].action == ACLAction.PERMIT
-    assert firewall.dmz_inbound_acl.acl[23].protocol == IPProtocol.ICMP
+    assert firewall.dmz_inbound_acl.acl[23].protocol == PROTOCOL_LOOKUP["ICMP"]
     assert firewall.dmz_inbound_acl.implicit_action == ACLAction.DENY
 
     # ICMP and ARP should be allowed dmz_outbound
     assert firewall.dmz_outbound_acl.num_rules == 2
     assert firewall.dmz_outbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.dmz_outbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.dmz_outbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.dmz_outbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.dmz_outbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     assert firewall.dmz_outbound_acl.acl[23].action == ACLAction.PERMIT
-    assert firewall.dmz_outbound_acl.acl[23].protocol == IPProtocol.ICMP
+    assert firewall.dmz_outbound_acl.acl[23].protocol == PROTOCOL_LOOKUP["ICMP"]
     assert firewall.dmz_outbound_acl.implicit_action == ACLAction.DENY
 
     # ICMP and ARP should be allowed external_inbound
     assert firewall.external_inbound_acl.num_rules == 1
     assert firewall.external_inbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.external_inbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.external_inbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.external_inbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.external_inbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     # external_inbound should have implicit action PERMIT
     # ICMP does not have a provided ACL Rule but implicit action should allow anything
     assert firewall.external_inbound_acl.implicit_action == ACLAction.PERMIT
@@ -113,8 +113,8 @@ def test_firewall_acl_rules_correctly_added(dmz_config):
     # ICMP and ARP should be allowed external_outbound
     assert firewall.external_outbound_acl.num_rules == 1
     assert firewall.external_outbound_acl.acl[22].action == ACLAction.PERMIT
-    assert firewall.external_outbound_acl.acl[22].src_port == Port.ARP
-    assert firewall.external_outbound_acl.acl[22].dst_port == Port.ARP
+    assert firewall.external_outbound_acl.acl[22].src_port == PORT_LOOKUP["ARP"]
+    assert firewall.external_outbound_acl.acl[22].dst_port == PORT_LOOKUP["ARP"]
     # external_outbound should have implicit action PERMIT
     # ICMP does not have a provided ACL Rule but implicit action should allow anything
     assert firewall.external_outbound_acl.implicit_action == ACLAction.PERMIT

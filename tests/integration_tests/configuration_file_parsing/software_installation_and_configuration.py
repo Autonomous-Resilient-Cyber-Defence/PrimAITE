@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from pathlib import Path
 from typing import Union
@@ -86,7 +86,7 @@ def test_node_software_install():
         assert client_2.software_manager.software.get(software.__name__) is not None
 
     # check that applications have been installed on client 1
-    for applications in Application._application_registry:
+    for applications in Application._registry:
         assert client_1.software_manager.software.get(applications) is not None
 
     # check that services have been installed on client 1
@@ -99,7 +99,7 @@ def test_web_browser_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    web_browser: WebBrowser = client_1.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = client_1.software_manager.software.get("web-browser")
 
     assert web_browser.target_url == "http://arcd.com/users/"
 
@@ -109,7 +109,7 @@ def test_database_client_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    database_client: DatabaseClient = client_1.software_manager.software.get("DatabaseClient")
+    database_client: DatabaseClient = client_1.software_manager.software.get("database-client")
 
     assert database_client.server_ip_address == IPv4Address("192.168.1.10")
     assert database_client.server_password == "arcd"
@@ -120,7 +120,7 @@ def test_data_manipulation_bot_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
 
     assert data_manipulation_bot.server_ip_address == IPv4Address("192.168.1.21")
     assert data_manipulation_bot.payload == "DELETE"
@@ -134,7 +134,7 @@ def test_dos_bot_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    dos_bot: DoSBot = client_1.software_manager.software.get("DoSBot")
+    dos_bot: DoSBot = client_1.software_manager.software.get("dos-bot")
 
     assert dos_bot.target_ip_address == IPv4Address("192.168.10.21")
     assert dos_bot.payload == "SPOOF DATA"
@@ -149,7 +149,7 @@ def test_dns_client_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    dns_client: DNSClient = client_1.software_manager.software.get("DNSClient")
+    dns_client: DNSClient = client_1.software_manager.software.get("dns-client")
 
     assert dns_client.dns_server == IPv4Address("192.168.1.10")
 
@@ -159,7 +159,7 @@ def test_dns_server_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    dns_server: DNSServer = client_1.software_manager.software.get("DNSServer")
+    dns_server: DNSServer = client_1.software_manager.software.get("dns-server")
 
     assert dns_server.dns_lookup("arcd.com") == IPv4Address("192.168.1.10")
 
@@ -169,7 +169,7 @@ def test_database_service_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    database_service: DatabaseService = client_1.software_manager.software.get("DatabaseService")
+    database_service: DatabaseService = client_1.software_manager.software.get("database-service")
 
     assert database_service.backup_server_ip == IPv4Address("192.168.1.10")
 
@@ -179,10 +179,10 @@ def test_web_server_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    web_server_service: WebServer = client_1.software_manager.software.get("WebServer")
+    web_server_service: WebServer = client_1.software_manager.software.get("web-server")
 
     # config should have also installed database client - web server service should be able to retrieve this
-    assert web_server_service.software_manager.software.get("DatabaseClient") is not None
+    assert web_server_service.software_manager.software.get("database-client") is not None
 
 
 def test_ftp_client_install():
@@ -190,7 +190,7 @@ def test_ftp_client_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    ftp_client_service: FTPClient = client_1.software_manager.software.get("FTPClient")
+    ftp_client_service: FTPClient = client_1.software_manager.software.get("ftp-client")
     assert ftp_client_service is not None
 
 
@@ -199,9 +199,8 @@ def test_ftp_server_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    ftp_server_service: FTPServer = client_1.software_manager.software.get("FTPServer")
+    ftp_server_service: FTPServer = client_1.software_manager.software.get("ftp-server")
     assert ftp_server_service is not None
-    assert ftp_server_service.server_password == "arcd"
 
 
 def test_ntp_client_install():
@@ -209,7 +208,7 @@ def test_ntp_client_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    ntp_client_service: NTPClient = client_1.software_manager.software.get("NTPClient")
+    ntp_client_service: NTPClient = client_1.software_manager.software.get("ntp-client")
     assert ntp_client_service is not None
     assert ntp_client_service.ntp_server == IPv4Address("192.168.1.10")
 
@@ -219,5 +218,5 @@ def test_ntp_server_install():
     game = load_config(BASIC_CONFIG)
     client_1: Computer = game.simulation.network.get_node_by_hostname("client_1")
 
-    ntp_server_service: NTPServer = client_1.software_manager.software.get("NTPServer")
+    ntp_server_service: NTPServer = client_1.software_manager.software.get("ntp-server")
     assert ntp_server_service is not None

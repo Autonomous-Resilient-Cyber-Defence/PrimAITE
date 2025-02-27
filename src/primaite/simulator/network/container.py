@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 
@@ -12,7 +12,9 @@ from primaite import getLogger
 from primaite.simulator.core import RequestManager, RequestType, SimComponent
 from primaite.simulator.network.airspace import AirSpace
 from primaite.simulator.network.hardware.base import Link, Node, WiredNetworkInterface
+from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.network.hardware.nodes.host.server import Printer
+from primaite.simulator.network.hardware.nodes.network.network_node import NetworkNode
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.services.service import Service
 
@@ -130,6 +132,16 @@ class Network(SimComponent):
         return [node for node in self.nodes.values() if node.__class__.__name__ == "Firewall"]
 
     @property
+    def extended_hostnodes(self) -> List[Node]:
+        """Extended nodes that inherited HostNode in the network."""
+        return [node for node in self.nodes.values() if node.__class__.__name__.lower() in HostNode._registry]
+
+    @property
+    def extended_networknodes(self) -> List[Node]:
+        """Extended nodes that inherited NetworkNode in the network."""
+        return [node for node in self.nodes.values() if node.__class__.__name__.lower() in NetworkNode._registry]
+
+    @property
     def printer_nodes(self) -> List[Node]:
         """The printers on the network."""
         return [node for node in self.nodes.values() if isinstance(node, Printer)]
@@ -151,24 +163,14 @@ class Network(SimComponent):
         :param links: Include link details in the output. Defaults to True.
         :param markdown: Use Markdown style in table output. Defaults to False.
         """
-        nodes_type_map = {
-            "Router": self.router_nodes,
-            "Firewall": self.firewall_nodes,
-            "Switch": self.switch_nodes,
-            "Server": self.server_nodes,
-            "Computer": self.computer_nodes,
-            "Printer": self.printer_nodes,
-            "Wireless Router": self.wireless_router_nodes,
-        }
         if nodes:
             table = PrettyTable(["Node", "Type", "Operating State"])
             if markdown:
                 table.set_style(MARKDOWN)
             table.align = "l"
             table.title = "Nodes"
-            for node_type, nodes in nodes_type_map.items():
-                for node in nodes:
-                    table.add_row([node.hostname, node_type, node.operating_state.name])
+            for node in self.nodes.values():
+                table.add_row((node.config.hostname, type(node)._discriminator, node.operating_state.name))
             print(table)
 
         if ip_addresses:
@@ -177,15 +179,20 @@ class Network(SimComponent):
                 table.set_style(MARKDOWN)
             table.align = "l"
             table.title = "IP Addresses"
-            for nodes in nodes_type_map.values():
-                for node in nodes:
-                    for i, port in node.network_interface.items():
-                        if hasattr(port, "ip_address"):
-                            if port.ip_address != IPv4Address("127.0.0.1"):
-                                port_str = port.port_name if port.port_name else port.port_num
-                                table.add_row(
-                                    [node.hostname, port_str, port.ip_address, port.subnet_mask, node.default_gateway]
-                                )
+            for node in self.nodes.values():
+                for i, port in node.network_interface.items():
+                    if hasattr(port, "ip_address"):
+                        if port.ip_address != IPv4Address("127.0.0.1"):
+                            port_str = port.port_name if port.port_name else port.port_num
+                            table.add_row(
+                                [
+                                    node.config.hostname,
+                                    port_str,
+                                    port.ip_address,
+                                    port.subnet_mask,
+                                    node.config.default_gateway,
+                                ]
+                            )
             print(table)
 
         if links:
@@ -197,22 +204,21 @@ class Network(SimComponent):
             table.align = "l"
             table.title = "Links"
             links = list(self.links.values())
-            for nodes in nodes_type_map.values():
-                for node in nodes:
-                    for link in links[::-1]:
-                        if node in [link.endpoint_a.parent, link.endpoint_b.parent]:
-                            table.add_row(
-                                [
-                                    link.endpoint_a.parent.hostname,
-                                    str(link.endpoint_a),
-                                    link.endpoint_b.parent.hostname,
-                                    str(link.endpoint_b),
-                                    link.is_up,
-                                    link.bandwidth,
-                                    link.current_load_percent,
-                                ]
-                            )
-                            links.remove(link)
+            for node in self.nodes.values():
+                for link in links[::-1]:
+                    if node in [link.endpoint_a.parent, link.endpoint_b.parent]:
+                        table.add_row(
+                            [
+                                link.endpoint_a.parent.config.hostname,
+                                str(link.endpoint_a),
+                                link.endpoint_b.parent.config.hostname,
+                                str(link.endpoint_b),
+                                link.is_up,
+                                link.bandwidth,
+                                link.current_load_percent,
+                            ]
+                        )
+                        links.remove(link)
             print(table)
 
     def clear_links(self):
@@ -239,7 +245,7 @@ class Network(SimComponent):
         state = super().describe_state()
         state.update(
             {
-                "nodes": {node.hostname: node.describe_state() for node in self.nodes.values()},
+                "nodes": {node.config.hostname: node.describe_state() for node in self.nodes.values()},
                 "links": {},
             }
         )
@@ -247,8 +253,8 @@ class Network(SimComponent):
         for _, link in self.links.items():
             node_a = link.endpoint_a._connected_node
             node_b = link.endpoint_b._connected_node
-            hostname_a = node_a.hostname if node_a else None
-            hostname_b = node_b.hostname if node_b else None
+            hostname_a = node_a.config.hostname if node_a else None
+            hostname_b = node_b.config.hostname if node_b else None
             port_a = link.endpoint_a.port_num
             port_b = link.endpoint_b.port_num
             link_key = f"{hostname_a}:eth-{port_a}<->{hostname_b}:eth-{port_b}"
@@ -274,9 +280,11 @@ class Network(SimComponent):
         self.nodes[node.uuid] = node
         self._node_id_map[len(self.nodes)] = node
         node.parent = self
-        self._nx_graph.add_node(node.hostname)
+        self._nx_graph.add_node(node.config.hostname)
         _LOGGER.debug(f"Added node {node.uuid} to Network {self.uuid}")
-        self._node_request_manager.add_request(name=node.hostname, request_type=RequestType(func=node._request_manager))
+        self._node_request_manager.add_request(
+            name=node.config.hostname, request_type=RequestType(func=node._request_manager)
+        )
 
     def get_node_by_hostname(self, hostname: str) -> Optional[Node]:
         """
@@ -288,7 +296,7 @@ class Network(SimComponent):
         :return: The Node if it exists in the network.
         """
         for node in self.nodes.values():
-            if node.hostname == hostname:
+            if node.config.hostname == hostname:
                 return node
 
     def remove_node(self, node: Node) -> None:
@@ -301,7 +309,7 @@ class Network(SimComponent):
         :type node: Node
         """
         if node not in self:
-            _LOGGER.warning(f"Can't remove node {node.hostname}. It's not in the network.")
+            _LOGGER.warning(f"Can't remove node {node.config.hostname}. It's not in the network.")
             return
         self.nodes.pop(node.uuid)
         for i, _node in self._node_id_map.items():
@@ -309,8 +317,8 @@ class Network(SimComponent):
                 self._node_id_map.pop(i)
                 break
         node.parent = None
-        self._node_request_manager.remove_request(name=node.hostname)
-        _LOGGER.info(f"Removed node {node.hostname} from network {self.uuid}")
+        self._node_request_manager.remove_request(name=node.config.hostname)
+        _LOGGER.info(f"Removed node {node.config.hostname} from network {self.uuid}")
 
     def connect(
         self, endpoint_a: WiredNetworkInterface, endpoint_b: WiredNetworkInterface, bandwidth: int = 100, **kwargs
@@ -340,7 +348,7 @@ class Network(SimComponent):
         link = Link(endpoint_a=endpoint_a, endpoint_b=endpoint_b, bandwidth=bandwidth, **kwargs)
         self.links[link.uuid] = link
         self._link_id_map[len(self.links)] = link
-        self._nx_graph.add_edge(endpoint_a.parent.hostname, endpoint_b.parent.hostname)
+        self._nx_graph.add_edge(endpoint_a.parent.config.hostname, endpoint_b.parent.config.hostname)
         link.parent = self
         _LOGGER.debug(f"Added link {link.uuid} to connect {endpoint_a} and {endpoint_b}")
         return link

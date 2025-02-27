@@ -1,9 +1,11 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Dict, Optional
+from typing import Any, ClassVar, Dict, Optional, Type
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
@@ -37,6 +39,13 @@ class Service(IOSoftware):
     Services are programs that run in the background and may perform input/output operations.
     """
 
+    class ConfigSchema(IOSoftware.ConfigSchema, ABC):
+        """Config Schema for Service class."""
+
+        type: str
+
+    config: "Service.ConfigSchema" = Field(default_factory=lambda: Service.ConfigSchema())
+
     operating_state: ServiceOperatingState = ServiceOperatingState.STOPPED
     "The current operating state of the Service."
 
@@ -46,8 +55,43 @@ class Service(IOSoftware):
     restart_countdown: Optional[int] = None
     "If currently restarting, how many timesteps remain until the restart is finished."
 
+    _registry: ClassVar[Dict[str, Type["Service"]]] = {}
+    """Registry of service types. Automatically populated when subclasses are defined."""
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+    def __init_subclass__(cls, discriminator: Optional[str] = None, **kwargs: Any) -> None:
+        """
+        Register a hostnode type.
+
+        :param discriminator: Uniquely specifies an hostnode class by name. Used for finding items by config.
+        :type discriminator: str
+        :raises ValueError: When attempting to register an hostnode with a name that is already allocated.
+        """
+        super().__init_subclass__(**kwargs)
+        if discriminator is None:
+            return
+        # Enforce lowercase registry entries because it makes comparisons everywhere else much easier.
+        discriminator = discriminator.lower()
+        if discriminator in cls._registry:
+            raise ValueError(f"Tried to define new hostnode {discriminator}, but this name is already reserved.")
+        cls._registry[discriminator] = cls
+
+    @classmethod
+    def from_config(cls, config: Dict) -> "Service":
+        """Create a service from a config dictionary.
+
+        :param config: dict of options for service components constructor
+        :type config: dict
+        :return: The service component.
+        :rtype: Service
+        """
+        if config["type"] not in cls._registry:
+            raise ValueError(f"Invalid service type {config['type']}")
+        service_class = cls._registry[config["type"]]
+        service_object = service_class(config=service_class.ConfigSchema(**config))
+        return service_object
 
     def _can_perform_action(self) -> bool:
         """
@@ -212,14 +256,14 @@ class Service(IOSoftware):
 
     def disable(self) -> bool:
         """Disable the service."""
-        self.sys_log.info(f"Disabling Application {self.name}")
+        self.sys_log.info(f"Disabling Service {self.name}")
         self.operating_state = ServiceOperatingState.DISABLED
         return True
 
     def enable(self) -> bool:
         """Enable the disabled service."""
         if self.operating_state == ServiceOperatingState.DISABLED:
-            self.sys_log.info(f"Enabling Application {self.name}")
+            self.sys_log.info(f"Enabling Service {self.name}")
             self.operating_state = ServiceOperatingState.STOPPED
             return True
         return False

@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _DatabaseService:
 
@@ -66,7 +66,7 @@ Python
 
     # Install DatabaseService on server
     server.software_manager.install(DatabaseService)
-    db_service: DatabaseService = server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = server.software_manager.software.get("database-service")
     db_service.start()
 
     # configure DatabaseService
@@ -87,7 +87,7 @@ Via Configuration
                 ...
                 services:
                     - ref: database_service
-                    type: DatabaseService
+                    type: database-service
                     options:
                         backup_server_ip: 192.168.0.10
 

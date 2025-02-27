@@ -1,32 +1,42 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from typing import Dict, Optional
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
 from primaite.simulator.file_system.file_system import File
 from primaite.simulator.network.protocols.ftp import FTPCommand, FTPPacket, FTPStatusCode
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.ftp.ftp_service import FTPServiceABC
+from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class FTPClient(FTPServiceABC):
+class FTPClient(FTPServiceABC, discriminator="ftp-client"):
     """
     A class for simulating an FTP client service.
 
-    This class inherits from the `Service` class and provides methods to emulate FTP
+    This class inherits from the `FTPServiceABC` class and provides methods to emulate FTP
     RFC 959: https://datatracker.ietf.org/doc/html/rfc959
     """
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for FTPClient."""
+
+        type: str = "ftp-client"
+
+    config: ConfigSchema = Field(default_factory=lambda: FTPClient.ConfigSchema())
+
     def __init__(self, **kwargs):
-        kwargs["name"] = "FTPClient"
-        kwargs["port"] = Port.FTP
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "ftp-client"
+        kwargs["port"] = PORT_LOOKUP["FTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
         self.start()
 
@@ -104,10 +114,11 @@ class FTPClient(FTPServiceABC):
     def _connect_to_server(
         self,
         dest_ip_address: Optional[IPv4Address] = None,
-        dest_port: Optional[Port] = Port.FTP,
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
         session_id: Optional[str] = None,
         is_reattempt: Optional[bool] = False,
     ) -> bool:
+        self._active = True
         """
         Connects the client to a given FTP server.
 
@@ -124,13 +135,13 @@ class FTPClient(FTPServiceABC):
 
         # normally FTP will choose a random port for the transfer, but using the FTP command port will do for now
         # create FTP packet
-        payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.PORT, ftp_command_args=Port.FTP)
+        payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.PORT, ftp_command_args=PORT_LOOKUP["FTP"])
 
         if self.send(payload=payload, dest_ip_address=dest_ip_address, dest_port=dest_port, session_id=session_id):
             if payload.status_code == FTPStatusCode.OK:
                 self.sys_log.info(
                     f"{self.name}: Successfully connected to FTP Server "
-                    f"{dest_ip_address} via port {payload.ftp_command_args.value}"
+                    f"{dest_ip_address} via port {payload.ftp_command_args}"
                 )
                 self.add_connection(connection_id="server_connection", session_id=session_id)
                 return True
@@ -139,7 +150,7 @@ class FTPClient(FTPServiceABC):
                     # reattempt failed
                     self.sys_log.warning(
                         f"{self.name}: Unable to connect to FTP Server "
-                        f"{dest_ip_address} via port {payload.ftp_command_args.value}"
+                        f"{dest_ip_address} via port {payload.ftp_command_args}"
                     )
                     return False
                 else:
@@ -152,7 +163,7 @@ class FTPClient(FTPServiceABC):
             return False
 
     def _disconnect_from_server(
-        self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = Port.FTP
+        self, dest_ip_address: Optional[IPv4Address] = None, dest_port: Optional[Port] = PORT_LOOKUP["FTP"]
     ) -> bool:
         """
         Connects the client from a given FTP server.
@@ -164,6 +175,7 @@ class FTPClient(FTPServiceABC):
         :param: is_reattempt: Set to True if attempt to disconnect from FTP Server has been attempted. Default False.
         :type: is_reattempt: Optional[bool]
         """
+        self._active = True
         # send a disconnect request payload to FTP server
         payload: FTPPacket = FTPPacket(ftp_command=FTPCommand.QUIT)
         software_manager: SoftwareManager = self.software_manager
@@ -179,7 +191,7 @@ class FTPClient(FTPServiceABC):
         src_file_name: str,
         dest_folder_name: str,
         dest_file_name: str,
-        dest_port: Optional[Port] = Port.FTP,
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
         session_id: Optional[str] = None,
     ) -> bool:
         """
@@ -203,12 +215,13 @@ class FTPClient(FTPServiceABC):
         :param: dest_file_name: The name of the file to be saved on the FTP Server.
         :type: dest_file_name: str
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
         :type: dest_port: Optional[Port]
 
         :param: session_id: The id of the session
         :type: session_id: Optional[str]
         """
+        self._active = True
         # check if the file to transfer exists on the client
         file_to_transfer: File = self.file_system.get_file(folder_name=src_folder_name, file_name=src_file_name)
         if not file_to_transfer:
@@ -241,7 +254,7 @@ class FTPClient(FTPServiceABC):
         src_file_name: str,
         dest_folder_name: str,
         dest_file_name: str,
-        dest_port: Optional[Port] = Port.FTP,
+        dest_port: Optional[Port] = PORT_LOOKUP["FTP"],
     ) -> bool:
         """
         Request a file from a target IP address.
@@ -263,9 +276,10 @@ class FTPClient(FTPServiceABC):
         :param: dest_file_name: The name of the file to be saved on the FTP Server.
         :type: dest_file_name: str
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port.FTP.
-        :type: dest_port: Optional[Port]
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
+        :type: dest_port: Optional[int]
         """
+        self._active = True
         # check if FTP is currently connected to IP
         self._connect_to_server(dest_ip_address=dest_ip_address, dest_port=dest_port)
 
@@ -317,6 +331,7 @@ class FTPClient(FTPServiceABC):
         This helps prevent an FTP request loop - FTP client and servers can exist on
         the same node.
         """
+        self._active = True
         if not self._can_perform_action():
             return False
 

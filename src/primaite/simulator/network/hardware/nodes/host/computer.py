@@ -1,11 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
-from typing import ClassVar, Dict
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+from typing import ClassVar, Dict, Literal
+
+from pydantic import Field
 
 from primaite.simulator.network.hardware.nodes.host.host_node import HostNode
 from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
 
-class Computer(HostNode):
+class Computer(HostNode, discriminator="computer"):
     """
     A basic Computer class.
 
@@ -33,6 +35,14 @@ class Computer(HostNode):
         * Web Browser
     """
 
-    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "FTPClient": FTPClient}
+    SYSTEM_SOFTWARE: ClassVar[Dict] = {**HostNode.SYSTEM_SOFTWARE, "ftp-client": FTPClient}
+
+    class ConfigSchema(HostNode.ConfigSchema):
+        """Configuration Schema for Computer class."""
+
+        type: Literal["computer"] = "computer"
+        hostname: str = "Computer"
+
+    config: ConfigSchema = Field(default_factory=lambda: Computer.ConfigSchema())
 
     pass

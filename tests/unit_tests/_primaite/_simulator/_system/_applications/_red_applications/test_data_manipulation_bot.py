@@ -1,15 +1,15 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 
 from primaite.simulator.network.hardware.base import Node
 from primaite.simulator.network.networks import arcd_uc2_network
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.red_applications.data_manipulation_bot import (
     DataManipulationAttackStage,
     DataManipulationBot,
 )
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 @pytest.fixture(scope="function")
@@ -20,15 +20,15 @@ def dm_client() -> Node:
 
 @pytest.fixture
 def dm_bot(dm_client) -> DataManipulationBot:
-    return dm_client.software_manager.software.get("DataManipulationBot")
+    return dm_client.software_manager.software.get("data-manipulation-bot")
 
 
 def test_create_dm_bot(dm_client):
-    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("DataManipulationBot")
+    data_manipulation_bot: DataManipulationBot = dm_client.software_manager.software.get("data-manipulation-bot")
 
-    assert data_manipulation_bot.name == "DataManipulationBot"
-    assert data_manipulation_bot.port == Port.NONE
-    assert data_manipulation_bot.protocol == IPProtocol.NONE
+    assert data_manipulation_bot.name == "data-manipulation-bot"
+    assert data_manipulation_bot.port == PORT_LOOKUP["NONE"]
+    assert data_manipulation_bot.protocol == PROTOCOL_LOOKUP["NONE"]
     assert data_manipulation_bot.payload == "DELETE"
 
 
@@ -75,8 +75,8 @@ def test_dm_bot_perform_data_manipulation_success(dm_bot):
 
 
 def test_dm_bot_fails_without_db_client(dm_client):
-    dm_client.software_manager.uninstall("DatabaseClient")
-    dm_bot = dm_client.software_manager.software.get("DataManipulationBot")
+    dm_client.software_manager.uninstall("database-client")
+    dm_bot = dm_client.software_manager.software.get("data-manipulation-bot")
     assert dm_bot._host_db_client is None
     dm_bot.attack_stage = DataManipulationAttackStage.PORT_SCAN
     dm_bot._perform_data_manipulation(p_of_success=1.0)

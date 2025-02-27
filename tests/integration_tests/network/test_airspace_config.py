@@ -1,8 +1,8 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import yaml
 
 from primaite.game.game import PrimaiteGame
-from primaite.simulator.network.airspace import AirSpaceFrequency
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests import TEST_ASSETS_ROOT
 
 
@@ -13,8 +13,8 @@ def test_override_freq_max_capacity_mbps():
         config_dict = yaml.safe_load(f)
     network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
 
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_2_4) == 123.45
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_5) == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps("WIFI_2_4") == 123.45
+    assert network.airspace.get_frequency_max_capacity_mbps("WIFI_5") == 0.0
 
     pc_a = network.get_node_by_hostname("pc_a")
     pc_b = network.get_node_by_hostname("pc_b")
@@ -32,8 +32,8 @@ def test_override_freq_max_capacity_mbps_blocked():
         config_dict = yaml.safe_load(f)
     network = PrimaiteGame.from_config(cfg=config_dict).simulation.network
 
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_2_4) == 0.0
-    assert network.airspace.get_frequency_max_capacity_mbps(AirSpaceFrequency.WIFI_5) == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps("WIFI_2_4") == 0.0
+    assert network.airspace.get_frequency_max_capacity_mbps("WIFI_5") == 0.0
 
     pc_a = network.get_node_by_hostname("pc_a")
     pc_b = network.get_node_by_hostname("pc_b")

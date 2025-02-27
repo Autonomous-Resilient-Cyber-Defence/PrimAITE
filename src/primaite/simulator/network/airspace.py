@@ -1,12 +1,11 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from enum import Enum
-from typing import Any, Dict, List
+from typing import Any, ClassVar, Dict, List
 
 from prettytable import MARKDOWN, PrettyTable
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, validate_call
 
 from primaite import getLogger
 from primaite.simulator.network.hardware.base import Layer3Interface, NetworkInterface, WiredNetworkInterface
@@ -41,50 +40,28 @@ def format_hertz(hertz: float, format_terahertz: bool = False, decimals: int = 3
         return format_str.format(hertz) + " Hz"
 
 
-class AirSpaceFrequency(Enum):
-    """Enumeration representing the operating frequencies for wireless communications."""
+class AirSpaceFrequency(BaseModel):
+    """Data transfer object for defining properties of an airspace frequency."""
 
-    WIFI_2_4 = 2.4e9
-    """WiFi 2.4 GHz. Known for its extensive range and ability to penetrate solid objects effectively."""
-    WIFI_5 = 5e9
-    """WiFi 5 GHz. Known for its higher data transmission speeds and reduced interference from other devices."""
+    model_config = ConfigDict(extra="forbid")
+    name: str
+    """Alias for frequency."""
+    frequency_hz: int
+    """This acts as the primary key. If two names are mapped to the same frequency, they will share a bandwidth."""
+    data_rate_bps: float
+    """How much data can be transmitted on this frequency per second."""
 
-    def __str__(self) -> str:
-        hertz_str = format_hertz(hertz=self.value)
-        if self == AirSpaceFrequency.WIFI_2_4:
-            return f"WiFi {hertz_str}"
-        if self == AirSpaceFrequency.WIFI_5:
-            return f"WiFi {hertz_str}"
-        return "Unknown Frequency"
+    _registry: ClassVar[Dict[str, AirSpaceFrequency]] = {}
 
-    @property
-    def maximum_data_rate_bps(self) -> float:
-        """
-        Retrieves the maximum data transmission rate in bits per second (bps).
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        if self.name in self._registry:
+            raise RuntimeError(f"Frequency {self.name} is already registered. Cannot register it again.")
+        self._registry[self.name] = self
 
-        The maximum rates are predefined for frequencies.:
-            - WIFI 2.4 supports 100,000,000 bps
-            - WIFI 5 supports 500,000,000 bps
 
-        :return: The maximum data rate in bits per second.
-        """
-        if self == AirSpaceFrequency.WIFI_2_4:
-            return 100_000_000.0  # 100 Megabits per second
-        if self == AirSpaceFrequency.WIFI_5:
-            return 500_000_000.0  # 500 Megabits per second
-        return 0.0
-
-    @property
-    def maximum_data_rate_mbps(self) -> float:
-        """
-        Retrieves the maximum data transmission rate in megabits per second (Mbps).
-
-        This is derived by converting the maximum data rate from bits per second, as defined
-        in `maximum_data_rate_bps`, to megabits per second.
-
-        :return: The maximum data rate in megabits per second.
-        """
-        return self.maximum_data_rate_bps / 1_000_000.0
+FREQ_WIFI_2_4 = AirSpaceFrequency(name="WIFI_2_4", frequency_hz=2.4e9, data_rate_bps=100_000_000.0)
+FREQ_WIFI_5 = AirSpaceFrequency(name="WIFI_5", frequency_hz=5e9, data_rate_bps=500_000_000.0)
 
 
 class AirSpace(BaseModel):
@@ -97,37 +74,52 @@ class AirSpace(BaseModel):
     """
 
     wireless_interfaces: Dict[str, WirelessNetworkInterface] = Field(default_factory=lambda: {})
-    wireless_interfaces_by_frequency: Dict[AirSpaceFrequency, List[WirelessNetworkInterface]] = Field(
-        default_factory=lambda: {}
-    )
-    bandwidth_load: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
-    frequency_max_capacity_mbps_: Dict[AirSpaceFrequency, float] = Field(default_factory=lambda: {})
+    wireless_interfaces_by_frequency: Dict[int, List[WirelessNetworkInterface]] = Field(default_factory=lambda: {})
+    bandwidth_load: Dict[int, float] = Field(default_factory=lambda: {})
+    frequencies: Dict[str, AirSpaceFrequency] = AirSpaceFrequency._registry
 
-    def get_frequency_max_capacity_mbps(self, frequency: AirSpaceFrequency) -> float:
+    @validate_call
+    def get_frequency_max_capacity_mbps(self, freq_name: str) -> float:
         """
         Retrieves the maximum data transmission capacity for a specified frequency.
 
-        This method checks a dictionary holding custom maximum capacities. If the frequency is found, it returns the
-        custom set maximum capacity. If the frequency is not found in the dictionary, it defaults to the standard
-        maximum data rate associated with that frequency.
-
-        :param frequency: The frequency for which the maximum capacity is queried.
-
+        :param freq_name: The frequency for which the maximum capacity is queried.
         :return: The maximum capacity in Mbps for the specified frequency.
         """
-        if frequency in self.frequency_max_capacity_mbps_:
-            return self.frequency_max_capacity_mbps_[frequency]
-        return frequency.maximum_data_rate_mbps
+        if freq_name in self.frequencies:
+            return self.frequencies[freq_name].data_rate_bps / (1024.0 * 1024.0)
+        return 0.0
 
-    def set_frequency_max_capacity_mbps(self, cfg: Dict[AirSpaceFrequency, float]):
+    def set_frequency_max_capacity_mbps(self, cfg: Dict[int, float]) -> None:
         """
         Sets custom maximum data transmission capacities for multiple frequencies.
 
         :param cfg: A dictionary mapping frequencies to their new maximum capacities in Mbps.
         """
-        self.frequency_max_capacity_mbps_ = cfg
         for freq, mbps in cfg.items():
+            self.frequencies[freq].data_rate_bps = mbps * 1024 * 1024
             print(f"Overriding {freq} max capacity as {mbps:.3f} mbps")
+
+    def register_frequency(self, freq_name: str, freq_hz: float, data_rate_bps: float) -> None:
+        """
+        Define a new frequency for this airspace.
+
+        :param freq_name: The frequency name. If this clashes with an existing frequency name, it will be overwritten.
+        :type freq_name: str
+        :param freq_hz: The frequency itself, measured in Hertz.
+        :type freq_hz: float
+        :param data_rate_bps: The transmission capacity over this frequency, in bits per second.
+        :type data_rate_bps: float
+        """
+        if freq_name in self.frequencies:
+            _LOGGER.info(
+                f"Overwriting Air space frequency {freq_name}. "
+                f"Previous data rate: {self.frequencies[freq_name].data_rate_bps}. "
+                f"Current data rate: {data_rate_bps}."
+            )
+        self.frequencies.update(
+            {freq_name: AirSpaceFrequency(name=freq_name, frequency_hz=freq_hz, data_rate_bps=data_rate_bps)}
+        )
 
     def show_bandwidth_load(self, markdown: bool = False):
         """
@@ -145,12 +137,20 @@ class AirSpace(BaseModel):
             table.set_style(MARKDOWN)
         table.align = "l"
         table.title = "Airspace Frequency Channel Loads"
-        for frequency, load in self.bandwidth_load.items():
-            maximum_capacity = self.get_frequency_max_capacity_mbps(frequency)
-            load_percent = load / maximum_capacity if maximum_capacity > 0 else 0.0
+        for freq_name, freq_obj in self.frequencies.items():
+            maximum_capacity = self.get_frequency_max_capacity_mbps(freq_name)
+            load_percent = (
+                self.bandwidth_load.get(freq_obj.frequency_hz, 0.0) / maximum_capacity if maximum_capacity > 0 else 0.0
+            )
             if load_percent > 1.0:
                 load_percent = 1.0
-            table.add_row([format_hertz(frequency.value), f"{load_percent:.0%}", f"{maximum_capacity:.3f}"])
+            table.add_row(
+                [
+                    format_hertz(self.frequencies[freq_name].frequency_hz),
+                    f"{load_percent:.0%}",
+                    f"{maximum_capacity:.3f}",
+                ]
+            )
         print(table)
 
     def show_wireless_interfaces(self, markdown: bool = False):
@@ -178,11 +178,11 @@ class AirSpace(BaseModel):
             status = "Enabled" if interface.enabled else "Disabled"
             table.add_row(
                 [
-                    interface._connected_node.hostname,  # noqa
+                    interface._connected_node.config.hostname,  # noqa
                     interface.mac_address,
                     interface.ip_address if hasattr(interface, "ip_address") else None,
                     interface.subnet_mask if hasattr(interface, "subnet_mask") else None,
-                    format_hertz(interface.frequency.value),
+                    format_hertz(self.frequencies[interface.frequency.name].frequency_hz),
                     f"{interface.speed:.3f}",
                     status,
                 ]
@@ -210,9 +210,9 @@ class AirSpace(BaseModel):
         """
         if wireless_interface.mac_address not in self.wireless_interfaces:
             self.wireless_interfaces[wireless_interface.mac_address] = wireless_interface
-            if wireless_interface.frequency not in self.wireless_interfaces_by_frequency:
-                self.wireless_interfaces_by_frequency[wireless_interface.frequency] = []
-            self.wireless_interfaces_by_frequency[wireless_interface.frequency].append(wireless_interface)
+            if wireless_interface.frequency.frequency_hz not in self.wireless_interfaces_by_frequency:
+                self.wireless_interfaces_by_frequency[wireless_interface.frequency.frequency_hz] = []
+            self.wireless_interfaces_by_frequency[wireless_interface.frequency.frequency_hz].append(wireless_interface)
 
     def remove_wireless_interface(self, wireless_interface: WirelessNetworkInterface):
         """
@@ -222,7 +222,7 @@ class AirSpace(BaseModel):
         """
         if wireless_interface.mac_address in self.wireless_interfaces:
             self.wireless_interfaces.pop(wireless_interface.mac_address)
-            self.wireless_interfaces_by_frequency[wireless_interface.frequency].remove(wireless_interface)
+            self.wireless_interfaces_by_frequency[wireless_interface.frequency.frequency_hz].remove(wireless_interface)
 
     def clear(self):
         """
@@ -255,11 +255,11 @@ class AirSpace(BaseModel):
              relevant frequency and its current bandwidth load.
         :return: True if the frame can be transmitted within the bandwidth limit, False if it would exceed the limit.
         """
-        if sender_network_interface.frequency not in self.bandwidth_load:
-            self.bandwidth_load[sender_network_interface.frequency] = 0.0
+        if sender_network_interface.frequency.frequency_hz not in self.bandwidth_load:
+            self.bandwidth_load[sender_network_interface.frequency.frequency_hz] = 0.0
         return self.bandwidth_load[
-            sender_network_interface.frequency
-        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency)
+            sender_network_interface.frequency.frequency_hz
+        ] + frame.size_Mbits <= self.get_frequency_max_capacity_mbps(sender_network_interface.frequency.name)
 
     def transmit(self, frame: Frame, sender_network_interface: WirelessNetworkInterface):
         """
@@ -271,8 +271,10 @@ class AirSpace(BaseModel):
         :param sender_network_interface: The wireless network interface sending the frame. This interface will be
             excluded from the list of receivers to prevent it from receiving its own transmission.
         """
-        self.bandwidth_load[sender_network_interface.frequency] += frame.size_Mbits
-        for wireless_interface in self.wireless_interfaces_by_frequency.get(sender_network_interface.frequency, []):
+        self.bandwidth_load[sender_network_interface.frequency.frequency_hz] += frame.size_Mbits
+        for wireless_interface in self.wireless_interfaces_by_frequency.get(
+            sender_network_interface.frequency.frequency_hz, []
+        ):
             if wireless_interface != sender_network_interface and wireless_interface.enabled:
                 wireless_interface.receive_frame(frame)
 
@@ -298,7 +300,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
     """
 
     airspace: AirSpace
-    frequency: AirSpaceFrequency = AirSpaceFrequency.WIFI_2_4
+    frequency: AirSpaceFrequency = FREQ_WIFI_2_4
 
     def enable(self):
         """Attempt to enable the network interface."""
@@ -318,7 +320,7 @@ class WirelessNetworkInterface(NetworkInterface, ABC):
         self.enabled = True
         self._connected_node.sys_log.info(f"Network Interface {self} enabled")
         self.pcap = PacketCapture(
-            hostname=self._connected_node.hostname, port_num=self.port_num, port_name=self.port_name
+            hostname=self._connected_node.config.hostname, port_num=self.port_num, port_name=self.port_name
         )
         self.airspace.add_wireless_interface(self)
 
@@ -430,7 +432,7 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         # Update the state with information from Layer3Interface
         state.update(Layer3Interface.describe_state(self))
 
-        state["frequency"] = self.frequency.value
+        state["frequency"] = self.frequency.name
 
         return state
 
@@ -447,10 +449,8 @@ class IPWirelessNetworkInterface(WirelessNetworkInterface, Layer3Interface, ABC)
         `default_gateway_hello` method is not defined, ignoring such errors to proceed without interruption.
         """
         super().enable()
-        try:
+        if hasattr(self._connected_node, "default_gateway_hello"):
             self._connected_node.default_gateway_hello()
-        except AttributeError:
-            pass
 
     @abstractmethod
     def receive_frame(self, frame: Frame) -> bool:

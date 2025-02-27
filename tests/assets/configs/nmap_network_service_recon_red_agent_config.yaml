@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: true
@@ -21,33 +24,18 @@ game:
 agents:
   - ref: client_1_red_nmap
     team: RED
-    type: ProbabilisticAgent
-    observation_space: null
+    type: probabilistic-agent
+
     action_space:
-      options:
-        nodes:
-        - node_name: client_1
-          applications:
-            - application_name: NMAP
-        max_folders_per_node: 1
-        max_files_per_folder: 1
-        max_services_per_node: 1
-        max_applications_per_node: 1
-      action_list:
-        - type: NODE_NMAP_NETWORK_SERVICE_RECON
       action_map:
         0:
-          action: NODE_NMAP_NETWORK_SERVICE_RECON
+          action: node-network-service-recon
           options:
             source_node: client_1
             target_ip_address: 192.168.10.0/24
             target_port: 80
             target_protocol: tcp
-
-    reward_function:
-      reward_components:
-        - type: DUMMY
-
+            show: false
     agent_settings:
       action_probabilities:
         0: 1.0

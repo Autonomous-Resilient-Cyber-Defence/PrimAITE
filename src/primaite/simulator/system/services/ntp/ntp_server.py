@@ -1,23 +1,32 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from datetime import datetime
 from typing import Dict, Optional
 
+from pydantic import Field
+
 from primaite import getLogger
 from primaite.simulator.network.protocols.ntp import NTPPacket
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.services.service import Service
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 
-class NTPServer(Service):
+class NTPServer(Service, discriminator="ntp-server"):
     """Represents a NTP server as a service."""
 
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for NTPServer."""
+
+        type: str = "ntp-server"
+
+    config: ConfigSchema = Field(default_factory=lambda: NTPServer.ConfigSchema())
+
     def __init__(self, **kwargs):
-        kwargs["name"] = "NTPServer"
-        kwargs["port"] = Port.NTP
-        kwargs["protocol"] = IPProtocol.UDP
+        kwargs["name"] = "ntp-server"
+        kwargs["port"] = PORT_LOOKUP["NTP"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["UDP"]
         super().__init__(**kwargs)
         self.start()
 

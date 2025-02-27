@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from ipaddress import IPv4Address, IPv4Network
@@ -10,11 +10,13 @@ from primaite.simulator.core import SimComponent
 from primaite.simulator.network.protocols.arp import ARPPacket
 from primaite.simulator.network.protocols.icmp import ICMPPacket
 from primaite.simulator.network.transmission.data_link_layer import EthernetHeader, Frame
-from primaite.simulator.network.transmission.network_layer import IPPacket, IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port, TCPHeader, UDPHeader
+from primaite.simulator.network.transmission.network_layer import IPPacket
+from primaite.simulator.network.transmission.transport_layer import TCPHeader, UDPHeader
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 if TYPE_CHECKING:
-    from primaite.simulator.network.hardware.base import NetworkInterface
+    from primaite.simulator.network.hardware.base import NetworkInterface, Node
     from primaite.simulator.system.core.software_manager import SoftwareManager
     from primaite.simulator.system.core.sys_log import SysLog
 
@@ -34,7 +36,7 @@ class Session(SimComponent):
     :param connected: A flag indicating whether the session is connected.
     """
 
-    protocol: IPProtocol
+    protocol: str
     with_ip_address: IPv4Address
     src_port: Optional[Port]
     dst_port: Optional[Port]
@@ -119,7 +121,7 @@ class SessionManager:
         """
         protocol = frame.ip.protocol
         with_ip_address = frame.ip.src_ip_address
-        if protocol == IPProtocol.TCP:
+        if protocol == PROTOCOL_LOOKUP["TCP"]:
             if inbound_frame:
                 src_port = frame.tcp.src_port
                 dst_port = frame.tcp.dst_port
@@ -127,7 +129,7 @@ class SessionManager:
                 dst_port = frame.tcp.src_port
                 src_port = frame.tcp.dst_port
                 with_ip_address = frame.ip.dst_ip_address
-        elif protocol == IPProtocol.UDP:
+        elif protocol == PROTOCOL_LOOKUP["UDP"]:
             if inbound_frame:
                 src_port = frame.udp.src_port
                 dst_port = frame.udp.dst_port
@@ -262,7 +264,7 @@ class SessionManager:
         src_port: Optional[Port] = None,
         dst_port: Optional[Port] = None,
         session_id: Optional[str] = None,
-        ip_protocol: IPProtocol = IPProtocol.TCP,
+        ip_protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"],
         icmp_packet: Optional[ICMPPacket] = None,
     ) -> Union[Any, None]:
         """
@@ -286,7 +288,7 @@ class SessionManager:
                 dst_mac_address = payload.target_mac_addr
             outbound_network_interface = self.resolve_outbound_network_interface(payload.target_ip_address)
             is_broadcast = payload.request
-            ip_protocol = IPProtocol.UDP
+            ip_protocol = PROTOCOL_LOOKUP["UDP"]
         else:
             vals = self.resolve_outbound_transmission_details(
                 dst_ip_address=dst_ip_address,
@@ -311,26 +313,26 @@ class SessionManager:
         if not outbound_network_interface or not dst_mac_address:
             return False
 
-        if not (src_port or dst_port):
+        if src_port is None and dst_port is None:
             raise ValueError(
                 "Failed to resolve src or dst port. Have you sent the port from the service or application?"
             )
 
         tcp_header = None
         udp_header = None
-        if ip_protocol == IPProtocol.TCP:
+        if ip_protocol == PROTOCOL_LOOKUP["TCP"]:
             tcp_header = TCPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
-        elif ip_protocol == IPProtocol.UDP:
+        elif ip_protocol == PROTOCOL_LOOKUP["UDP"]:
             udp_header = UDPHeader(
                 src_port=dst_port,
                 dst_port=dst_port,
             )
         # TODO: Only create IP packet if not ARP
         # ip_packet = None
-        # if dst_port != Port.ARP:
+        # if dst_port != Port["ARP"]:
         #     IPPacket(
         #         src_ip_address=outbound_network_interface.ip_address,
         #         dst_ip_address=dst_ip_address,
@@ -387,7 +389,7 @@ class SessionManager:
         elif frame.udp:
             dst_port = frame.udp.dst_port
         elif frame.icmp:
-            dst_port = Port.NONE
+            dst_port = PORT_LOOKUP["NONE"]
         self.software_manager.receive_payload_from_session_manager(
             payload=frame.payload,
             port=dst_port,
@@ -413,5 +415,5 @@ class SessionManager:
         table.align = "l"
         table.title = f"{self.sys_log.hostname} Session Manager"
         for session in self.sessions_by_key.values():
-            table.add_row([session.with_ip_address, session.dst_port.value, session.protocol.name])
+            table.add_row([session.with_ip_address, session.dst_port, session.protocol])
         print(table)

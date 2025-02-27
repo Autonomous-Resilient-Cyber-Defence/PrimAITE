@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _NTPClient:
 
@@ -53,7 +53,7 @@ Python
 
     # Install NTPClient on server
     server.software_manager.install(NTPClient)
-    ntp_client: NTPClient = server.software_manager.software.get("NTPClient")
+    ntp_client: NTPClient = server.software_manager.software.get("ntp-client")
     ntp_client.start()
 
     ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.10"))
@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ntp_client
-                    type: NTPClient
+                    type: ntp-client
                     options:
                         ntp_server_ip: 192.168.0.10
 

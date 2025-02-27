@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Dict
 
 import pytest
@@ -12,6 +12,7 @@ from sb3_contrib import MaskablePPO
 from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.session.ray_envs import PrimaiteRayEnv, PrimaiteRayMARLEnv
+from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from tests import TEST_ASSETS_ROOT
 
 CFG_PATH = TEST_ASSETS_ROOT / "configs/test_primaite_session.yaml"

@@ -4,6 +4,9 @@
 #  |  node_a  |------|  switch_1  |------|  node_b  |
 #  --------------      --------------      --------------
 #
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: true
@@ -40,7 +43,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       applications:
-      - type: C2Server
+      - type: c2-server
         options:
           listen_on_ports:
             - 80
@@ -52,7 +55,7 @@ simulation:
       subnet_mask: 255.255.255.0
       default_gateway: 192.168.10.1
       applications:
-      - type: C2Beacon
+      - type: c2-beacon
         options:
           c2_server_ip_address: 192.168.10.21
           keep_alive_frequency: 5

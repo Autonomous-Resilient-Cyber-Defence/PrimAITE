@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _network_examples:
 
@@ -617,10 +617,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 192.168.1.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -631,10 +631,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 192.168.1.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -700,7 +700,7 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 8.8.8.1
             services:
               - ref: dns_server
-                type: DNSServer
+                type: dns-server
                 options:
                   domain_mapping:
                     sometech.ai: 94.10.180.6
@@ -794,9 +794,9 @@ Each node is configured to ensure it meets the specific security and operational
             dns_server: 8.8.8.2
             services:
               - ref: web_server
-                type: WebServer
+                type: web-server
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
 
@@ -903,10 +903,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.1.1
             dns_server: 8.8.8.2
             services:
-              - type: DatabaseService
+              - type: database-service
                 options:
                   backup_server_ip: 10.10.1.12 # The some_tech_storage_srv server
-              - type: FTPClient
+              - type: ftp-client
 
           - hostname: some_tech_storage_srv
             type: server
@@ -915,7 +915,7 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.1.1
             dns_server: 8.8.8.2
             services:
-              - type: FTPServer
+              - type: ftp-server
 
           - hostname: some_tech_hr_1
             type: computer
@@ -924,10 +924,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.3.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -938,10 +938,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.2.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -952,10 +952,10 @@ Each node is configured to ensure it meets the specific security and operational
             default_gateway: 10.10.2.1
             dns_server: 8.8.8.2
             applications:
-              - type: DatabaseClient
+              - type: database-client
                 options:
                   db_server_ip: 10.10.1.11
-              - type: WebBrowser
+              - type: web-browser
                 options:
                   target_url: http://sometech.ai
 
@@ -1177,8 +1177,8 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv = network.get_node_by_hostname("some_tech_storage_srv")
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
-    pc_1_ftp_client: FTPClient = network.get_node_by_hostname("pc_1").software_manager.software["FTPClient"]
-    pc_2_ftp_client: FTPClient = network.get_node_by_hostname("pc_2").software_manager.software["FTPClient"]
+    pc_1_ftp_client: FTPClient = network.get_node_by_hostname("pc_1").software_manager.software["ftp-client"]
+    pc_2_ftp_client: FTPClient = network.get_node_by_hostname("pc_2").software_manager.software["ftp-client"]
 
     assert not pc_1_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1224,7 +1224,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
 
     web_server: Server = network.get_node_by_hostname("some_tech_web_srv")
 
-    web_ftp_client: FTPClient = web_server.software_manager.software["FTPClient"]
+    web_ftp_client: FTPClient = web_server.software_manager.software["ftp-client"]
 
     assert not web_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1269,7 +1269,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_snr_dev_pc: Computer = network.get_node_by_hostname("some_tech_snr_dev_pc")
-    snr_dev_ftp_client: FTPClient = some_tech_snr_dev_pc.software_manager.software["FTPClient"]
+    snr_dev_ftp_client: FTPClient = some_tech_snr_dev_pc.software_manager.software["ftp-client"]
 
     assert snr_dev_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1294,7 +1294,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_jnr_dev_pc: Computer = network.get_node_by_hostname("some_tech_jnr_dev_pc")
-    jnr_dev_ftp_client: FTPClient = some_tech_jnr_dev_pc.software_manager.software["FTPClient"]
+    jnr_dev_ftp_client: FTPClient = some_tech_jnr_dev_pc.software_manager.software["ftp-client"]
 
     assert not jnr_dev_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,
@@ -1337,7 +1337,7 @@ ACLs permitting or denying traffic as per our configured ACL rules.
     some_tech_storage_srv.file_system.create_file(file_name="test.png")
 
     some_tech_hr_pc: Computer = network.get_node_by_hostname("some_tech_hr_1")
-    hr_ftp_client: FTPClient = some_tech_hr_pc.software_manager.software["FTPClient"]
+    hr_ftp_client: FTPClient = some_tech_hr_pc.software_manager.software["ftp-client"]
 
     assert not hr_ftp_client.request_file(
         dest_ip_address=some_tech_storage_srv.network_interface[1].ip_address,

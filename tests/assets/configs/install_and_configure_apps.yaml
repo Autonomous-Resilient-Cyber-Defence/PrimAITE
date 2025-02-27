@@ -1,3 +1,6 @@
+metadata:
+    version: 3.0
+
 io_settings:
   save_step_metadata: false
   save_pcap_logs: false
@@ -16,82 +19,65 @@ game:
 agents:
   - ref: agent_1
     team: BLUE
-    type: ProxyAgent
+    type: proxy-agent
 
-    observation_space: null
+
     action_space:
-      action_list:
-        - type: DONOTHING
-        - type: NODE_APPLICATION_INSTALL
-        - type: CONFIGURE_DATABASE_CLIENT
-        - type: CONFIGURE_DOSBOT
-        - type: CONFIGURE_RANSOMWARE_SCRIPT
-        - type: NODE_APPLICATION_REMOVE
       action_map:
         0:
-          action: DONOTHING
+          action: do-nothing
           options: {}
         1:
-          action: NODE_APPLICATION_INSTALL
+          action: node-application-install
           options:
-            node_id: 0
-            application_name: DatabaseClient
+            node_name: client_1
+            application_name: database-client
         2:
-          action: NODE_APPLICATION_INSTALL
+          action: node-application-install
           options:
-            node_id: 1
-            application_name: RansomwareScript
+            node_name: client_2
+            application_name: ransomware-script
         3:
-          action: NODE_APPLICATION_INSTALL
+          action: node-application-install
           options:
-            node_id: 2
-            application_name: DoSBot
+            node_name: client_3
+            application_name: dos-bot
         4:
-          action: CONFIGURE_DATABASE_CLIENT
+          action: configure-database-client
           options:
-            node_id: 0
-            config:
-              server_ip_address: 10.0.0.5
+            node_name: client_1
+            server_ip_address: 10.0.0.5
         5:
-          action: CONFIGURE_DATABASE_CLIENT
+          action: configure-database-client
           options:
-            node_id: 0
-            config:
-              server_password: correct_password
+            node_name: client_1
+            server_password: correct_password
         6:
-          action: CONFIGURE_RANSOMWARE_SCRIPT
+          action: configure-ransomware-script
           options:
-            node_id: 1
-            config:
-              server_ip_address: 10.0.0.5
-              server_password: correct_password
-              payload: ENCRYPT
+            node_name: client_2
+            server_ip_address: 10.0.0.5
+            server_password: correct_password
+            payload: ENCRYPT
         7:
-          action: CONFIGURE_DOSBOT
+          action: configure-dos-bot
           options:
-            node_id: 2
-            config:
-              target_ip_address: 10.0.0.5
-              target_port: POSTGRES_SERVER
-              payload: DELETE
-              repeat: true
-              port_scan_p_of_success: 1.0
-              dos_intensity: 1.0
-              max_sessions: 1000
+            node_name: client_3
+            target_ip_address: 10.0.0.5
+            target_port: POSTGRES_SERVER
+            payload: DELETE
+            repeat: true
+            port_scan_p_of_success: 1.0
+            dos_intensity: 1.0
+            max_sessions: 1000
         8:
-          action: NODE_APPLICATION_INSTALL
+          action: node-application-install
           options:
-            node_id: 1
-            application_name: DatabaseClient
-      options:
-        nodes:
-          - node_name: client_1
-          - node_name: client_2
-          - node_name: client_3
-        ip_list: []
-    reward_function:
-      reward_components:
-        - type: DUMMY
+            node_name: client_2
+            application_name: database-client
+    agent_settings:
+      flatten_obs: True
+      action_masking: False
 
 simulation:
   network:
@@ -120,7 +106,7 @@ simulation:
         subnet_mask: 255.255.255.0
         default_gateway: 10.0.0.1
         services:
-          - type: DatabaseService
+          - type: database-service
             options:
               db_password: correct_password
     links:

@@ -1,33 +1,13 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from enum import Enum
 
 from pydantic import BaseModel
 
 from primaite import getLogger
-from primaite.utils.validators import IPV4Address
+from primaite.utils.validation.ip_protocol import IPProtocol, PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
 
 _LOGGER = getLogger(__name__)
-
-
-class IPProtocol(Enum):
-    """
-    Enum representing transport layer protocols in IP header.
-
-    .. _List of IPProtocols:
-    """
-
-    NONE = "none"
-    """Placeholder for a non-protocol."""
-    TCP = "tcp"
-    """Transmission Control Protocol."""
-    UDP = "udp"
-    """User Datagram Protocol."""
-    ICMP = "icmp"
-    """Internet Control Message Protocol."""
-
-    def model_dump(self) -> str:
-        """Return as JSON-serialisable string."""
-        return self.name
 
 
 class Precedence(Enum):
@@ -81,7 +61,7 @@ class IPPacket(BaseModel):
     >>> ip_packet = IPPacket(
     ...     src_ip_address=IPv4Address('192.168.0.1'),
     ...     dst_ip_address=IPv4Address('10.0.0.1'),
-    ...     protocol=IPProtocol.TCP,
+    ...     protocol=IPProtocol["TCP"],
     ...     ttl=64,
     ...     precedence=Precedence.CRITICAL
     ... )
@@ -91,7 +71,7 @@ class IPPacket(BaseModel):
     "Source IP address."
     dst_ip_address: IPV4Address
     "Destination IP address."
-    protocol: IPProtocol = IPProtocol.TCP
+    protocol: IPProtocol = PROTOCOL_LOOKUP["TCP"]
     "IPProtocol."
     ttl: int = 64
     "Time to Live (TTL) for the packet."

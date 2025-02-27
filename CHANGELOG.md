@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.0.0] = TBC
+
+### Added
+-   Log observation space data by episode and step.
+-   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `do-nothing` actions are omitted.
+-  New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
+-  Added ability to set the observation threshold for NMNE, file access and application executions
+
+### Changed
+-   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
+-   Actions within PrimAITE are now extensible, allowing for plugin support.
+-   Added a config schema to `ObservationManager`, `ActionManager`, and `RewardFunction`.
+-   Streamlined the way agents are created from config
+-   Agent config no longer requires a dummy action space if the action space is empty, the same applies for observation space and reward function
+-   Actions now support a config schema, to allow yaml data validation and default parameter values
+-   Action parameters are no longer defined through IDs, instead meaningful data is provided directly in the action map
+-   Test and example YAMLs have been updated to match the new agent and action schemas, such as:
+    -   Removed empty action spaces, observation spaces, or reward spaces for agent which didn't use them
+    -   Relabeled action parameters to match the new action config schemas, and updated the values to no longer rely on indices
+    -   Removed action space options which were previously used for assigning meaning to action space IDs
+-   Updated tests that don't use YAMLs to still use the new action and agent schemas
+-   Nodes now use a config schema and are extensible, allowing for plugin support.
+-   Node tests have been updated to use the new node config schemas when not using YAML files.
+-   ACLs are no longer applied to layer-2 traffic.
+-   Random number seed values are recorded in simulation/seed.log if the seed is set in the config file
+    or `generate_seed_value` is set to `true`.
+-   ARP .show() method will now include the port number associated with each entry.
+-   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config to allow the agents to be able to see actual health states of services and applications without requiring scans (Default `True`, set to `False` to allow agents to see actual health state without scanning).
+-   Updated the `Terminal` class to provide response information when sending remote command execution.
+
+### Fixed
+-   DNS client no longer fails to check its cache if a DNS server address is missing.
+-   DNS client now correctly inherits the node's DNS address configuration setting.
+
+
+## [3.3.0] - 2024-09-04
 
 ## [3.4.0]
 
@@ -36,11 +72,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added reward calculation details to AgentHistoryItem.
 -   Added a new Privilege-Escalation-and Data-Loss-Example.ipynb notebook with a realistic cyber scenario focusing on
     internal privilege escalation and data loss through the manipulation of SSH access and Access Control Lists (ACLs).
+-   Added a new extensible `NetworkNodeAdder` class for convenient addition of sets of nodes based on a simplified config.
 
 ### Changed
 -   File and folder observations can now be configured to always show the true health status, or require scanning like before.
 -   It's now possible to disable stickiness on reward components, meaning their value returns to 0 during timesteps where agent don't issue the corresponding action. Affects `GreenAdminDatabaseUnreachablePenalty`, `WebpageUnavailablePenalty`, `WebServer404Penalty`
 -   Node observations can now be configured to show the number of active local and remote logins.
+-   Ports and IP Protocols no longer use enums. They are defined in dictionary lookups and are handled by custom validation to enable extensibility with plugins.
+-   Changed AirSpaceFrequency to a data transfer object with a registry to allow extensibility
+-   Changed the Office LAN creation convenience function to follow the new `NetworkNodeAdder` pattern. Office LANs can now also be defined in YAML config.
 
 ### Fixed
 -   Folder observations showing the true health state without scanning (the old behaviour can be reenabled via config)
@@ -48,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     and `uninstall` methods in the `Node` class.
 -   Updated the `receive_payload_from_session_manager` method in `SoftwareManager` so that it now sends a copy of the
     payload to any software listening on the destination port of the `Frame`.
+-   Made the `show` method of `Network` show all node types, including ones registered at runtime
 
 ### Removed
 -   Removed the `install` and `uninstall` methods in the `Node` class.

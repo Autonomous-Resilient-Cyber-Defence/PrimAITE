@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from ipaddress import IPv4Address
 from time import sleep
 from typing import Tuple
@@ -29,12 +29,12 @@ def create_ntp_network(client_server) -> Tuple[NTPClient, Computer, NTPServer, S
 
     server.power_on()
     server.software_manager.install(NTPServer)
-    ntp_server: NTPServer = server.software_manager.software.get("NTPServer")
+    ntp_server: NTPServer = server.software_manager.software.get("ntp-server")
     ntp_server.start()
 
     client.power_on()
     client.software_manager.install(NTPClient)
-    ntp_client: NTPClient = client.software_manager.software.get("NTPClient")
+    ntp_client: NTPClient = client.software_manager.software.get("ntp-client")
     ntp_client.start()
 
     return ntp_client, client, ntp_server, server
@@ -43,8 +43,8 @@ def create_ntp_network(client_server) -> Tuple[NTPClient, Computer, NTPServer, S
 def test_ntp_client_server(create_ntp_network):
     ntp_client, client, ntp_server, server = create_ntp_network
 
-    ntp_server: NTPServer = server.software_manager.software["NTPServer"]
-    ntp_client: NTPClient = client.software_manager.software["NTPClient"]
+    ntp_server: NTPServer = server.software_manager.software["ntp-server"]
+    ntp_client: NTPClient = client.software_manager.software["ntp-client"]
 
     assert ntp_server.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
@@ -64,8 +64,8 @@ def test_ntp_client_server(create_ntp_network):
 def test_ntp_server_failure(create_ntp_network):
     ntp_client, client, ntp_server, server = create_ntp_network
 
-    ntp_server: NTPServer = server.software_manager.software["NTPServer"]
-    ntp_client: NTPClient = client.software_manager.software["NTPClient"]
+    ntp_server: NTPServer = server.software_manager.software["ntp-server"]
+    ntp_client: NTPClient = client.software_manager.software["ntp-client"]
 
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING
     assert ntp_client.operating_state == ServiceOperatingState.RUNNING

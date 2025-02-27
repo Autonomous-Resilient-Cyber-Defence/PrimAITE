@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from abc import abstractmethod
@@ -7,7 +7,7 @@ from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional, Union
 from uuid import uuid4
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from primaite.interface.request import RequestFormat, RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
@@ -17,10 +17,10 @@ from primaite.simulator.network.protocols.ssh import (
     SSHTransportMessage,
     SSHUserCredentials,
 )
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.core.software_manager import SoftwareManager
 from primaite.simulator.system.services.service import Service, ServiceOperatingState
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.port import PORT_LOOKUP
 
 
 # TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor
@@ -129,8 +129,15 @@ class RemoteTerminalConnection(TerminalClientConnection):
         return self.parent_terminal.send(payload=payload, session_id=self.ssh_session_id)
 
 
-class Terminal(Service):
+class Terminal(Service, discriminator="terminal"):
     """Class used to simulate a generic terminal service. Can be interacted with by other terminals via SSH."""
+
+    class ConfigSchema(Service.ConfigSchema):
+        """ConfigSchema for Terminal."""
+
+        type: str = "terminal"
+
+    config: "Terminal.ConfigSchema" = Field(default_factory=lambda: Terminal.ConfigSchema())
 
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
     """Dictionary of connect requests made to remote nodes."""
@@ -139,9 +146,9 @@ class Terminal(Service):
     """Last response received from RequestManager, for returning remote RequestResponse."""
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "Terminal"
-        kwargs["port"] = Port.SSH
-        kwargs["protocol"] = IPProtocol.TCP
+        kwargs["name"] = "terminal"
+        kwargs["port"] = PORT_LOOKUP["SSH"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
 
     @property
@@ -187,7 +194,7 @@ class Terminal(Service):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "ssh_to_remote",
+            "node_session_remote_login",
             request_type=RequestType(func=_remote_login),
         )
 
@@ -304,7 +311,6 @@ class Terminal(Service):
         :param password: Password for login.
         :return: boolean, True if successful, else False
         """
-        # TODO: Un-comment this when UserSessionManager is merged.
         connection_uuid = self.parent.user_session_manager.local_login(username=username, password=password)
         if connection_uuid:
             self.sys_log.info(f"{self.name}: Login request authorised, connection uuid: {connection_uuid}")

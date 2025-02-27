@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _Terminal:
 
@@ -78,16 +78,16 @@ The below code examples demonstrate how to use terminal related actions in yaml 
 yaml
 """"
 
-``NODE_SEND_LOCAL_COMMAND``
+``node-send-local-command``
 """""""""""""""""""""""""""
 
-Agents can execute local commands without needing to perform a separate remote login action (``SSH_TO_REMOTE``).
+Agents can execute local commands without needing to perform a separate remote login action (``node-session-remote-login``).
 
 .. code-block:: yaml
 
     ...
         ...
-          action: NODE_SEND_LOCAL_COMMAND
+          action: node-send-local-command
           options:
             node_id: 0
             username: admin
@@ -101,7 +101,7 @@ Agents can execute local commands without needing to perform a separate remote l
               - "False"
 
 
-``SSH_TO_REMOTE``
+``node-session-remote-login``
 """""""""""""""""
 
 Agents are able to use the terminal to login into remote nodes via ``SSH`` which allows for agents to execute commands on remote hosts.
@@ -110,7 +110,7 @@ Agents are able to use the terminal to login into remote nodes via ``SSH`` which
 
     ...
         ...
-          action: SSH_TO_REMOTE
+          action: node-session-remote-login
           options:
             node_id: 0
             username: admin
@@ -118,16 +118,16 @@ Agents are able to use the terminal to login into remote nodes via ``SSH`` which
             remote_ip: 192.168.0.10 # Example Ip Address. (The remote host's IP that will be used by ssh)
 
 
-``NODE_SEND_REMOTE_COMMAND``
+``node-send-remote-command``
 """"""""""""""""""""""""""""
 
-After remotely logging into another host, an agent can use the ``NODE_SEND_REMOTE_COMMAND`` to execute commands across the network remotely.
+After remotely logging into another host, an agent can use the ``node-send-remote-command`` to execute commands across the network remotely.
 
 .. code-block:: yaml
 
     ...
         ...
-          action: NODE_SEND_REMOTE_COMMAND
+          action: node-send-remote-command
           options:
             node_id: 0
             remote_ip: 192.168.0.10
@@ -166,7 +166,7 @@ Python
         operating_state=NodeOperatingState.ON,
     )
 
-    terminal: Terminal = client.software_manager.software.get("Terminal")
+    terminal: Terminal = client.software_manager.software.get("terminal")
 
 Creating Remote Terminal Connection
 """""""""""""""""""""""""""""""""""
@@ -187,7 +187,7 @@ Creating Remote Terminal Connection
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
-    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = node_a.software_manager.software.get("terminal")
 
 
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
@@ -213,12 +213,12 @@ Executing a basic application install command
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
-    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = node_a.software_manager.software.get("terminal")
 
 
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
 
-    term_a_term_b_remote_connection.execute(["software_manager", "application", "install", "RansomwareScript"])
+    term_a_term_b_remote_connection.execute(["software_manager", "application", "install", "ransomware-script"])
 
 
 
@@ -241,7 +241,7 @@ Creating a folder on a remote node
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
-    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = node_a.software_manager.software.get("terminal")
 
 
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")
@@ -268,7 +268,7 @@ Disconnect from Remote Node
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
-    terminal_a: Terminal = node_a.software_manager.software.get("Terminal")
+    terminal_a: Terminal = node_a.software_manager.software.get("terminal")
 
 
     term_a_term_b_remote_connection: RemoteTerminalConnection = terminal_a.login(username="admin", password="Admin123!", ip_address="192.168.0.11")

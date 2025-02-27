@@ -1,6 +1,6 @@
 .. only:: comment
 
-    © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+    © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
 .. _NTPServer:
 
@@ -55,7 +55,7 @@ Python
 
     # Install NTPServer on server
     server.software_manager.install(NTPServer)
-    ntp_server: NTPServer = server.software_manager.software.get("NTPServer")
+    ntp_server: NTPServer = server.software_manager.software.get("ntp-server")
     ntp_server.start()
 
 
@@ -73,7 +73,7 @@ Via Configuration
                 ...
                 services:
                     - ref: ntp_server
-                    type: NTPServer
+                    type: ntp-server
 
 
 ``Common Attributes``

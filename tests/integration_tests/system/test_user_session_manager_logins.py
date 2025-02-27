@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from typing import Tuple
 from uuid import uuid4
 
@@ -14,21 +14,27 @@ from primaite.simulator.network.hardware.nodes.host.server import Server
 def client_server_network() -> Tuple[Computer, Server, Network]:
     network = Network()
 
-    client = Computer(
-        hostname="client",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    client = Computer.from_config(
+        config={
+            "type": "computer",
+            "hostname": "client",
+            "ip_address": "192.168.1.2",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     client.power_on()
 
-    server = Server(
-        hostname="server",
-        ip_address="192.168.1.3",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    server = Server.from_config(
+        config={
+            "type": "server",
+            "hostname": "server",
+            "ip_address": "192.168.1.3",
+            "subnet_mask": "255.255.255.0",
+            "default_gateway": "192.168.1.1",
+            "start_up_duration": 0,
+        }
     )
     server.power_on()
 

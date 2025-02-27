@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from __future__ import annotations
 
 from pathlib import Path
@@ -29,6 +29,11 @@ class FileSystem(SimComponent):
     "Number of file creations in the current step."
     num_file_deletions: int = 0
     "Number of file deletions in the current step."
+
+    _default_folder_scan_duration: Optional[int] = None
+    "Override default scan duration for folders"
+    _default_folder_restore_duration: Optional[int] = None
+    "Override default restore duration for folders"
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -258,6 +263,11 @@ class FileSystem(SimComponent):
                 name=folder.name, request_type=RequestType(func=folder._request_manager)
             )
         self.folders[folder.uuid] = folder
+        # set the folder scan and restore durations.
+        if self._default_folder_scan_duration is not None:
+            folder.scan_duration = self._default_folder_scan_duration
+        if self._default_folder_restore_duration is not None:
+            folder.restore_duration = self._default_folder_restore_duration
         return folder
 
     def delete_folder(self, folder_name: str) -> bool:

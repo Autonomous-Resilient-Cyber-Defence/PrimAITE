@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import pytest
 from gymnasium import spaces
 
@@ -24,7 +24,7 @@ def test_file_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png")
 
     dog_file_obs = FileObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+        where=["network", "nodes", pc.config.hostname, "file_system", "folders", "root", "files", "dog.png"],
         include_num_access=False,
         file_system_requires_scan=True,
     )
@@ -32,11 +32,11 @@ def test_file_observation(simulation):
     assert dog_file_obs.space["health_status"] == spaces.Discrete(6)
 
     observation_state = dog_file_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # good initial
+    assert observation_state.get("health_status") == 0  # initially unset
 
     file.corrupt()
     observation_state = dog_file_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # scan file so this changes
+    assert observation_state.get("health_status") == 0  # still default unset value because no scan happened
 
     file.scan()
     file.apply_timestep(0)  # apply time step
@@ -47,7 +47,7 @@ def test_file_observation(simulation):
 def test_config_file_access_categories(simulation):
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     file_obs = FileObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+        where=["network", "nodes", pc.config.hostname, "file_system", "folders", "root", "files", "dog.png"],
         include_num_access=False,
         file_system_requires_scan=True,
         thresholds={"file_access": {"low": 3, "medium": 6, "high": 9}},
@@ -60,7 +60,7 @@ def test_config_file_access_categories(simulation):
     with pytest.raises(Exception):
         # should throw an error
         FileObservation(
-            where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+            where=["network", "nodes", pc.config.hostname, "file_system", "folders", "root", "files", "dog.png"],
             include_num_access=False,
             file_system_requires_scan=True,
             thresholds={"file_access": {"low": 9, "medium": 6, "high": 9}},
@@ -69,7 +69,7 @@ def test_config_file_access_categories(simulation):
     with pytest.raises(Exception):
         # should throw an error
         FileObservation(
-            where=["network", "nodes", pc.hostname, "file_system", "folders", "root", "files", "dog.png"],
+            where=["network", "nodes", pc.config.hostname, "file_system", "folders", "root", "files", "dog.png"],
             include_num_access=False,
             file_system_requires_scan=True,
             thresholds={"file_access": {"low": 3, "medium": 9, "high": 9}},
@@ -84,7 +84,7 @@ def test_folder_observation(simulation):
     file = pc.file_system.create_file(file_name="dog.png", folder_name="test_folder")
 
     root_folder_obs = FolderObservation(
-        where=["network", "nodes", pc.hostname, "file_system", "folders", "test_folder"],
+        where=["network", "nodes", pc.config.hostname, "file_system", "folders", "test_folder"],
         include_num_access=False,
         file_system_requires_scan=True,
         num_files=1,
@@ -95,11 +95,11 @@ def test_folder_observation(simulation):
 
     observation_state = root_folder_obs.observe(simulation.describe_state())
     assert observation_state.get("FILES") is not None
-    assert observation_state.get("health_status") == 1
+    assert observation_state.get("health_status") == 0  # initially unset
 
     file.corrupt()  # corrupt just the file
     observation_state = root_folder_obs.observe(simulation.describe_state())
-    assert observation_state.get("health_status") == 1  # scan folder to change this
+    assert observation_state.get("health_status") == 0  # still unset as no scan occurred yet
 
     folder.scan()
     for i in range(folder.scan_duration + 1):

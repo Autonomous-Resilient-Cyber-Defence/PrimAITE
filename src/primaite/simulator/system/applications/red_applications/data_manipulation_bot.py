@@ -1,16 +1,19 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 from enum import IntEnum
 from ipaddress import IPv4Address
 from typing import Dict, Optional
+
+from pydantic import Field
 
 from primaite import getLogger
 from primaite.game.science import simulate_trial
 from primaite.interface.request import RequestResponse
 from primaite.simulator.core import RequestManager, RequestType
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient, DatabaseClientConnection
+from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
+from primaite.utils.validation.ipv4_address import IPV4Address
+from primaite.utils.validation.port import PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
@@ -37,8 +40,21 @@ class DataManipulationAttackStage(IntEnum):
     "Signifies that the attack has failed."
 
 
-class DataManipulationBot(Application, identifier="DataManipulationBot"):
+class DataManipulationBot(Application, discriminator="data-manipulation-bot"):
     """A bot that simulates a script which performs a SQL injection attack."""
+
+    class ConfigSchema(Application.ConfigSchema):
+        """Configuration schema for DataManipulationBot."""
+
+        type: str = "data-manipulation-bot"
+        server_ip: Optional[IPV4Address] = None
+        server_password: Optional[str] = None
+        payload: str = "DELETE"
+        port_scan_p_of_success: float = 0.1
+        data_manipulation_p_of_success: float = 0.1
+        repeat: bool = True
+
+    config: "DataManipulationBot.ConfigSchema" = Field(default_factory=lambda: DataManipulationBot.ConfigSchema())
 
     payload: Optional[str] = None
     port_scan_p_of_success: float = 0.1
@@ -49,12 +65,19 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
     "Whether to repeat attacking once finished."
 
     def __init__(self, **kwargs):
-        kwargs["name"] = "DataManipulationBot"
-        kwargs["port"] = Port.NONE
-        kwargs["protocol"] = IPProtocol.NONE
+        kwargs["name"] = "data-manipulation-bot"
+        kwargs["port"] = PORT_LOOKUP["NONE"]
+        kwargs["protocol"] = PROTOCOL_LOOKUP["NONE"]
 
         super().__init__(**kwargs)
         self._db_connection: Optional[DatabaseClientConnection] = None
+
+        self.server_ip_address = self.config.server_ip
+        self.server_password = self.config.server_password
+        self.payload = self.config.payload
+        self.port_scan_p_of_success = self.config.port_scan_p_of_success
+        self.data_manipulation_p_of_success = self.config.data_manipulation_p_of_success
+        self.repeat = self.config.repeat
 
     def describe_state(self) -> Dict:
         """
@@ -71,7 +94,7 @@ class DataManipulationBot(Application, identifier="DataManipulationBot"):
     @property
     def _host_db_client(self) -> DatabaseClient:
         """Return the database client that is installed on the same machine as the DataManipulationBot."""
-        db_client = self.software_manager.software.get("DatabaseClient")
+        db_client = self.software_manager.software.get("database-client")
         if db_client is None:
             self.sys_log.warning(f"{self.__class__.__name__} cannot find a database client on its host.")
         return db_client

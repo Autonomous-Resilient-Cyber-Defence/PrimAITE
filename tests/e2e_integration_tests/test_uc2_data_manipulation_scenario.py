@@ -1,4 +1,4 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 import yaml
 
 from primaite.game.game import PrimaiteGame
@@ -14,13 +14,13 @@ from tests import TEST_ASSETS_ROOT
 def test_data_manipulation(uc2_network):
     """Tests the UC2 data manipulation scenario end-to-end. Is a work in progress."""
     client_1: Computer = uc2_network.get_node_by_hostname("client_1")
-    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("DataManipulationBot")
+    db_manipulation_bot: DataManipulationBot = client_1.software_manager.software.get("data-manipulation-bot")
 
     database_server: Server = uc2_network.get_node_by_hostname("database_server")
-    db_service: DatabaseService = database_server.software_manager.software.get("DatabaseService")
+    db_service: DatabaseService = database_server.software_manager.software.get("database-service")
 
     web_server: Server = uc2_network.get_node_by_hostname("web_server")
-    db_client: DatabaseClient = web_server.software_manager.software.get("DatabaseClient")
+    db_client: DatabaseClient = web_server.software_manager.software.get("database-client")
     db_connection: DatabaseClientConnection = db_client.get_new_connection()
     db_service.backup_database()
 
@@ -49,7 +49,7 @@ def test_application_install_uninstall_on_uc2():
         cfg = yaml.safe_load(f)
 
     env = PrimaiteGymEnv(env_config=cfg)
-    env.agent.flatten_obs = False
+    env.agent.config.agent_settings.flatten_obs = False
     env.reset()
 
     _, _, _, _, _ = env.step(0)
@@ -61,7 +61,7 @@ def test_application_install_uninstall_on_uc2():
 
     # Test we can Install the DoSBot app
     _, _, _, _, info = env.step(78)
-    assert "DoSBot" in domcon.software_manager.software
+    assert "dos-bot" in domcon.software_manager.software
 
     # installing takes 3 steps so let's wait for 3 steps
     env.step(0)
@@ -75,13 +75,13 @@ def test_application_install_uninstall_on_uc2():
 
     # Test we can Uninstall the DoSBot app
     _, _, _, _, info = env.step(79)
-    assert "DoSBot" not in domcon.software_manager.software
+    assert "dos-bot" not in domcon.software_manager.software
 
     # Test we cannot execute the DoSBot app as it was uninstalled
     _, _, _, _, info = env.step(81)
     assert info["agent_actions"]["defender"].response.status == "unreachable"
 
     # Test we can uninstall one of the default apps (WebBrowser)
-    assert "WebBrowser" in domcon.software_manager.software
+    assert "web-browser" in domcon.software_manager.software
     _, _, _, _, info = env.step(80)
-    assert "WebBrowser" not in domcon.software_manager.software
+    assert "web-browser" not in domcon.software_manager.software

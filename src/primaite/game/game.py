@@ -1,36 +1,22 @@
-# © Crown-owned copyright 2024, Defence Science and Technology Laboratory UK
+# © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 """PrimAITE game - Encapsulates the simulation and agents."""
-from ipaddress import IPv4Address
 from typing import Dict, List, Optional, Union
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
-from primaite.game.agent.actions import ActionManager
-from primaite.game.agent.interface import AbstractAgent, AgentSettings, ProxyAgent
+from primaite.game.agent.interface import AbstractAgent, ProxyAgent
 from primaite.game.agent.observations import NICObservation
-from primaite.game.agent.observations.observation_manager import ObservationManager
-from primaite.game.agent.rewards import RewardFunction, SharedReward
-from primaite.game.agent.scripted_agents.data_manipulation_bot import DataManipulationAgent
-from primaite.game.agent.scripted_agents.probabilistic_agent import ProbabilisticAgent
-from primaite.game.agent.scripted_agents.random_agent import PeriodicAgent
-from primaite.game.agent.scripted_agents.tap001 import TAP001
+from primaite.game.agent.rewards import SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
-from primaite.simulator.file_system.file_type import FileType
-from primaite.simulator.network.airspace import AirSpaceFrequency
-from primaite.simulator.network.hardware.base import NetworkInterface, NodeOperatingState, UserManager
-from primaite.simulator.network.hardware.nodes.host.computer import Computer
+from primaite.simulator.network.creation import NetworkNodeAdder
+from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
-from primaite.simulator.network.hardware.nodes.host.server import Printer, Server
-from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
-from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig
-from primaite.simulator.network.transmission.network_layer import IPProtocol
-from primaite.simulator.network.transmission.transport_layer import Port
 from primaite.simulator.sim_container import Simulation
 from primaite.simulator.system.applications.application import Application
 from primaite.simulator.system.applications.database_client import DatabaseClient  # noqa: F401
@@ -53,19 +39,21 @@ from primaite.simulator.system.services.service import Service
 from primaite.simulator.system.services.terminal.terminal import Terminal
 from primaite.simulator.system.services.web_server.web_server import WebServer
 from primaite.simulator.system.software import Software
+from primaite.utils.validation.ip_protocol import IPProtocol
+from primaite.utils.validation.port import Port, PORT_LOOKUP
 
 _LOGGER = getLogger(__name__)
 
 SERVICE_TYPES_MAPPING = {
-    "DNSClient": DNSClient,
-    "DNSServer": DNSServer,
-    "DatabaseService": DatabaseService,
-    "WebServer": WebServer,
-    "FTPClient": FTPClient,
-    "FTPServer": FTPServer,
-    "NTPClient": NTPClient,
-    "NTPServer": NTPServer,
-    "Terminal": Terminal,
+    "dns-client": DNSClient,
+    "dns-server": DNSServer,
+    "database-service": DatabaseService,
+    "web-server": WebServer,
+    "ftp-client": FTPClient,
+    "ftp-server": FTPServer,
+    "ntp-client": NTPClient,
+    "ntp-server": NTPServer,
+    "terminal": Terminal,
 }
 """List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
@@ -85,9 +73,9 @@ class PrimaiteGameOptions(BaseModel):
     """Internally generated seed value."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
-    ports: List[str]
+    ports: List[Port]
     """A whitelist of available ports in the simulation."""
-    protocols: List[str]
+    protocols: List[IPProtocol]
     """A whitelist of available protocols in the simulation."""
     thresholds: Optional[Dict] = {}
     """A dict containing the thresholds used for determining what is acceptable during observations."""
@@ -268,95 +256,49 @@ class PrimaiteGame:
         net = sim.network
 
         simulation_config = cfg.get("simulation", {})
+        defaults_config = cfg.get("defaults", {})
         network_config = simulation_config.get("network", {})
         airspace_cfg = network_config.get("airspace", {})
         frequency_max_capacity_mbps_cfg = airspace_cfg.get("frequency_max_capacity_mbps", {})
-
-        frequency_max_capacity_mbps_cfg = {AirSpaceFrequency[k]: v for k, v in frequency_max_capacity_mbps_cfg.items()}
-
-        net.airspace.frequency_max_capacity_mbps_ = frequency_max_capacity_mbps_cfg
+        net.airspace.set_frequency_max_capacity_mbps(frequency_max_capacity_mbps_cfg)
 
         nodes_cfg = network_config.get("nodes", [])
         links_cfg = network_config.get("links", [])
+        node_sets_cfg = network_config.get("node_sets", [])
         # Set the NMNE capture config
         NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
         NICObservation.capture_nmne = NMNEConfig(**network_config.get("nmne_config", {})).capture_nmne
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
+
             new_node = None
-            if n_type == "computer":
-                new_node = Computer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "server":
-                new_node = Server(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=IPv4Address(node_cfg.get("subnet_mask", "255.255.255.0")),
-                    default_gateway=node_cfg.get("default_gateway"),
-                    dns_server=node_cfg.get("dns_server", None),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "switch":
-                new_node = Switch(
-                    hostname=node_cfg["hostname"],
-                    num_ports=int(node_cfg.get("num_ports", "8")),
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
-            elif n_type == "router":
-                new_node = Router.from_config(node_cfg)
-            elif n_type == "firewall":
-                new_node = Firewall.from_config(node_cfg)
-            elif n_type == "wireless_router":
-                new_node = WirelessRouter.from_config(node_cfg, airspace=net.airspace)
-            elif n_type == "printer":
-                new_node = Printer(
-                    hostname=node_cfg["hostname"],
-                    ip_address=node_cfg["ip_address"],
-                    subnet_mask=node_cfg["subnet_mask"],
-                    operating_state=NodeOperatingState.ON
-                    if not (p := node_cfg.get("operating_state"))
-                    else NodeOperatingState[p.upper()],
-                )
+            if n_type in Node._registry:
+                n_class = Node._registry[n_type]
+                if issubclass(n_class, WirelessRouter):
+                    new_node = n_class.from_config(config=node_cfg, airspace=net.airspace)
+                else:
+                    new_node = Node._registry[n_type].from_config(config=node_cfg)
             else:
                 msg = f"invalid node type {n_type} in config"
                 _LOGGER.error(msg)
                 raise ValueError(msg)
 
-            # handle node file system
-            if node_cfg.get("file_system"):
-                for folder_idx, folder_obj in enumerate(node_cfg.get("file_system")):
-                    # if the folder is not a Dict, create an empty folder
-                    if not isinstance(folder_obj, Dict):
-                        new_node.file_system.create_folder(folder_name=folder_obj)
-                    else:
-                        folder_name = next(iter(folder_obj))
-                        for file_idx, file_obj in enumerate(node_cfg["file_system"][folder_idx][folder_name]):
-                            if not isinstance(file_obj, Dict):
-                                new_node.file_system.create_file(folder_name=folder_name, file_name=file_obj)
-                            else:
-                                file_name = next(iter(file_obj))
-                                new_node.file_system.create_file(
-                                    folder_name=folder_name,
-                                    file_name=file_name,
-                                    size=file_obj[file_name].get("size", 0),
-                                    file_type=FileType[file_obj[file_name].get("type", "UNKNOWN").upper()],
-                                )
+            # TODO: handle simulation defaults more cleanly
+            if "node_start_up_duration" in defaults_config:
+                new_node.config.start_up_duration = defaults_config["node_startup_duration"]
+            if "node_shut_down_duration" in defaults_config:
+                new_node.config.shut_down_duration = defaults_config["node_shut_down_duration"]
+            if "node_scan_duration" in defaults_config:
+                new_node.config.node_scan_duration = defaults_config["node_scan_duration"]
+            if "folder_scan_duration" in defaults_config:
+                new_node.file_system._default_folder_scan_duration = defaults_config["folder_scan_duration"]
+            if "folder_restore_duration" in defaults_config:
+                new_node.file_system._default_folder_restore_duration = defaults_config["folder_restore_duration"]
 
-            if "users" in node_cfg and new_node.software_manager.software.get("UserManager"):
-                user_manager: UserManager = new_node.software_manager.software["UserManager"]  # noqa
+            if "users" in node_cfg and new_node.software_manager.software.get("user-manager"):
+                user_manager: UserManager = new_node.software_manager.software["user-manager"]  # noqa
+
                 for user_cfg in node_cfg["users"]:
                     user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
 
@@ -366,9 +308,9 @@ class PrimaiteGame:
                 for port_id in set(software_cfg.get("options", {}).get("listen_on_ports", [])):
                     port = None
                     if isinstance(port_id, int):
-                        port = Port(port_id)
+                        port = port_id
                     elif isinstance(port_id, str):
-                        port = Port[port_id]
+                        port = PORT_LOOKUP[port_id]
                     if port:
                         listen_on_ports.append(port)
                 software.listen_on_ports = set(listen_on_ports)
@@ -377,14 +319,22 @@ class PrimaiteGame:
                 for service_cfg in node_cfg["services"]:
                     new_service = None
                     service_type = service_cfg["type"]
-                    if service_type in SERVICE_TYPES_MAPPING:
-                        _LOGGER.debug(f"installing {service_type} on node {new_node.hostname}")
-                        new_node.software_manager.install(SERVICE_TYPES_MAPPING[service_type])
+
+                    service_class = None
+                    # Handle extended services
+                    if service_type.lower() in Service._registry:
+                        service_class = Service._registry[service_type.lower()]
+                    elif service_type in SERVICE_TYPES_MAPPING:
+                        service_class = SERVICE_TYPES_MAPPING[service_type]
+
+                    if service_class is not None:
+                        _LOGGER.debug(f"installing {service_type} on node {new_node.config.hostname}")
+                        new_node.software_manager.install(service_class, software_config=service_cfg.get("options", {}))
                         new_service = new_node.software_manager.software[service_type]
 
                         # fixing duration for the service
-                        if "fix_duration" in service_cfg.get("options", {}):
-                            new_service.fixing_duration = service_cfg["options"]["fix_duration"]
+                        if "fixing_duration" in service_cfg.get("options", {}):
+                            new_service.config.fixing_duration = service_cfg["options"]["fixing_duration"]
 
                         _set_software_listen_on_ports(new_service, service_cfg)
                         # start the service
@@ -393,111 +343,42 @@ class PrimaiteGame:
                         msg = f"Configuration contains an invalid service type: {service_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
-                    # service-dependent options
-                    if service_type == "DNSClient":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            if "dns_server" in opt:
-                                new_service.dns_server = IPv4Address(opt["dns_server"])
-                    if service_type == "DNSServer":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            if "domain_mapping" in opt:
-                                for domain, ip in opt["domain_mapping"].items():
-                                    new_service.dns_register(domain, IPv4Address(ip))
-                    if service_type == "DatabaseService":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.password = opt.get("db_password", None)
-                            if "backup_server_ip" in opt:
-                                new_service.configure_backup(backup_server=IPv4Address(opt.get("backup_server_ip")))
-                    if service_type == "FTPServer":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.server_password = opt.get("server_password")
-                    if service_type == "NTPClient":
-                        if "options" in service_cfg:
-                            opt = service_cfg["options"]
-                            new_service.ntp_server = IPv4Address(opt.get("ntp_server_ip"))
+
+                    # TODO: handle simulation defaults more cleanly
+                    if "service_fix_duration" in defaults_config:
+                        new_service.config.fixing_duration = defaults_config["service_fix_duration"]
+                    if "service_restart_duration" in defaults_config:
+                        new_service.restart_duration = defaults_config["service_restart_duration"]
+                    if "service_install_duration" in defaults_config:
+                        new_service.install_duration = defaults_config["service_install_duration"]
+
             if "applications" in node_cfg:
                 for application_cfg in node_cfg["applications"]:
                     new_application = None
                     application_type = application_cfg["type"]
 
-                    if application_type in Application._application_registry:
-                        new_node.software_manager.install(Application._application_registry[application_type])
+                    if application_type in Application._registry:
+                        application_class = Application._registry[application_type]
+                        application_options = application_cfg.get("options", {})
+                        application_options["type"] = application_type
+                        new_node.software_manager.install(application_class, software_config=application_options)
                         new_application = new_node.software_manager.software[application_type]  # grab the instance
 
-                        # fixing duration for the application
-                        if "fix_duration" in application_cfg.get("options", {}):
-                            new_application.fixing_duration = application_cfg["options"]["fix_duration"]
                     else:
                         msg = f"Configuration contains an invalid application type: {application_type}"
                         _LOGGER.error(msg)
                         raise ValueError(msg)
 
-                    _set_software_listen_on_ports(new_application, application_cfg)
-
                     # run the application
                     new_application.run()
 
-                    if application_type == "DataManipulationBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")),
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "DELETE"),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                data_manipulation_p_of_success=float(opt.get("data_manipulation_p_of_success", "0.1")),
-                            )
-                    elif application_type == "RansomwareScript":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("server_ip")) if opt.get("server_ip") else None,
-                                server_password=opt.get("server_password"),
-                                payload=opt.get("payload", "ENCRYPT"),
-                            )
-                    elif application_type == "DatabaseClient":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                server_ip_address=IPv4Address(opt.get("db_server_ip")),
-                                server_password=opt.get("server_password"),
-                            )
-                    elif application_type == "WebBrowser":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.target_url = opt.get("target_url")
-                    elif application_type == "DoSBot":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                target_ip_address=IPv4Address(opt.get("target_ip_address")),
-                                target_port=Port(opt.get("target_port", Port.POSTGRES_SERVER.value)),
-                                payload=opt.get("payload"),
-                                repeat=bool(opt.get("repeat")),
-                                port_scan_p_of_success=float(opt.get("port_scan_p_of_success", "0.1")),
-                                dos_intensity=float(opt.get("dos_intensity", "1.0")),
-                                max_sessions=int(opt.get("max_sessions", "1000")),
-                            )
-                    elif application_type == "C2Beacon":
-                        if "options" in application_cfg:
-                            opt = application_cfg["options"]
-                            new_application.configure(
-                                c2_server_ip_address=IPv4Address(opt.get("c2_server_ip_address")),
-                                keep_alive_frequency=(opt.get("keep_alive_frequency", 5)),
-                                masquerade_protocol=IPProtocol[(opt.get("masquerade_protocol", IPProtocol.TCP))],
-                                masquerade_port=Port[(opt.get("masquerade_port", Port.HTTP))],
-                            )
             if "network_interfaces" in node_cfg:
                 for nic_num, nic_cfg in node_cfg["network_interfaces"].items():
                     new_node.connect_nic(NIC(ip_address=nic_cfg["ip_address"], subnet_mask=nic_cfg["subnet_mask"]))
 
             # temporarily set to 0 so all nodes are initially on
-            new_node.start_up_duration = 0
-            new_node.shut_down_duration = 0
+            new_node.config.start_up_duration = 0
+            new_node.config.shut_down_duration = 0
 
             net.add_node(new_node)
             # run through the power on step if the node is to be turned on at the start
@@ -505,8 +386,12 @@ class PrimaiteGame:
                 new_node.power_on()
 
             # set start up and shut down duration
-            new_node.start_up_duration = int(node_cfg.get("start_up_duration", 3))
-            new_node.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+            new_node.config.start_up_duration = int(node_cfg.get("start_up_duration", 3))
+            new_node.config.shut_down_duration = int(node_cfg.get("shut_down_duration", 3))
+
+        # 1.1 Create Node Sets
+        for node_set_cfg in node_sets_cfg:
+            NetworkNodeAdder.from_config(node_set_cfg, network=net)
 
         # 2. create links between nodes
         for link_cfg in links_cfg:
@@ -528,76 +413,11 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
-            agent_ref = agent_cfg["ref"]  # noqa: F841
-            agent_type = agent_cfg["type"]
-            action_space_cfg = agent_cfg["action_space"]
-            observation_space_cfg = agent_cfg["observation_space"]
-            reward_function_cfg = agent_cfg["reward_function"]
-
-            # CREATE OBSERVATION SPACE
-            obs_space = ObservationManager.from_config(config=observation_space_cfg, thresholds=game.options.thresholds)
-
-            # CREATE ACTION SPACE
-            action_space = ActionManager.from_config(game, action_space_cfg)
-
-            # CREATE REWARD FUNCTION
-            reward_function = RewardFunction.from_config(reward_function_cfg)
-
-            # CREATE AGENT
-            if agent_type == "ProbabilisticAgent":
-                # TODO: implement non-random agents and fix this parsing
-                settings = agent_cfg.get("agent_settings", {})
-                new_agent = ProbabilisticAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-            elif agent_type == "PeriodicAgent":
-                settings = PeriodicAgent.Settings(**agent_cfg.get("settings", {}))
-                new_agent = PeriodicAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    settings=settings,
-                )
-
-            elif agent_type == "ProxyAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = ProxyAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-                game.rl_agents[agent_cfg["ref"]] = new_agent
-            elif agent_type == "RedDatabaseCorruptingAgent":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-
-                new_agent = DataManipulationAgent(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            elif agent_type == "TAP001":
-                agent_settings = AgentSettings.from_config(agent_cfg.get("agent_settings"))
-                new_agent = TAP001(
-                    agent_name=agent_cfg["ref"],
-                    action_space=action_space,
-                    observation_space=obs_space,
-                    reward_function=reward_function,
-                    agent_settings=agent_settings,
-                )
-            else:
-                msg = f"Configuration error: {agent_type} is not a valid agent type."
-                _LOGGER.error(msg)
-                raise ValueError(msg)
+            agent_cfg = {**agent_cfg, "thresholds": game.options.thresholds}
+            new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
+            if isinstance(new_agent, ProxyAgent):
+                game.rl_agents[agent_cfg["ref"]] = new_agent
 
         # Validate that if any agents are sharing rewards, they aren't forming an infinite loop.
         game.setup_reward_sharing()
@@ -626,7 +446,7 @@ class PrimaiteGame:
             for comp, weight in agent.reward_function.reward_components:
                 if isinstance(comp, SharedReward):
                     comp: SharedReward
-                    graph[name].add(comp.agent_name)
+                    graph[name].add(comp.config.agent_name)
 
                     # while constructing the graph, we might as well set up the reward sharing itself.
                     comp.callback = lambda agent_name: self.agents[agent_name].reward_function.current_reward
