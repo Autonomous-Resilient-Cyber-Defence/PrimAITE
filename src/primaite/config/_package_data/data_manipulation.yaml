@@ -84,7 +84,7 @@ agents:
           action: node-application-execute
           options:
             node_name: client_1
-            application_name: web-browser
+            application_name: database-client
 
     reward_function:
       reward_components:
