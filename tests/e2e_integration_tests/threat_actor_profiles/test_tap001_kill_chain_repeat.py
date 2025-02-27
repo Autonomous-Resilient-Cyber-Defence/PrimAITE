@@ -62,7 +62,7 @@ def test_tap001_repeating_kill_chain():
     if tap001.current_kill_chain_stage != BaseKillChain.SUCCEEDED:
         pytest.fail("Attacker Never Reached SUCCEEDED - Please evaluate current TAP Logic.")
 
-    # Stepping twice for the succeeded logic to kick in:
+    # Stepping four timesteps (2 TAP001 steps) for the succeeded logic to kick in:
     env.step(0)
     env.step(0)
     env.step(0)
