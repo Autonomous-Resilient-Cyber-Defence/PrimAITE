@@ -22,12 +22,6 @@ from primaite.simulator.system.services.database.database_service import Databas
 START_STEP = 1  # The starting step of the agent.
 FREQUENCY = 2  # The frequency of kill chain stage progression (E.g it's next attempt at "attacking").
 VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
-
-# Defining constants.
-
-START_STEP = 1  # The starting step of the agent.
-FREQUENCY = 2  # The frequency of kill chain stage progression (E.g it's next attempt at "attacking").
-VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
 REPEAT_KILL_CHAIN = False  # Should the TAP repeat the kill chain after success/failure?
 REPEAT_KILL_CHAIN_STAGES = False  # Should the TAP restart from it's previous stage on failure?
 KILL_CHAIN_PROBABILITY = 1  # Blank probability for agent 'success'
@@ -60,7 +54,8 @@ def test_tap001_kill_chain_stage_DOWNLOAD():
     starting_host = env.game.simulation.network.get_node_by_hostname(tap001.starting_node)
     assert tap001.current_kill_chain_stage == BaseKillChain.NOT_STARTED
 
-    # Frequency is set to two steps
+    # Frequency is set to two steps so we need to step through the environment a couple of times
+    # In order for TAP001 to move onto the next kill chain stage.
     env.step(0)
     env.step(0)
 

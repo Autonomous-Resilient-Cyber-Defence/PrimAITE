@@ -19,9 +19,9 @@ def uc7_tap001_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
 
-    for a in cfg["agents"]:
-        if a["ref"] == "attacker":
-            tap_cfg = a
+    for agents in cfg["agents"]:
+        if agents["ref"] == "attacker":
+            tap_cfg = agents
 
     tap_cfg["agent_settings"]["start_step"] = 1
     tap_cfg["agent_settings"]["frequency"] = 5
@@ -43,9 +43,9 @@ def uc7_tap003_env(**kwargs) -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", "r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
 
-    for a in cfg["agents"]:
-        if a["ref"] == "attacker":
-            tap_cfg = a
+    for agents in cfg["agents"]:
+        if agents["ref"] == "attacker":
+            tap_cfg = agents
 
     tap_cfg["agent_settings"]["start_step"] = 1
     tap_cfg["agent_settings"]["frequency"] = 5
@@ -112,7 +112,7 @@ def test_outcome_handler():
     env = uc7_tap003_env(repeat_kill_chain=False, repeat_kill_chain_stages=False)  # Using TAP003 for PyTests.
     tap: TAP003 = env.game.agents["attacker"]
     tap.current_kill_chain_stage = BaseKillChain.FAILED
-
+    # 6 Iterations as the attacker frequency is set to 5. Therefore, after 6 timesteps we expect the agent to realise it's failed the kill chain.
     for _ in range(6):
         env.step(0)
     assert tap.actions_concluded == True

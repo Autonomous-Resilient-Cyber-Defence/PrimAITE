@@ -22,7 +22,7 @@ VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next t
 
 
 def uc7_tap001_env(**kwargs) -> PrimaiteGymEnv:
-    """Setups the UC7 tap001 Game with the start_step & frequency set to 1 with probabilities set to 1 as well"""
+    """Setups the UC7 tap001 game with a 1 timestep start_step, frequency of 2 and probabilities set to 1 as well"""
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
@@ -47,15 +47,15 @@ def test_tap001_repeating_kill_chain():
     )
     tap001: TAP001 = env.game.agents["attacker"]
     # Looping for 50 timesteps - As the agent is set to execute an action every 2 timesteps
-    # This is the equivalent of the agent taking 20 actions.
+    # This is the equivalent of the agent taking 25 actions.
     for _ in range(50):  # This for loop should never actually fully complete.
         if tap001.current_kill_chain_stage == BaseKillChain.SUCCEEDED:
             break
         env.step(0)
 
     # Catches if the above for loop fully completes.
-    # This test uses a probability of 1 for all stages and a variance of 2 timesteps
-    # Thus the for loop above should never fail.
+    # This test uses a probability of 1 for all stages and a frequency of 2 timesteps
+    # Thus the for loop above should never complete it's full 50 iterations.
     # If this occurs then there is an error somewhere in either:
     # 1. The TAP Logic
     # 2. Failing Agent Actions are causing the TAP to fail. (See tap_return_handler).

@@ -22,7 +22,7 @@ VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next t
 
 
 def uc7_tap003_env() -> PrimaiteGymEnv:
-    """Setups the UC7 TAP003 Game with the start_step & frequency set to 1 with probabilities set to 1 as well"""
+    """Setups the UC7 TAP003 Game with a 1 timestep start_step, frequency of 2 and probabilities set to 1 as well"""
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
@@ -50,9 +50,10 @@ def test_tap003_insider_kill_chain_load():
     env = uc7_tap003_env()  # Using TAP003 for PyTests.
     tap: TAP003 = env.game.agents["attacker"]
     # Asserting that the Base Kill Chain intEnum stages are loaded
-    assert BaseKillChain.FAILED in [enums for enums in tap.selected_kill_chain]
-    assert BaseKillChain.SUCCEEDED in [enums for enums in tap.selected_kill_chain]
-    assert BaseKillChain.NOT_STARTED in [enums for enums in tap.selected_kill_chain]
+    kill_chain_enums = [enums for enums in tap.selected_kill_chain]
+    assert BaseKillChain.FAILED in kill_chain_enums
+    assert BaseKillChain.SUCCEEDED in kill_chain_enums
+    assert BaseKillChain.NOT_STARTED in kill_chain_enums
     # Asserting that the Insider Kill Chain intenum stages are loaded.
     assert len(InsiderKillChain.__members__) == len(tap.selected_kill_chain.__members__)
 
@@ -62,8 +63,9 @@ def test_tap001_mobile_malware_kill_chain_load():
     env = uc7_tap001_env()  # Using TAP003 for PyTests.
     tap: TAP001 = env.game.agents["attacker"]
     # Asserting that the Base Kill Chain intEnum stages are loaded.
-    assert BaseKillChain.FAILED in [enums for enums in tap.selected_kill_chain]
-    assert BaseKillChain.SUCCEEDED in [enums for enums in tap.selected_kill_chain]
-    assert BaseKillChain.NOT_STARTED in [enums for enums in tap.selected_kill_chain]
+    kill_chain_enums = [enums for enums in tap.selected_kill_chain]
+    assert BaseKillChain.FAILED in kill_chain_enums
+    assert BaseKillChain.SUCCEEDED in kill_chain_enums
+    assert BaseKillChain.NOT_STARTED in kill_chain_enums
     # Asserting that the Insider Kill Chain intEnum stages are loaded.
     assert len(MobileMalwareKillChain.__members__) == len(tap.selected_kill_chain.__members__)
