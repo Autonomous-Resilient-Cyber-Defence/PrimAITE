@@ -9,6 +9,8 @@ Creating Custom Rewards in PrimAITE
 
 Rewards within PrimAITE are contained within ``rewards.py``, which details the rewards available for all agents within training sessions, how they are calculated and any other specific information where necessary.
 
+Rewards within PrimAITE have been updated to facilitate extensability and the creation of plugins with the release of PrimAITE version 4.0. Additional information about this is covered within :ref:`extensible_rewards`.
+
 Custom Rewards within PrimAITE should inherit from the ``AbstractReward`` class, found in ``rewards.py``. It's important to include an identifier for any class created within PrimAITE.
 
 .. code:: Python

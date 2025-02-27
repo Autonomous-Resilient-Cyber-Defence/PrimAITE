@@ -65,4 +65,4 @@ The above action would fail pydantic validation as the discriminator "node-folde
 form_request method
 ###################
 
-PrimAITE actions need to have a `form_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment.
+PrimAITE actions need to have a `form_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment. Further information and an example of this can be seen in :ref:`custom_actions`.

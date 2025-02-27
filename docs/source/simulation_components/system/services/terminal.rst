@@ -57,12 +57,13 @@ Python
     from primaite.simulator.system.services.terminal.terminal import Terminal
     from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 
-    client = Computer(
-        hostname="client",
-        ip_address="192.168.10.21",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON,
+    client = Computer(config= {
+        "hostname":"client",
+        "ip_address":"192.168.10.21",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.10.1",
+        "operating_state":NodeOperatingState.ON,
+        }
     )
 
     terminal: Terminal = client.software_manager.software.get("Terminal")
@@ -80,9 +81,9 @@ Creating Remote Terminal Connection
 
 
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_a.power_on()
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -106,9 +107,9 @@ Executing a basic application install command
 
 
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_a.power_on()
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -134,9 +135,9 @@ Creating a folder on a remote node
 
 
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_a.power_on()
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 
@@ -161,9 +162,9 @@ Disconnect from Remote Node
 
 
     network = Network()
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_a.power_on()
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_b.power_on()
     network.connect(node_a.network_interface[1], node_b.network_interface[1])
 

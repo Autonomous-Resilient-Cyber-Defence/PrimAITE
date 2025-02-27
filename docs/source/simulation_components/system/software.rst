@@ -23,7 +23,7 @@ See :ref:`Node Start up and Shut down`
     from primaite.simulator.system.services.service import ServiceOperatingState
     from primaite.simulator.system.services.web_server.web_server import WebServer
 
-    node = Node(hostname="pc_a", start_up_duration=0, shut_down_duration=0)
+    node = Node(config={"hostname":"pc_a", "start_up_duration":0, "shut_down_duration":0})
 
     node.power_on()
     assert node.operating_state is NodeOperatingState.ON

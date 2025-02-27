@@ -70,39 +70,41 @@ The network we use for these examples is defined below:
     router.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
 
     # Set up PC 1
-    pc_1 = Computer(
-        hostname="pc_1",
-        ip_address="192.168.1.11",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0
+    pc_1 = Computer(config = {
+        "hostname":"pc_1",
+        "ip_address":"192.168.1.11",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.1",
+        "start_up_duration":0,
+        }
     )
     pc_1.power_on()
 
     # Set up PC 2
-    pc_2 = Computer(
-        hostname="pc_2",
-        ip_address="192.168.1.12",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0
+    pc_2 = Computer(config = {
+        "hostname":"pc_2",
+        "ip_address":"192.168.1.12",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.1",
+        "start_up_duration":0,
+        }
     )
     pc_2.power_on()
     pc_2.software_manager.install(DatabaseService)
     pc_2.software_manager.software["DatabaseService"].start() # start the postgres server
 
     # Set up PC 3
-    pc_3 = Computer(
-        hostname="pc_3",
-        ip_address="192.168.1.13",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0
+    pc_3 = Computer(config = {
+        "hostname";"pc_3",
+        "ip_address":"192.168.1.13",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.1",
+        "start_up_duration":0
     )
     # Don't power on PC 3
 
     # Set up the switch
-    switch = Switch(hostname="switch", start_up_duration=0)
+    switch = Switch(config={"hostname":"switch", "start_up_duration":0})
     switch.power_on()
 
     # Connect devices

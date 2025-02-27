@@ -67,12 +67,13 @@ Python
     from primaite.simulator.system.applications.red_applications.data_manipulation_bot import DataManipulationBot
     from primaite.simulator.system.applications.database_client import DatabaseClient
 
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="192.168.10.21",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON # initialise the computer in an ON state
+    client_1 = Computer(config={
+        "hostname":"client_1",
+        "ip_address":"192.168.10.21",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.10.1",
+        "operating_state":NodeOperatingState.ON # initialise the computer in an ON state
+        }
     )
     network.connect(endpoint_b=client_1.network_interface[1], endpoint_a=switch_2.network_interface[1])
     client_1.software_manager.install(DatabaseClient)

@@ -16,6 +16,10 @@ You configuration file should follow the hierarchy seen below:
     metadata:
         version: 4.0
 
+    required_plugins:
+        - name: Example_Plugin
+          version: 1.0
+
     io_settings:
     ...
     game:
@@ -25,9 +29,17 @@ You configuration file should follow the hierarchy seen below:
     simulation:
     ...
 
-MetaData Tag
-============
+MetaData
+========
 
 It's important to include the metadata tag within your YAML file, as this is used to ensure PrimAITE can interpret the configuration correctly. This should also include any plugins that are required for the defined environment, along with their respective version.
+
+Required Plugins
+================
+
+Should your custom environment need any additional PrimAITE plugins, each must be specified under the `required_plugins` tab, as seen in the above example.
+
+Configuration Items
+===================
 
 For detailed information about the remaining configuration items found within the configuration file, see :ref:`Configurable Items`.

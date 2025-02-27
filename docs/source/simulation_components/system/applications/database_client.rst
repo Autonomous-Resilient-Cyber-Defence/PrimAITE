@@ -48,12 +48,13 @@ Python
     from primaite.simulator.network.hardware.nodes.host.computer import Computer
     from primaite.simulator.system.applications.database_client import DatabaseClient
 
-    client = Computer(
-        hostname="client",
-        ip_address="192.168.10.21",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.10.1",
-        operating_state=NodeOperatingState.ON  # initialise the computer in an ON state
+    client_1 = Computer(config={
+        "hostname":"client_1",
+        "ip_address":"192.168.10.21",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.10.1",
+        "operating_state":NodeOperatingState.ON # initialise the computer in an ON state
+        }
     )
 
     # install DatabaseClient

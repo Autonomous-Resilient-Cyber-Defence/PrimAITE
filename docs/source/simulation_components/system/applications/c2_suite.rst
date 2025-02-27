@@ -128,19 +128,19 @@ Python
     network = Network()
 
 
-    switch = Switch(hostname="switch", start_up_duration=0, num_ports=4)
+    switch = Switch(config={"hostname":"switch", "start_up_duration":0, "num_ports":4})
     switch.power_on()
 
-    node_a = Computer(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_a.power_on()
     network.connect(node_a.network_interface[1], switch.network_interface[1])
 
-    node_b = Computer(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_b.power_on()
 
     network.connect(node_b.network_interface[1], switch.network_interface[2])
 
-    node_c = Computer(hostname="node_c", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0)
+    node_c = Computer(config={"hostname":"node_c", "ip_address":"192.168.0.12", "subnet_mask":"255.255.255.0", "start_up_duration":0})
     node_c.power_on()
     network.connect(node_c.network_interface[1], switch.network_interface[3])
 

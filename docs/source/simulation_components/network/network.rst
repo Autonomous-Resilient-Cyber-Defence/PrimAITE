@@ -48,7 +48,7 @@ we'll use the following Network that has a client, server, two switches, and a r
 
 .. code-block:: python
 
-    router_1 = Router(hostname="router_1", num_ports=3)
+    router_1 = Router(config={"hostname":"router_1", "num_ports":3})
     router_1.power_on()
     router_1.configure_port(port=1, ip_address="192.168.1.1", subnet_mask="255.255.255.0")
     router_1.configure_port(port=2, ip_address="192.168.2.1", subnet_mask="255.255.255.0")
@@ -57,9 +57,9 @@ we'll use the following Network that has a client, server, two switches, and a r
 
 .. code-block:: python
 
-    switch_1 = Switch(hostname="switch_1", num_ports=6)
+    switch_1 = Switch(config={"hostname":"switch_1", "num_ports":6})
     switch_1.power_on()
-    switch_2 = Switch(hostname="switch_2", num_ports=6)
+    switch_2 = Switch(config={"hostname":"switch_2", "num_ports":6})
     switch_2.power_on()
 
 5. Connect the Switches to the Router
@@ -75,18 +75,20 @@ we'll use the following Network that has a client, server, two switches, and a r
 
 .. code-block:: python
 
-    client_1 = Computer(
-        hostname="client_1",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.2.1"
+    client_1 = Computer(config = {
+        "hostname":"client_1",
+        "ip_address":"192.168.2.2",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.2.1",
+        }
     )
     client_1.power_on()
-    server_1 = Server(
-        hostname="server_1",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1"
+    server_1 = Server(config= {
+        "hostname":"server_1",
+        "ip_address":"192.168.1.2",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.1",
+        }
     )
     server_1.power_on()
 

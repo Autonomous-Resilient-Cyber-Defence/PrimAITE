@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Updated tests that don't use YAMLs to still use the new action and agent schemas
 -   Nodes now use a config schema and are extensible, allowing for plugin support.
 -   Node tests have been updated to use the new node config schemas when not using YAML files.
+-   Documentation has been updated to include details of extensability with PrimAITE.
 
 ### Fixed
 -   DNS client no longer fails to check its cache if a DNS server address is missing.
