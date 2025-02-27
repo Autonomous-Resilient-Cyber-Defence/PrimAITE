@@ -18,17 +18,23 @@ class InsiderKillChainOptions(KillChainOptions):
     """Model validation for TAP003's Kill Chain."""
 
     class _PlanningOptions(KillChainStageOptions):
-        """..."""
+        """Valid options for the `PLANNING` InsiderKillChain stage."""
 
         starting_network_knowledge: Dict  # TODO: more specific schema here?
 
     class _AccessOptions(KillChainStageOptions):
+        """Valid options for the `ACCESS` InsiderKillChain stage."""
+
         pass
 
     class _ManipulationOptions(KillChainStageOptions):
+        """Valid options for the `MANIPULATION` InsiderKillChain stage."""
+
         account_changes: List[Dict] = []  # TODO: More specific schema here?
 
     class _ExploitOptions(KillChainStageOptions):
+        """Valid options for the `EXPLOIT` InsiderKillChain stage."""
+
         malicious_acls: List[RouterACLAddRuleAction.ConfigSchema] = []
 
     PLANNING: _PlanningOptions = Field(default_factory=lambda: InsiderKillChainOptions._PlanningOptions())
@@ -92,7 +98,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
     """
 
     class AgentSettingsSchema(AbstractTAP.AgentSettingsSchema):
-        """TODO."""
+        """Agent Settings Schema that enforces TAP003's `kill_chain` config to use the InsiderKillChainOptions."""
 
         kill_chain: InsiderKillChainOptions  # = Field(default_factory=lambda: MobileMalwareKillChainOptions())
 
@@ -103,10 +109,8 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
         agent_settings: "TAP003.AgentSettingsSchema" = Field(default_factory=lambda: TAP003.AgentSettingsSchema())
 
     config: ConfigSchema
-
     selected_kill_chain: Type[InsiderKillChain] = InsiderKillChain
     _current_acl: int = 0
-
     network_knowledge: Dict = {}  # TODO: more specific typing
 
     def __init__(self, *args, **kwargs):
@@ -280,7 +284,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
         Second stage in the Insider kill chain.
         Performs a trial using the given user PLANNING stage probability.
 
-        If the trial is successful then the agent populates its knowledgebase with information from the config.
+        If the trial is successful then the agent populates its knowledge base with information from the config.
 
         Otherwise, the stage is not progressed. Additionally, the agent's kill chain is set
         to failure if the repeat_kill_chain_stages parameter is set to FALSE.
@@ -298,7 +302,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                 "credentials"
             ] = self.config.agent_settings.kill_chain.PLANNING.starting_network_knowledge["credentials"]
             self.current_host = self.starting_node
-            self.logger.info("Resolving starting knoweldge.")
+            self.logger.info("Resolving starting knowledge.")
             self._progress_kill_chain()
         if self.current_stage_progress == KillChainStageProgress.PENDING:
             self.logger.info(f"TAP003 reached the {self.current_kill_chain_stage.name}")

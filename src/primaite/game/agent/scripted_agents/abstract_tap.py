@@ -92,7 +92,7 @@ class AbstractTAP(AbstractScriptedAgent):
     """
 
     class AgentSettingsSchema(AbstractScriptedAgent.AgentSettingsSchema):
-        """TODO."""
+        """Agent Settings Schema. Default settings applied for all threat actor profiles."""
 
         start_step: int = 5
         frequency: int = 5

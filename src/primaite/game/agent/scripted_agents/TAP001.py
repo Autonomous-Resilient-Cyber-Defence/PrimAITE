@@ -148,7 +148,7 @@ class TAP001(AbstractTAP, discriminator="tap-001"):
     """
 
     class AgentSettingsSchema(AbstractTAP.AgentSettingsSchema):
-        """TODO."""
+        """TAP001's AgentSettings schema (Expands upon the inherited AbstractTAP `AgentSettingsSchema`)."""
 
         target_ips: Optional[List[StrIP]] = []
         default_target_ip: StrIP
@@ -178,11 +178,10 @@ class TAP001(AbstractTAP, discriminator="tap-001"):
     "Dictionary containing all C2 stage relevant user settings."
     payload_settings: dict = {}
     "Dictionary containing all Payload stage relevant internal and user settings."
-
     chosen_application: str = ""
     """The name of the agent's currently chosen application."""
-    target_ip: Optional[IPV4Address] = None  # TODO: make it not optional?
-    """The name (string) of TAP agent's target node. This attribute is initialised via _select_target_node."""
+    target_ip: Optional[IPV4Address] = None
+    """TAP001's current target ip. This attribute is changed dynamically through out the kill chain."""
 
     network_knowledge: Dict = {}
 
