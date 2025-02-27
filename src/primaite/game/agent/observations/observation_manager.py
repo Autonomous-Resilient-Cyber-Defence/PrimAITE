@@ -230,7 +230,7 @@ class ObservationManager(BaseModel):
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Optional[Dict]) -> "ObservationManager":
+    def from_config(cls, config: Optional[Dict], thresholds: Optional[Dict] = {}) -> "ObservationManager":
         """
         Create observation space from a config.
 
@@ -241,6 +241,8 @@ class ObservationManager(BaseModel):
             AbstractObservation
             options: this must adhere to the chosen observation type's ConfigSchema nested class.
         :type config: Dict
+        :param thresholds: Dictionary containing the observation thresholds.
+        :type thresholds: Optional[Dict]
         """
         if config is None:
             return cls(NullObservation())

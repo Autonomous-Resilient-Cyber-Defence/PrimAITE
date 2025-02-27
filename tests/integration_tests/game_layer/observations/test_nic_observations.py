@@ -85,6 +85,14 @@ def test_nic(simulation):
     # in the NICObservation class so we set it now.
     nic_obs.capture_nmne = True
 
+    # The Simulation object created by the fixture also creates the
+    # NICObservation class with the NICObservation.capture_nmnme class variable
+    # set to False. Under normal (non-test) circumstances this class variable
+    # is set from a config file such as data_manipulation.yaml. So although
+    # capture_nmne is set to True in the NetworkInterface class it's still False
+    # in the NICObservation class so we set it now.
+    nic_obs.capture_nmne = True
+
     # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs
     nmne_config = {
         "capture_nmne": True,  # Enable the capture of MNEs

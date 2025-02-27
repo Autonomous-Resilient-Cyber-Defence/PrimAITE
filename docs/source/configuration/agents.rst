@@ -20,12 +20,6 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
         - ref: green_agent_example
             team: GREEN
             type: probabilistic-agent
-            observation_space:
-                type: UC2GreenObservation  # TODO: what
-            action_space:
-            reward_function:
-                reward_components:
-                - type: dummy
 
             agent_settings:
                 start_settings:

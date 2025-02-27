@@ -97,26 +97,6 @@ If not using the data manipulation bot manually, it needs to be used with a data
           team: RED
           type: red-database-corrupting-agent
 
-          observation_space:
-            type: uc2-red-observation #TODO what
-            options:
-              nodes:
-                - node_name: client_1
-                  observations:
-                  - logon_status
-                  - operating_status
-                  applications:
-                  - application_ref: data_manipulation_bot
-                    observations:
-                      operating_status
-                      health_status
-                  folders: {}
-
-          action_space:
-          reward_function:
-            reward_components:
-              - type: dummy
-
           agent_settings:
             start_settings:
               start_step: 25

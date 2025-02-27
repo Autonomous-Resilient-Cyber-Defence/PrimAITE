@@ -108,7 +108,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     """
     Test that the RouterACLAddRuleAction can form a request and that it is accepted by the simulation.
 
-    The ACL starts off with 4 rules, and we add a rule, and check that the ACL now has 5 rules.
+    The ACL starts off with 3 rules, and we add a rule, and check that the ACL now has 4 rules.
     """
     game, agent = game_and_agent
 
@@ -140,7 +140,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the acl now has 5 rules, and that client 1 cannot ping server 2
+    # 3: Check that the acl now has 6 rules, and that client 1 cannot ping server 2
     assert router.acl.num_rules == 5
     assert not client_1.ping("10.0.2.3")  # Cannot ping server_2
     assert client_1.ping("10.0.2.2")  # Can ping server_1
@@ -198,7 +198,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the ACL now has 3 rules, and that client 1 cannot access example.com
+    # 3: Check that the ACL now has 2 rules, and that client 1 cannot access example.com
     assert router.acl.num_rules == 3
     assert not browser.get_webpage()
     client_1.software_manager.software.get("dns-client").dns_cache.clear()
