@@ -82,7 +82,7 @@ RULES = [
 
 
 def uc7_tap003_env(**kwargs) -> PrimaiteGymEnv:
-    """Setups the UC7 TAP003 Game with the start_step & frequency set to 1 with probabilities set to 1 as well"""
+    """Setups the UC7 TAP003 Game with a 1 timestep start_step, frequency of 2 and probabilities set to 1 as well"""
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
@@ -141,6 +141,9 @@ def test_tap003_cycling_rules():
     tap003: TAP003 = env.game.agents["attacker"]
 
     def wait_until_attack():
+        # 120 environment steps to ensure that TAP003 reaches manipulate.
+        # If this loop finishes 120 iterations before the test finishes then TAP003 is struggling to
+        # reach or finish the manipulation kill chain stage correctly.
         for _ in range(120):
             # check if the agent has executed and therefore moved onto the next rule index
             env.step(0)
@@ -198,4 +201,3 @@ def test_tap003_cycling_rules():
     assert rule_3.dst_port == PORT_LOOKUP["FTP"]
 
     # If we've gotten this fair then we can pass the test :)
-    pass

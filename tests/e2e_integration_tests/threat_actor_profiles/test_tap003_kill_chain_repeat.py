@@ -85,7 +85,7 @@ def test_tap003_repeating_kill_chain_stages():
         repeat_kill_chain=True,
         repeat_kill_chain_stages=True,
         manipulation_probability=1,
-        # Probability 0 = Will never be able to perform the access stage and progress to Manipulation.
+        # access_probability 0 = Will never be able to perform the access stage and progress to Manipulation.
         access_probability=0,
         planning_probability=1,
     )

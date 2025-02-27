@@ -120,8 +120,6 @@ def test_tap003_kill_chain_stage_access():
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.ACCESS.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
 
-    env = environment_step(i=2, env=env)
-
 
 def test_tap003_kill_chain_stage_manipulation():
     """Tests the successful/failed handlers in the manipulation stage in the InsiderKillChain"""
@@ -132,51 +130,35 @@ def test_tap003_kill_chain_stage_manipulation():
 
     assert tap003.current_kill_chain_stage == BaseKillChain.NOT_STARTED
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.RECONNAISSANCE.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.PLANNING.name
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.PLANNING.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.ACCESS.name
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.ACCESS.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
 
     # Testing that the stage successfully impacted the simulation - Accounts Altered
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=5, env=env)
     st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
     assert st_intra_prv_rt_dr_1.user_manager.admins["admin"].password == "red_pass"
 
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=5, env=env)
     st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
     assert st_intra_prv_rt_cr.user_manager.admins["admin"].password == "red_pass"
 
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=5, env=env)
     rem_pub_rt_dr: Router = env.game.simulation.network.get_node_by_hostname("REM-PUB-RT-DR")
     assert rem_pub_rt_dr.user_manager.admins["admin"].password == "red_pass"
 
@@ -192,34 +174,22 @@ def test_tap003_kill_chain_stage_exploit():
     rem_pub_rt_dr: Router = env.game.simulation.network.get_node_by_hostname("REM-PUB-RT-DR")
     assert tap003.current_kill_chain_stage == BaseKillChain.NOT_STARTED
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.RECONNAISSANCE.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.PLANNING.name
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.PLANNING.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.ACCESS.name
 
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=2, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.ACCESS.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
 
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
-    env.step(0)
+    env = environment_step(i=9, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.EXPLOIT.name
 

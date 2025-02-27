@@ -28,6 +28,7 @@ from primaite.simulator.system.services.service import ServiceOperatingState
 from primaite.simulator.system.software import SoftwareHealthState
 
 CONFIG_FILE = _EXAMPLE_CFG / "uc7_config.yaml"
+ATTACK_AGENT_INDEX = 32
 
 
 @pytest.fixture(scope="function")
@@ -47,8 +48,6 @@ def assert_agent_reward(env: PrimaiteGymEnv, agent_name: str, positive: bool):
         assert agent_reward >= 0  # Asserts that no agents are below a total reward of 0
     elif positive is False:
         assert agent_reward <= 0  # Asserts that no agents are above a total reward of 0
-    else:
-        print("Invalid 'positive' argument.")
 
 
 def test_green_agent_positive_reward(uc7_environment):
@@ -139,8 +138,8 @@ def test_tap003_default_behaviour(uc7_environment):
     def uc7_environment_tap003() -> PrimaiteGymEnv:
         with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
             cfg = yaml.safe_load(uc7_config)
-            cfg["agents"][32]["agent_settings"]["starting_nodes"] = ["ST_PROJ-A-PRV-PC-1"]
-            cfg["agents"][32]["agent_settings"]["default_starting_node"] = "ST_PROJ-A-PRV-PC-1"
+            cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["starting_nodes"] = ["ST_PROJ-A-PRV-PC-1"]
+            cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["default_starting_node"] = "ST_PROJ-A-PRV-PC-1"
         env = PrimaiteGymEnv(env_config=cfg)
         return env
 
