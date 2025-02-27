@@ -164,3 +164,55 @@ def test_change_password_logs_out_user(game_and_agent_fixture: Tuple[PrimaiteGam
 
     assert server_1.file_system.get_folder("folder123") is None
     assert server_1.file_system.get_file("folder123", "doggo.pdf") is None
+
+
+def test_local_terminal(game_and_agent_fixture: Tuple[PrimaiteGame, ProxyAgent]):
+    game, agent = game_and_agent_fixture
+
+    client_1 = game.simulation.network.get_node_by_hostname("client_1")
+    # create a new user account on server_1 that will be logged into remotely
+    client_1_usm: UserManager = client_1.software_manager.software["user-manager"]
+    client_1_usm.add_user("user123", "password", is_admin=True)
+
+    action = (
+        "node-send-local-command",
+        {
+            "node_name": "client_1",
+            "username": "user123",
+            "password": "password",
+            "command": ["file_system", "create", "file", "folder123", "doggo.pdf", False],
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_folder("folder123")
+    assert client_1.file_system.get_file("folder123", "doggo.pdf")
+
+    # Change password
+    action = (
+        "node-account-change-password",
+        {
+            "node_name": "client_1",
+            "username": "user123",
+            "current_password": "password",
+            "new_password": "different_password",
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    action = (
+        "node-send-local-command",
+        {
+            "node_name": "client_1",
+            "username": "user123",
+            "password": "password",
+            "command": ["file_system", "create", "file", "folder123", "cat.pdf", False],
+        },
+    )
+    agent.store_action(action)
+    game.step()
+
+    assert client_1.file_system.get_file("folder123", "cat.pdf") is None
+    client_1.session_manager.show()

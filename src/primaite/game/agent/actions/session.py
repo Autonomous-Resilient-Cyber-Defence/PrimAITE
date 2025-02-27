@@ -34,8 +34,6 @@ class NodeSessionAbstractAction(AbstractAction, ABC):
 class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="node-session-remote-login"):
     """Action which performs a remote session login."""
 
-    config: "NodeSessionsRemoteLoginAction.ConfigSchema"
-
     class ConfigSchema(NodeSessionAbstractAction.ConfigSchema):
         """Configuration schema for NodeSessionsRemoteLoginAction."""
 
@@ -53,7 +51,7 @@ class NodeSessionsRemoteLoginAction(NodeSessionAbstractAction, discriminator="no
             config.node_name,
             "service",
             "terminal",
-            "node-session-remote-login",
+            "node_session_remote_login",
             config.username,
             config.password,
             config.remote_ip,

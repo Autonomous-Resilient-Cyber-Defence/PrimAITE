@@ -22,6 +22,7 @@ from primaite.game.game import PrimaiteGame
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
+from primaite.simulator.network.hardware.nodes.network.router import Router
 from primaite.simulator.system.applications.application import ApplicationOperatingState
 from primaite.simulator.system.applications.web_browser import WebBrowser
 from primaite.simulator.system.software import SoftwareHealthState
@@ -107,7 +108,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     """
     Test that the RouterACLAddRuleAction can form a request and that it is accepted by the simulation.
 
-    The acl starts off with 4 rules, and we add a rule, and check that the acl now has 5 rules.
+    The ACL starts off with 3 rules, and we add a rule, and check that the ACL now has 4 rules.
     """
     game, agent = game_and_agent
 
@@ -139,7 +140,7 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the acl now has 5 rules, and that client 1 cannot ping server 2
+    # 3: Check that the acl now has 6 rules, and that client 1 cannot ping server 2
     assert router.acl.num_rules == 5
     assert not client_1.ping("10.0.2.3")  # Cannot ping server_2
     assert client_1.ping("10.0.2.2")  # Can ping server_1
@@ -164,11 +165,9 @@ def test_router_acl_addrule_integration(game_and_agent: Tuple[PrimaiteGame, Prox
         },
     )
     agent.store_action(action)
-    print(agent.most_recent_action)
     game.step()
-    print(agent.most_recent_action)
+
     # 5: Check that the ACL now has 6 rules, but that server_1 can still ping server_2
-    print(router.acl.show())
     assert router.acl.num_rules == 6
     assert server_1.ping("10.0.2.3")  # Can ping server_2
 
@@ -180,7 +179,8 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     # 1: Check that http traffic is going across the network nicely.
     client_1 = game.simulation.network.get_node_by_hostname("client_1")
     server_1 = game.simulation.network.get_node_by_hostname("server_1")
-    router = game.simulation.network.get_node_by_hostname("router")
+    router: Router = game.simulation.network.get_node_by_hostname("router")
+    assert router.acl.num_rules == 4
 
     browser: WebBrowser = client_1.software_manager.software.get("web-browser")
     browser.run()
@@ -198,7 +198,7 @@ def test_router_acl_removerule_integration(game_and_agent: Tuple[PrimaiteGame, P
     agent.store_action(action)
     game.step()
 
-    # 3: Check that the ACL now has 3 rules, and that client 1 cannot access example.com
+    # 3: Check that the ACL now has 2 rules, and that client 1 cannot access example.com
     assert router.acl.num_rules == 3
     assert not browser.get_webpage()
     client_1.software_manager.software.get("dns-client").dns_cache.clear()

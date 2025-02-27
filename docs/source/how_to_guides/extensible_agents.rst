@@ -46,17 +46,13 @@ The core features that should be implemented in any new agent are detailed below
 
 		- ref: example_green_agent
 		  team: GREEN
-		  type: ExampleAgent
+		  type: example-agent
 
 		  action_space:
 			action_map:
 				0:
 					action: do-nothing
 					options: {}
-		  reward_function:
-		  	reward_components:
-				- type: dummy
-
 		  agent_settings:
 			start_step: 25
 			frequency: 20

@@ -114,7 +114,9 @@ class NestedObservation(AbstractObservation, discriminator="custom"):
         instances = dict()
         for component in config.components:
             obs_class = AbstractObservation._registry[component.type]
-            obs_instance = obs_class.from_config(config=obs_class.ConfigSchema(**component.options))
+            obs_instance = obs_class.from_config(
+                config=obs_class.ConfigSchema(**component.options, thresholds=config.thresholds)
+            )
             instances[component.label] = obs_instance
         return cls(components=instances)
 
@@ -228,7 +230,7 @@ class ObservationManager(BaseModel):
         return self.obs.space
 
     @classmethod
-    def from_config(cls, config: Optional[Dict]) -> "ObservationManager":
+    def from_config(cls, config: Optional[Dict], thresholds: Optional[Dict] = {}) -> "ObservationManager":
         """
         Create observation space from a config.
 
@@ -239,11 +241,10 @@ class ObservationManager(BaseModel):
             AbstractObservation
             options: this must adhere to the chosen observation type's ConfigSchema nested class.
         :type config: Dict
+        :param thresholds: Dictionary containing the observation thresholds.
+        :type thresholds: Optional[Dict]
         """
         if config is None:
             return cls(NullObservation())
-        obs_type = config["type"]
-        obs_class = AbstractObservation._registry[obs_type]
-        observation = obs_class.from_config(config=obs_class.ConfigSchema(**config["options"]))
-        obs_manager = cls(observation)
+        obs_manager = cls(config=config)
         return obs_manager

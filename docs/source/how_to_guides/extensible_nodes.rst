@@ -26,9 +26,9 @@ class Router(NetworkNode, identifier="router"):
     """ Represents a network router within the simulation, managing routing and forwarding of IP packets across network interfaces."""
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "UserSessionManager": UserSessionManager,
-        "UserManager": UserManager,
-        "Terminal": Terminal,
+        "user-session-manager": UserSessionManager,
+        "user-manager": UserManager,
+        "terminal": Terminal,
     }
 
     network_interfaces: Dict[str, RouterInterface] = {}

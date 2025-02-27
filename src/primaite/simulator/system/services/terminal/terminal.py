@@ -142,11 +142,19 @@ class Terminal(Service, discriminator="terminal"):
     _client_connection_requests: Dict[str, Optional[Union[str, TerminalClientConnection]]] = {}
     """Dictionary of connect requests made to remote nodes."""
 
+    _last_response: Optional[RequestResponse] = None
+    """Last response received from RequestManager, for returning remote RequestResponse."""
+
     def __init__(self, **kwargs):
         kwargs["name"] = "terminal"
         kwargs["port"] = PORT_LOOKUP["SSH"]
         kwargs["protocol"] = PROTOCOL_LOOKUP["TCP"]
         super().__init__(**kwargs)
+
+    @property
+    def last_response(self) -> Optional[RequestResponse]:
+        """Public version of _last_response attribute."""
+        return self._last_response
 
     def describe_state(self) -> Dict:
         """
@@ -186,7 +194,7 @@ class Terminal(Service, discriminator="terminal"):
                 return RequestResponse(status="failure", data={})
 
         rm.add_request(
-            "node-session-remote-login",
+            "node_session_remote_login",
             request_type=RequestType(func=_remote_login),
         )
 
@@ -209,28 +217,45 @@ class Terminal(Service, discriminator="terminal"):
             command: str = request[1]["command"]
             remote_connection = self._get_connection_from_ip(ip_address=ip_address)
             if remote_connection:
-                outcome = remote_connection.execute(command)
-                if outcome:
-                    return RequestResponse(
-                        status="success",
-                        data={},
-                    )
-            else:
-                return RequestResponse(
-                    status="failure",
-                    data={},
-                )
+                remote_connection.execute(command)
+                return self.last_response if not None else RequestResponse(status="failure", data={})
+            return RequestResponse(
+                status="failure",
+                data={"reason": "Failed to execute command."},
+            )
 
         rm.add_request(
             "send_remote_command",
             request_type=RequestType(func=remote_execute_request),
         )
 
+        def local_execute_request(request: RequestFormat, context: Dict) -> RequestResponse:
+            """Executes a command using a local terminal session."""
+            command: str = request[2]["command"]
+            local_connection = self._process_local_login(username=request[0], password=request[1])
+            if local_connection:
+                outcome = local_connection.execute(command)
+                if outcome:
+                    return RequestResponse(
+                        status="success",
+                        data={"reason": outcome},
+                    )
+            return RequestResponse(
+                status="success",
+                data={"reason": "Local Terminal failed to resolve command. Potentially invalid credentials?"},
+            )
+
+        rm.add_request(
+            "send_local_command",
+            request_type=RequestType(func=local_execute_request),
+        )
+
         return rm
 
     def execute(self, command: List[Any]) -> Optional[RequestResponse]:
         """Execute a passed ssh command via the request manager."""
-        return self.parent.apply_request(command)
+        self._last_response = self.parent.apply_request(command)
+        return self._last_response
 
     def _get_connection_from_ip(self, ip_address: IPv4Address) -> Optional[RemoteTerminalConnection]:
         """Find Remote Terminal Connection from a given IP."""
@@ -409,6 +434,8 @@ class Terminal(Service, discriminator="terminal"):
         """
         source_ip = kwargs["frame"].ip.src_ip_address
         self.sys_log.info(f"{self.name}: Received payload: {payload}. Source: {source_ip}")
+        self._last_response = None  # Clear last response
+
         if isinstance(payload, SSHPacket):
             if payload.transport_message == SSHTransportMessage.SSH_MSG_USERAUTH_REQUEST:
                 # validate & add connection
@@ -457,6 +484,9 @@ class Terminal(Service, discriminator="terminal"):
                     session_id=session_id,
                     source_ip=source_ip,
                 )
+                self._last_response: RequestResponse = RequestResponse(
+                    status="success", data={"reason": "Login Successful"}
+                )
 
             elif payload.transport_message == SSHTransportMessage.SSH_MSG_SERVICE_REQUEST:
                 # Requesting a command to be executed
@@ -468,12 +498,32 @@ class Terminal(Service, discriminator="terminal"):
                         payload.connection_uuid
                     )
                     remote_session.last_active_step = self.software_manager.node.user_session_manager.current_timestep
-                    self.execute(command)
+                    self._last_response: RequestResponse = self.execute(command)
+
+                    if self._last_response.status == "success":
+                        transport_message = SSHTransportMessage.SSH_MSG_SERVICE_SUCCESS
+                    else:
+                        transport_message = SSHTransportMessage.SSH_MSG_SERVICE_FAILED
+
+                    payload: SSHPacket = SSHPacket(
+                        payload=self._last_response,
+                        transport_message=transport_message,
+                        connection_message=SSHConnectionMessage.SSH_MSG_CHANNEL_DATA,
+                    )
+                    self.software_manager.send_payload_to_session_manager(
+                        payload=payload, dest_port=self.port, session_id=session_id
+                    )
                     return True
                 else:
                     self.sys_log.error(
                         f"{self.name}: Connection UUID:{payload.connection_uuid} is not valid. Rejecting Command."
                     )
+            elif (
+                payload.transport_message == SSHTransportMessage.SSH_MSG_SERVICE_SUCCESS
+                or SSHTransportMessage.SSH_MSG_SERVICE_FAILED
+            ):
+                # Likely receiving command ack from remote.
+                self._last_response = payload.payload
 
         if isinstance(payload, dict) and payload.get("type"):
             if payload["type"] == "disconnect":

@@ -26,7 +26,13 @@ class FileObservation(AbstractObservation, discriminator="file"):
         file_system_requires_scan: Optional[bool] = None
         """If True, the file must be scanned to update the health state. Tf False, the true state is always shown."""
 
-    def __init__(self, where: WhereType, include_num_access: bool, file_system_requires_scan: bool) -> None:
+    def __init__(
+        self,
+        where: WhereType,
+        include_num_access: bool,
+        file_system_requires_scan: bool,
+        thresholds: Optional[Dict] = {},
+    ) -> None:
         """
         Initialise a file observation instance.
 
@@ -48,10 +54,36 @@ class FileObservation(AbstractObservation, discriminator="file"):
         if self.include_num_access:
             self.default_observation["num_access"] = 0
 
-        # TODO: allow these to be configured in yaml
-        self.high_threshold = 10
-        self.med_threshold = 5
-        self.low_threshold = 0
+        if thresholds.get("file_access") is None:
+            self.low_file_access_threshold = 0
+            self.med_file_access_threshold = 5
+            self.high_file_access_threshold = 10
+        else:
+            self._set_file_access_threshold(
+                thresholds=[
+                    thresholds.get("file_access")["low"],
+                    thresholds.get("file_access")["medium"],
+                    thresholds.get("file_access")["high"],
+                ]
+            )
+
+    def _set_file_access_threshold(self, thresholds: List[int]):
+        """
+        Method that validates and then sets the file access threshold.
+
+        :param: thresholds: The file access threshold to validate and set.
+        """
+        if self._validate_thresholds(
+            thresholds=[
+                thresholds[0],
+                thresholds[1],
+                thresholds[2],
+            ],
+            threshold_identifier="file_access",
+        ):
+            self.low_file_access_threshold = thresholds[0]
+            self.med_file_access_threshold = thresholds[1]
+            self.high_file_access_threshold = thresholds[2]
 
     def _categorise_num_access(self, num_access: int) -> int:
         """
@@ -60,11 +92,11 @@ class FileObservation(AbstractObservation, discriminator="file"):
         :param num_access: Number of file accesses.
         :return: Bin number corresponding to the number of accesses.
         """
-        if num_access > self.high_threshold:
+        if num_access > self.high_file_access_threshold:
             return 3
-        elif num_access > self.med_threshold:
+        elif num_access > self.med_file_access_threshold:
             return 2
-        elif num_access > self.low_threshold:
+        elif num_access > self.low_file_access_threshold:
             return 1
         return 0
 
@@ -122,6 +154,7 @@ class FileObservation(AbstractObservation, discriminator="file"):
             where=parent_where + ["files", config.file_name],
             include_num_access=config.include_num_access,
             file_system_requires_scan=config.file_system_requires_scan,
+            thresholds=config.thresholds,
         )
 
 
@@ -149,6 +182,7 @@ class FolderObservation(AbstractObservation, discriminator="folder"):
         num_files: int,
         include_num_access: bool,
         file_system_requires_scan: bool,
+        thresholds: Optional[Dict] = {},
     ) -> None:
         """
         Initialise a folder observation instance.
@@ -177,6 +211,7 @@ class FolderObservation(AbstractObservation, discriminator="folder"):
                     where=None,
                     include_num_access=include_num_access,
                     file_system_requires_scan=self.file_system_requires_scan,
+                    thresholds=thresholds,
                 )
             )
         while len(self.files) > num_files:
@@ -253,6 +288,7 @@ class FolderObservation(AbstractObservation, discriminator="folder"):
         for file_config in config.files:
             file_config.include_num_access = config.include_num_access
             file_config.file_system_requires_scan = config.file_system_requires_scan
+            file_config.thresholds = config.thresholds
 
         files = [FileObservation.from_config(config=f, parent_where=where) for f in config.files]
         return cls(
@@ -261,4 +297,5 @@ class FolderObservation(AbstractObservation, discriminator="folder"):
             num_files=config.num_files,
             include_num_access=config.include_num_access,
             file_system_requires_scan=config.file_system_requires_scan,
+            thresholds=config.thresholds,
         )

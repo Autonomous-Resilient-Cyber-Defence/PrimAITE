@@ -467,6 +467,7 @@ class AccessControlList(SimComponent):
         """Check if a packet with the given properties is permitted through the ACL."""
         permitted = False
         rule: ACLRule = None
+
         for _rule in self._acl:
             if not _rule:
                 continue
@@ -1215,9 +1216,9 @@ class Router(NetworkNode, discriminator="router"):
     config: ConfigSchema = Field(default_factory=lambda: Router.ConfigSchema())
 
     SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "UserSessionManager": UserSessionManager,
-        "UserManager": UserManager,
-        "Terminal": Terminal,
+        "user-session-manager": UserSessionManager,
+        "user-manager": UserManager,
+        "terminal": Terminal,
     }
 
     network_interfaces: Dict[str, RouterInterface] = {}
@@ -1384,6 +1385,12 @@ class Router(NetworkNode, discriminator="router"):
 
         return False
 
+    def subject_to_acl(self, frame: Frame) -> bool:
+        """Check that frame is subject to ACL rules."""
+        if frame.ip.protocol == "udp" and frame.is_arp:
+            return False
+        return True
+
     def receive_frame(self, frame: Frame, from_network_interface: RouterInterface):
         """
         Processes an incoming frame received on one of the router's interfaces.
@@ -1397,8 +1404,12 @@ class Router(NetworkNode, discriminator="router"):
         if self.operating_state != NodeOperatingState.ON:
             return
 
-        # Check if it's permitted
-        permitted, rule = self.acl.is_permitted(frame)
+        if self.subject_to_acl(frame=frame):
+            # Check if it's permitted
+            permitted, rule = self.acl.is_permitted(frame)
+        else:
+            permitted = True
+            rule = None
 
         if not permitted:
             at_port = self._get_port_of_nic(from_network_interface)

@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict
 
 from primaite import DEFAULT_BANDWIDTH, getLogger
 from primaite.game.agent.interface import AbstractAgent, ProxyAgent
+from primaite.game.agent.observations import NICObservation
 from primaite.game.agent.rewards import SharedReward
 from primaite.game.science import graph_has_cycle, topological_sort
 from primaite.simulator import SIM_OUTPUT
@@ -44,15 +45,15 @@ from primaite.utils.validation.port import Port, PORT_LOOKUP
 _LOGGER = getLogger(__name__)
 
 SERVICE_TYPES_MAPPING = {
-    "DNSClient": DNSClient,
-    "DNSServer": DNSServer,
-    "DatabaseService": DatabaseService,
-    "WebServer": WebServer,
-    "FTPClient": FTPClient,
-    "FTPServer": FTPServer,
-    "NTPClient": NTPClient,
-    "NTPServer": NTPServer,
-    "Terminal": Terminal,
+    "dns-client": DNSClient,
+    "dns-server": DNSServer,
+    "database-service": DatabaseService,
+    "web-server": WebServer,
+    "ftp-client": FTPClient,
+    "ftp-server": FTPServer,
+    "ntp-client": NTPClient,
+    "ntp-server": NTPServer,
+    "terminal": Terminal,
 }
 """List of available services that can be installed on nodes in the PrimAITE Simulation."""
 
@@ -68,6 +69,8 @@ class PrimaiteGameOptions(BaseModel):
 
     seed: int = None
     """Random number seed for RNGs."""
+    generate_seed_value: bool = False
+    """Internally generated seed value."""
     max_episode_length: int = 256
     """Maximum number of episodes for the PrimAITE game."""
     ports: List[Port]
@@ -175,6 +178,7 @@ class PrimaiteGame:
                 parameters=parameters,
                 request=request,
                 response=response,
+                observation=obs,
             )
 
     def pre_timestep(self) -> None:
@@ -263,6 +267,7 @@ class PrimaiteGame:
         node_sets_cfg = network_config.get("node_sets", [])
         # Set the NMNE capture config
         NetworkInterface.nmne_config = NMNEConfig(**network_config.get("nmne_config", {}))
+        NICObservation.capture_nmne = NMNEConfig(**network_config.get("nmne_config", {})).capture_nmne
 
         for node_cfg in nodes_cfg:
             n_type = node_cfg["type"]
@@ -293,6 +298,7 @@ class PrimaiteGame:
 
             if "users" in node_cfg and new_node.software_manager.software.get("user-manager"):
                 user_manager: UserManager = new_node.software_manager.software["user-manager"]  # noqa
+
                 for user_cfg in node_cfg["users"]:
                     user_manager.add_user(**user_cfg, bypass_can_perform_action=True)
 
@@ -407,6 +413,7 @@ class PrimaiteGame:
         agents_cfg = cfg.get("agents", [])
 
         for agent_cfg in agents_cfg:
+            agent_cfg = {**agent_cfg, "thresholds": game.options.thresholds}
             new_agent = AbstractAgent.from_config(agent_cfg)
             game.agents[agent_cfg["ref"]] = new_agent
             if isinstance(new_agent, ProxyAgent):

@@ -62,7 +62,7 @@ The :ref:`DNSClient` must be configured to use the :ref:`DNSServer`. The :ref:`D
 
     # Install WebBrowser on computer
     computer.software_manager.install(WebBrowser)
-    web_browser: WebBrowser = computer.software_manager.software.get("WebBrowser")
+    web_browser: WebBrowser = computer.software_manager.software.get("web-browser")
     web_browser.run()
 
     # configure the WebBrowser

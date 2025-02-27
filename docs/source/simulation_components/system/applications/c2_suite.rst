@@ -183,7 +183,7 @@ Python
     # Example command: Installing and configuring Ransomware:
 
     ransomware_installation_command = { "commands": [
-            ["software_manager","application","install","RansomwareScript"],
+            ["software_manager","application","install","ransomware-script"],
         ],
         "username": "admin",
         "password": "admin",

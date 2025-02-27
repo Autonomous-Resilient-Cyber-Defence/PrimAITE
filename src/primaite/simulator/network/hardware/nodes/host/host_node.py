@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 from ipaddress import IPv4Address
-from typing import Any, ClassVar, Dict, Literal, Optional
+from typing import Any, ClassVar, Dict, List, Literal, Optional
 
 from pydantic import Field
 
 from primaite import getLogger
+from primaite.simulator.file_system.file_type import FileType
 from primaite.simulator.network.hardware.base import (
     IPWiredNetworkInterface,
     Link,
@@ -339,7 +340,7 @@ class HostNode(Node, discriminator="host-node"):
         ip_address: IPV4Address
         services: Any = None  # temporarily unset to appease extra="forbid"
         applications: Any = None  # temporarily unset to appease extra="forbid"
-        folders: Any = None  # temporarily unset to appease extra="forbid"
+        folders: List[Dict] = {}  # temporarily unset to appease extra="forbid"
         network_interfaces: Any = None  # temporarily unset to appease extra="forbid"
 
     config: ConfigSchema = Field(default_factory=lambda: HostNode.ConfigSchema())
@@ -347,6 +348,18 @@ class HostNode(Node, discriminator="host-node"):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.connect_nic(NIC(ip_address=kwargs["config"].ip_address, subnet_mask=kwargs["config"].subnet_mask))
+
+        for folder in self.config.folders:
+            # handle empty foler defined by just a string
+            self.file_system.create_folder(folder["folder_name"])
+
+            for file in folder.get("files", []):
+                self.file_system.create_file(
+                    folder_name=folder["folder_name"],
+                    file_name=file["file_name"],
+                    size=file.get("size", 0),
+                    file_type=FileType[file.get("type", "UNKNOWN").upper()],
+                )
 
     @property
     def nmap(self) -> Optional[NMAP]:

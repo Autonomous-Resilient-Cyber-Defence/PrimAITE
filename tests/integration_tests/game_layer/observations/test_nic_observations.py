@@ -77,6 +77,22 @@ def test_nic(simulation):
 
     nic_obs = NICObservation(where=["network", "nodes", pc.config.hostname, "NICs", 1], include_nmne=True)
 
+    # The Simulation object created by the fixture also creates the
+    # NICObservation class with the NICObservation.capture_nmnme class variable
+    # set to False. Under normal (non-test) circumstances this class variable
+    # is set from a config file such as data_manipulation.yaml. So although
+    # capture_nmne is set to True in the NetworkInterface class it's still False
+    # in the NICObservation class so we set it now.
+    nic_obs.capture_nmne = True
+
+    # The Simulation object created by the fixture also creates the
+    # NICObservation class with the NICObservation.capture_nmnme class variable
+    # set to False. Under normal (non-test) circumstances this class variable
+    # is set from a config file such as data_manipulation.yaml. So although
+    # capture_nmne is set to True in the NetworkInterface class it's still False
+    # in the NICObservation class so we set it now.
+    nic_obs.capture_nmne = True
+
     # Set the NMNE configuration to capture DELETE/ENCRYPT queries as MNEs
     nmne_config = {
         "capture_nmne": True,  # Enable the capture of MNEs
@@ -115,14 +131,11 @@ def test_nic_categories(simulation):
     assert nic_obs.low_nmne_threshold == 0  # default
 
 
-@pytest.mark.skip(reason="Feature not implemented yet")
 def test_config_nic_categories(simulation):
     pc: Computer = simulation.network.get_node_by_hostname("client_1")
     nic_obs = NICObservation(
-        where=["network", "nodes", pc.hostname, "NICs", 1],
-        low_nmne_threshold=3,
-        med_nmne_threshold=6,
-        high_nmne_threshold=9,
+        where=["network", "nodes", pc.config.hostname, "NICs", 1],
+        thresholds={"nmne": {"low": 3, "medium": 6, "high": 9}},
         include_nmne=True,
     )
 
@@ -133,20 +146,16 @@ def test_config_nic_categories(simulation):
     with pytest.raises(Exception):
         # should throw an error
         NICObservation(
-            where=["network", "nodes", pc.hostname, "NICs", 1],
-            low_nmne_threshold=9,
-            med_nmne_threshold=6,
-            high_nmne_threshold=9,
+            where=["network", "nodes", pc.config.hostname, "NICs", 1],
+            thresholds={"nmne": {"low": 9, "medium": 6, "high": 9}},
             include_nmne=True,
         )
 
     with pytest.raises(Exception):
         # should throw an error
         NICObservation(
-            where=["network", "nodes", pc.hostname, "NICs", 1],
-            low_nmne_threshold=3,
-            med_nmne_threshold=9,
-            high_nmne_threshold=9,
+            where=["network", "nodes", pc.config.hostname, "NICs", 1],
+            thresholds={"nmne": {"low": 3, "medium": 9, "high": 9}},
             include_nmne=True,
         )
 

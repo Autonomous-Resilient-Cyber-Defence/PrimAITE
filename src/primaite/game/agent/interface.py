@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Any, ClassVar, Dict, List, Literal, Optional, Tuple, Type, TYPE_CHECKING
 
 from gymnasium.core import ActType, ObsType
+from prettytable import PrettyTable
 from pydantic import BaseModel, ConfigDict, Field
 
 from primaite.game.agent.actions import ActionManager
@@ -42,6 +43,9 @@ class AgentHistoryItem(BaseModel):
 
     reward_info: Dict[str, Any] = {}
 
+    observation: Optional[ObsType] = None
+    """The observation space data for this step."""
+
 
 class AbstractAgent(BaseModel, ABC):
     """Base class for scripted and RL agents."""
@@ -67,6 +71,9 @@ class AbstractAgent(BaseModel, ABC):
             default_factory=lambda: ObservationManager.ConfigSchema()
         )
         reward_function: RewardFunction.ConfigSchema = Field(default_factory=lambda: RewardFunction.ConfigSchema())
+        thresholds: Optional[Dict] = {}
+        # TODO: this is only relevant to some observations, need to refactor the way thresholds are dealt with (#3085)
+        """A dict containing the observation thresholds."""
 
     config: ConfigSchema = Field(default_factory=lambda: AbstractAgent.ConfigSchema())
 
@@ -95,9 +102,33 @@ class AbstractAgent(BaseModel, ABC):
     def model_post_init(self, __context: Any) -> None:
         """Overwrite the default empty action, observation, and rewards with ones defined through the config."""
         self.action_manager = ActionManager(config=self.config.action_space)
+        self.config.observation_space.options.thresholds = self.config.thresholds
         self.observation_manager = ObservationManager(config=self.config.observation_space)
         self.reward_function = RewardFunction(config=self.config.reward_function)
         return super().model_post_init(__context)
+
+    def show_history(self, ignored_actions: Optional[list] = None):
+        """
+        Print an agent action provided it's not the do-nothing action.
+
+        :param ignored_actions: OPTIONAL: List of actions to be ignored when displaying the history.
+                                If not provided, defaults to ignore do-nothing actions.
+        """
+        if not ignored_actions:
+            ignored_actions = ["do-nothing"]
+        table = PrettyTable()
+        table.field_names = ["Step", "Action", "Params", "Response", "Response Data"]
+        print(f"Actions for '{self.config.ref}':")
+        for item in self.history:
+            if item.action in ignored_actions:
+                pass
+            else:
+                # format dict by putting each key-value entry on a separate line and putting a blank line on the end.
+                param_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.parameters.items()], ""])
+                data_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.response.data], ""])
+
+                table.add_row([item.timestep, item.action, param_string, item.response.status, data_string])
+        print(table)
 
     def update_observation(self, state: Dict) -> ObsType:
         """
@@ -145,12 +176,23 @@ class AbstractAgent(BaseModel, ABC):
         return request
 
     def process_action_response(
-        self, timestep: int, action: str, parameters: Dict[str, Any], request: RequestFormat, response: RequestResponse
+        self,
+        timestep: int,
+        action: str,
+        parameters: Dict[str, Any],
+        request: RequestFormat,
+        response: RequestResponse,
+        observation: ObsType,
     ) -> None:
         """Process the response from the most recent action."""
         self.history.append(
             AgentHistoryItem(
-                timestep=timestep, action=action, parameters=parameters, request=request, response=response
+                timestep=timestep,
+                action=action,
+                parameters=parameters,
+                request=request,
+                response=response,
+                observation=observation,
             )
         )
 

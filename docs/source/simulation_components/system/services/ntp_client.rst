@@ -54,7 +54,7 @@ Python
 
     # Install NTPClient on server
     server.software_manager.install(NTPClient)
-    ntp_client: NTPClient = server.software_manager.software.get("NTPClient")
+    ntp_client: NTPClient = server.software_manager.software.get("ntp-client")
     ntp_client.start()
 
     ntp_client.configure(ntp_server_ip_address=IPv4Address("192.168.0.10"))
