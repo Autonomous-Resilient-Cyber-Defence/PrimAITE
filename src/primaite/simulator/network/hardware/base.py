@@ -2038,10 +2038,10 @@ class Node(SimComponent, ABC):
                     # scan file system
                     self.file_system.scan(instant_scan=True)
 
-            if self.config.red_scan_countdown > 0:
-                self.config.red_scan_countdown -= 1
+            if self.red_scan_countdown > 0:
+                self.red_scan_countdown -= 1
 
-                if self.config.red_scan_countdown == 0:
+                if self.red_scan_countdown == 0:
                     # scan processes
                     for process_id in self.processes:
                         self.processes[process_id].reveal_to_red()
