@@ -384,11 +384,11 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                                 ],
                             }
                             self.logger.info(f"Changing password on remote node {hostname}")
-                            try:
-                                self._next_account_change = account_changes.pop(0)
-                            except IndexError:
+                            if len(account_changes) == 0:
                                 self.logger.info("No further account changes required.")
                                 self._next_account_change = None
+                            else:
+                                self._next_account_change = account_changes.pop(0)
                             self._change_password_target_host = hostname
                 if not self._next_account_change:
                     self.logger.info("Manipulation complete. Progressing to exploit...")
