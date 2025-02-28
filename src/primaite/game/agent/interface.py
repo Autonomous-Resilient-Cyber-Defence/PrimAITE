@@ -124,8 +124,8 @@ class AbstractAgent(BaseModel, ABC):
                 pass
             else:
                 # format dict by putting each key-value entry on a separate line and putting a blank line on the end.
-                param_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.parameters.items()], ""])
-                data_string = "\n".join([*[f"{k}: {v:.30}" for k, v in item.response.data], ""])
+                param_string = "\n".join([*[f"{k}: {str(v):.80}" for k, v in item.parameters.items()], ""])
+                data_string = "\n".join([*[f"{k}: {str(v):.80}" for k, v in item.response.data.items()], ""])
 
                 table.add_row([item.timestep, item.action, param_string, item.response.status, data_string])
         print(table)
