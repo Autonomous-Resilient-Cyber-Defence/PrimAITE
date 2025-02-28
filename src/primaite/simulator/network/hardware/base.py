@@ -1534,6 +1534,9 @@ class Node(SimComponent, ABC):
     _registry: ClassVar[Dict[str, Type["Node"]]] = {}
     """Registry of application types. Automatically populated when subclasses are defined."""
 
+    red_scan_countdown: int = 0
+    "Time steps until reveal to red scan is complete."
+
     node_scan_countdown: int = 0
     "Time steps until scan is complete"
 
@@ -1572,9 +1575,6 @@ class Node(SimComponent, ABC):
 
         node_scan_duration: int = 10
         "How many timesteps until the whole node is scanned. Default 10 time steps."
-
-        red_scan_countdown: int = 0
-        "Time steps until reveal to red scan is complete."
 
         dns_server: Optional[IPv4Address] = None
         "List of IP addresses of DNS servers used for name resolution."
