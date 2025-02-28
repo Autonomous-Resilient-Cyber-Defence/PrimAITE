@@ -10,8 +10,8 @@ from primaite.game.agent.scripted_agents.abstract_tap import (
     KillChainStageOptions,
     KillChainStageProgress,
 )
-from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain
-from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain
+from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain, TAP001
+from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain, TAP003
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.file_system.file_system_item_abc import FileSystemItemHealthStatus
 from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon

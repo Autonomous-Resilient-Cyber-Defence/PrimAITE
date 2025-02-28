@@ -10,10 +10,10 @@ from primaite.game.agent.scripted_agents.abstract_tap import (
     KillChainStageOptions,
     KillChainStageProgress,
 )
-from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain
-from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain
+from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain, TAP003
 from primaite.session.environment import PrimaiteGymEnv
-from primaite.simulator.network.hardware.nodes.network.router import ACLAction
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall
+from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 
 # Defining constants.
 
@@ -31,6 +31,7 @@ def uc7_tap003_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
         cfg["io_settings"]["save_sys_logs"] = False
+        cfg["io_settings"]["save_agent_logs"] = True
         cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
         cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
         cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
@@ -94,8 +95,13 @@ def test_tap003_kill_chain_stage_planning():
 
     env = environment_step(i=2, env=env)
 
-    # Testing that the stage successfully impacted the simulation - User is logged in
-    # TODO: Add an assert for this.
+    # Testing that the stage successful - TAP003 has loaded it's starting network knowledge into it's network knowledge.
+
+    # At this point TAP003 will parse it's starting network knowledge config into it's a private attribute (`network_knowledge`)
+    assert (
+        tap003.network_knowledge["credentials"]
+        == tap003.config.agent_settings.kill_chain.PLANNING.starting_network_knowledge["credentials"]
+    )
 
 
 def test_tap003_kill_chain_stage_access():
@@ -123,9 +129,7 @@ def test_tap003_kill_chain_stage_access():
 
 def test_tap003_kill_chain_stage_manipulation():
     """Tests the successful/failed handlers in the manipulation stage in the InsiderKillChain"""
-
     env = uc7_tap003_env()
-    env.reset()
     tap003: TAP003 = env.game.agents["attacker"]
 
     assert tap003.current_kill_chain_stage == BaseKillChain.NOT_STARTED
@@ -152,10 +156,12 @@ def test_tap003_kill_chain_stage_manipulation():
     # Testing that the stage successfully impacted the simulation - Accounts Altered
     env = environment_step(i=5, env=env)
     st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
+    assert tap003.current_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
     assert st_intra_prv_rt_dr_1.user_manager.admins["admin"].password == "red_pass"
 
     env = environment_step(i=5, env=env)
     st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
+    assert tap003.current_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
     assert st_intra_prv_rt_cr.user_manager.admins["admin"].password == "red_pass"
 
     env = environment_step(i=5, env=env)
@@ -172,6 +178,7 @@ def test_tap003_kill_chain_stage_exploit():
     st_intra_prv_rt_dr_1: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-DR-1")
     st_intra_prv_rt_cr: Router = env.game.simulation.network.get_node_by_hostname("ST_INTRA-PRV-RT-CR")
     rem_pub_rt_dr: Router = env.game.simulation.network.get_node_by_hostname("REM-PUB-RT-DR")
+
     assert tap003.current_kill_chain_stage == BaseKillChain.NOT_STARTED
 
     env = environment_step(i=2, env=env)
@@ -189,12 +196,12 @@ def test_tap003_kill_chain_stage_exploit():
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.ACCESS.name
     assert tap003.next_kill_chain_stage.name == InsiderKillChain.MANIPULATION.name
 
-    env = environment_step(i=9, env=env)
+    env = environment_step(i=16, env=env)
 
     assert tap003.current_kill_chain_stage.name == InsiderKillChain.EXPLOIT.name
 
     # Testing that the stage successfully impacted the simulation - Malicious ACL Added:
-    for _ in range(ATTACK_AGENT_INDEX):
+    for _ in range(14):
         env.step(0)
 
     # Tests that the ACL has been added and that the action is deny.

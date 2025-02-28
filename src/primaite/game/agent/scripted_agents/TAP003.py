@@ -257,7 +257,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
             self.logger.debug(f"Updating network knowledge. Changed {username}'s password to {password} on {hostname}.")
             self._change_password_target_host = ""
         # local password change
-        elif last_hist_item.action == "node-accounts-change-password" and last_hist_item.response.status == "success":
+        elif last_hist_item.action == "node-account-change-password" and last_hist_item.response.status == "success":
             self.network_knowledge["current_session"] = {}
             username = last_hist_item.request[6]
             password = last_hist_item.request[8]
@@ -338,15 +338,17 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
         """
         if self.current_kill_chain_stage == self.selected_kill_chain.MANIPULATION:
             if self._agent_trial_handler(self.config.agent_settings.kill_chain.MANIPULATION.probability):
-                self.logger.info(f"TAP003 reached the {self.current_kill_chain_stage.name}")
+                if self.current_stage_progress == KillChainStageProgress.PENDING:
+                    self.logger.info(f"TAP003 reached the {self.current_kill_chain_stage.name}.")
+                    self.current_stage_progress = KillChainStageProgress.IN_PROGRESS
                 self.current_host = self.starting_node
                 account_changes = self.config.agent_settings.kill_chain.MANIPULATION.account_changes
-                if len(account_changes) > 0:
+                if len(account_changes) > 0 or self._next_account_change:
                     if not self._next_account_change:
                         self._next_account_change = account_changes.pop(0)
                     if self._next_account_change["host"] == self.current_host:
                         # do a local password change
-                        self.chosen_action = "node-accounts-change-password", {
+                        self.chosen_action = "node-account-change-password", {
                             "node_name": self.current_host,
                             "username": self._next_account_change["username"],
                             "current_password": self.network_knowledge["credentials"][self.current_host]["password"],
@@ -382,14 +384,15 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                                 ],
                             }
                             self.logger.info(f"Changing password on remote node {hostname}")
-                            self._next_account_change = account_changes.pop(0)
+                            try:
+                                self._next_account_change = account_changes.pop(0)
+                            except IndexError:
+                                self.logger.info("No further account changes required.")
+                                self._next_account_change = None
                             self._change_password_target_host = hostname
-                if len(account_changes) == 0:
-                    self._next_account_change = None
-                    self.logger.info("Finished changing passwords.")
+                if not self._next_account_change:
+                    self.logger.info("Manipulation complete. Progressing to exploit...")
                     self._progress_kill_chain()
-
-                self.current_stage_progress = KillChainStageProgress.PENDING
             else:
                 if self.config.agent_settings.repeat_kill_chain_stages == False:
                     self.current_kill_chain_stage = self.selected_kill_chain.FAILED

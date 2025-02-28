@@ -12,8 +12,8 @@ from primaite.game.agent.scripted_agents.abstract_tap import (
     KillChainStageOptions,
     KillChainStageProgress,
 )
-from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain
-from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain
+from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain, TAP001
+from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain, TAP003
 from primaite.session.environment import PrimaiteGymEnv
 from primaite.simulator.network.hardware.nodes.network.router import ACLAction, Router
 from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP

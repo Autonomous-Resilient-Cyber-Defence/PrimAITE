@@ -10,22 +10,22 @@ from primaite.game.agent.scripted_agents.abstract_tap import (
     KillChainStageOptions,
     KillChainStageProgress,
 )
-from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain
-from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain
+from primaite.game.agent.scripted_agents.TAP001 import MobileMalwareKillChain, TAP001
+from primaite.game.agent.scripted_agents.TAP003 import InsiderKillChain, TAP003
 from primaite.session.environment import PrimaiteGymEnv
+
+START_STEP = 1  # The starting step of the agent.
+FREQUENCY = 5  # The frequency of kill chain stage progression (E.g it's next attempt at "attacking").
+VARIANCE = 0  # The timestep variance between kill chain progression (E.g Next timestep = Frequency +/- variance)
+ATTACK_AGENT_INDEX = 32
 
 
 def uc7_tap001_env() -> PrimaiteGymEnv:
     with open(_EXAMPLE_CFG / "uc7_config.yaml", mode="r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
-
-    for agents in cfg["agents"]:
-        if agents["ref"] == "attacker":
-            tap_cfg = agents
-
-    tap_cfg["agent_settings"]["start_step"] = 1
-    tap_cfg["agent_settings"]["frequency"] = 5
-    tap_cfg["agent_settings"]["variance"] = 0
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
 
     env = PrimaiteGymEnv(env_config=cfg)
 
@@ -42,27 +42,26 @@ def uc7_tap003_env(**kwargs) -> PrimaiteGymEnv:
     """
     with open(_EXAMPLE_CFG / "uc7_config_tap003.yaml", "r") as uc7_config:
         cfg = yaml.safe_load(uc7_config)
-
-    for agents in cfg["agents"]:
-        if agents["ref"] == "attacker":
-            tap_cfg = agents
-
-    tap_cfg["agent_settings"]["start_step"] = 1
-    tap_cfg["agent_settings"]["frequency"] = 5
-    tap_cfg["agent_settings"]["variance"] = 0
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["start_step"] = START_STEP
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["frequency"] = FREQUENCY
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["variance"] = VARIANCE
 
     if "repeat_kill_chain" in kwargs:
-        tap_cfg["agent_settings"]["repeat_kill_chain"] = kwargs["repeat_kill_chain"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain"] = kwargs["repeat_kill_chain"]
     if "repeat_kill_chain_stages" in kwargs:
-        tap_cfg["agent_settings"]["repeat_kill_chain_stages"] = kwargs["repeat_kill_chain_stages"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["repeat_kill_chain_stages"] = kwargs[
+            "repeat_kill_chain_stages"
+        ]
     if "planning_probability" in kwargs:
-        tap_cfg["agent_settings"]["kill_chain"]["PLANNING"]["probability"] = kwargs["planning_probability"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"]["PLANNING"]["probability"] = kwargs[
+            "planning_probability"
+        ]
     if "custom_kill_chain" in kwargs:
-        tap_cfg["agent_settings"]["kill_chain"] = kwargs["custom_kill_chain"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["kill_chain"] = kwargs["custom_kill_chain"]
     if "starting_nodes" in kwargs:
-        tap_cfg["agent_settings"]["starting_nodes"] = kwargs["starting_nodes"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["starting_nodes"] = kwargs["starting_nodes"]
     if "target_nodes" in kwargs:
-        tap_cfg["agent_settings"]["target_nodes"] = kwargs["target_nodes"]
+        cfg["agents"][ATTACK_AGENT_INDEX]["agent_settings"]["target_nodes"] = kwargs["target_nodes"]
 
     env = PrimaiteGymEnv(env_config=cfg)
     return env
