@@ -355,7 +355,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                             "new_password": self._next_account_change["new_password"],
                         }
                         self.logger.info("Changing local password.")
-                        # If statement to catch last host edge case - we don't want cause an IndexError
+                        # Catch last host edge case.
                         if len(account_changes) == 0:
                             self.logger.info("No further account changes required.")
                             self._next_account_change = None
@@ -389,7 +389,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                                 ],
                             }
                             self.logger.info(f"Changing password on remote node {hostname}")
-                            # If statement to catch last host edge case - we don't want cause an IndexError
+                            # Catch last host edge case.
                             if len(account_changes) == 0:
                                 self.logger.info("No further account changes required.")
                                 self._next_account_change = None
