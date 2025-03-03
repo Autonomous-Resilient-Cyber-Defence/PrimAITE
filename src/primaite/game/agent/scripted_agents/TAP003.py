@@ -355,7 +355,12 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                             "new_password": self._next_account_change["new_password"],
                         }
                         self.logger.info("Changing local password.")
-                        self._next_account_change = account_changes.pop(0)
+                        # Catch last host edge case.
+                        if len(account_changes) == 0:
+                            self.logger.info("No further account changes required.")
+                            self._next_account_change = None
+                        else:
+                            self._next_account_change = account_changes.pop(0)
                         self._change_password_target_host = self.current_host
                     else:
                         # make sure we are logged in via ssh to remote node
@@ -384,6 +389,7 @@ class TAP003(AbstractTAP, discriminator="tap-003"):
                                 ],
                             }
                             self.logger.info(f"Changing password on remote node {hostname}")
+                            # Catch last host edge case.
                             if len(account_changes) == 0:
                                 self.logger.info("No further account changes required.")
                                 self._next_account_change = None
