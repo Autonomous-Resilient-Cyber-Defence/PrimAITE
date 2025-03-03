@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `do-nothing` actions are omitted.
 -  New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
 -  Added ability to set the observation threshold for NMNE, file access and application executions
--   UC7 Scenario model changes plus config files and example notebooks. 
+-   UC7 Scenario model changes plus config files and example notebooks.
 
 ### Changed
 -   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
