@@ -14,6 +14,7 @@ from primaite.simulator import SIM_OUTPUT
 from primaite.simulator.network.creation import NetworkNodeAdder
 from primaite.simulator.network.hardware.base import NetworkInterface, Node, NodeOperatingState, UserManager
 from primaite.simulator.network.hardware.nodes.host.host_node import NIC
+from primaite.simulator.network.hardware.nodes.network.firewall import Firewall  # noqa: F401
 from primaite.simulator.network.hardware.nodes.network.switch import Switch
 from primaite.simulator.network.hardware.nodes.network.wireless_router import WirelessRouter
 from primaite.simulator.network.nmne import NMNEConfig

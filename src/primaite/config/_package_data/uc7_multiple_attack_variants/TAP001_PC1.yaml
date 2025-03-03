@@ -1,0 +1,40 @@
+red: &red
+  - ref: attacker
+    team: RED
+    type: tap-001
+    agent_settings:
+      start_step: 1
+      frequency: 5
+      variance: 0
+      repeat_kill_chain: false
+      repeat_kill_chain_stages: true
+      default_target_ip: 192.168.220.3
+      default_starting_node: "ST_PROJ-C-PRV-PC-1"
+      starting_nodes:
+      kill_chain:
+        ACTIVATE:
+          probability: 1
+        PROPAGATE:
+          probability: 1
+          scan_attempts: 20
+          repeat_scan: false
+          network_addresses:
+            - 192.168.230.0/29 # ST Project A
+            - 192.168.10.0/26  # Remote Site
+            - 192.168.20.0/30  # Remote DMZ
+            - 192.168.220.0/29 # ST Data (Contains Target)
+        COMMAND_AND_CONTROL:
+          probability: 1
+          keep_alive_frequency: 5
+          masquerade_port: HTTP
+          masquerade_protocol: TCP
+          c2_server_name: ISP-PUB-SRV-DNS
+          c2_server_ip: 8.8.8.8
+        PAYLOAD:
+          probability: 1
+          exfiltrate: true
+          corrupt: true
+          exfiltration_folder_name:
+          target_username: admin
+          target_password: admin
+          continue_on_failed_exfil: True

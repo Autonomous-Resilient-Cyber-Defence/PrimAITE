@@ -47,7 +47,7 @@ def test_acl_observations(simulation):
     observation_space = acl_obs.observe(simulation.describe_state())
     assert observation_space.get(1) is not None
     rule_obs = observation_space.get(1)  # this is the ACL Rule added to allow NTP
-    assert rule_obs.get("position") == 0  # rule was put at position 1 (0 because counting from 1 instead of 1)
+    assert rule_obs.get("position") == 1  # rule was put at position 1
     assert rule_obs.get("permission") == 1  # permit = 1 deny = 2
     assert rule_obs.get("source_ip_id") == 1  # applies to all source nodes
     assert rule_obs.get("dest_ip_id") == 1  # applies to all destination nodes
@@ -60,7 +60,7 @@ def test_acl_observations(simulation):
     observation_space = acl_obs.observe(simulation.describe_state())
     assert observation_space.get(1) is not None
     rule_obs = observation_space.get(1)  # this is the ACL Rule added to allow NTP
-    assert rule_obs.get("position") == 0
+    assert rule_obs.get("position") == 1
     assert rule_obs.get("permission") == 0
     assert rule_obs.get("source_ip_id") == 0
     assert rule_obs.get("dest_ip_id") == 0
