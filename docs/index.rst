@@ -18,6 +18,22 @@ What is PrimAITE?
    source/glossary
 
 .. toctree::
+   :maxdepth: 8
+   :caption: How To
+   :hidden:
+
+   source/how_to
+   source/how_to_guides/custom_actions
+   source/how_to_guides/custom_environments
+   source/how_to_guides/custom_rewards
+   source/how_to_guides/custom_software
+   source/how_to_guides/using_dev_cli
+   source/how_to_guides/extensible_actions
+   source/how_to_guides/extensible_agents
+   source/how_to_guides/extensible_nodes
+   source/how_to_guides/extensible_rewards
+
+.. toctree::
    :caption: Usage:
    :hidden:
 

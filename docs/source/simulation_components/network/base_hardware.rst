@@ -42,7 +42,7 @@ Example code where a node is turned on:
     from primaite.simulator.network.hardware.base import Node
     from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 
-    node = Node(hostname="pc_a")
+    node = Node(config={"hostname":"pc_a"})
 
     assert node.operating_state is NodeOperatingState.OFF # By default, node is instantiated in an OFF state
 
@@ -65,7 +65,7 @@ If the node needs to be instantiated in an on state:
     from primaite.simulator.network.hardware.base import Node
     from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 
-    node = Node(hostname="pc_a", operating_state=NodeOperatingState.ON)
+    node = Node(config={"hostname":"pc_a", "operating_state":NodeOperatingState.ON})
 
     assert node.operating_state is NodeOperatingState.ON  # node is in ON state
 
@@ -76,7 +76,7 @@ Setting ``start_up_duration`` and/or ``shut_down_duration`` to ``0`` will allow 
     from primaite.simulator.network.hardware.base import Node
     from primaite.simulator.network.hardware.node_operating_state import NodeOperatingState
 
-    node = Node(hostname="pc_a", start_up_duration=0, shut_down_duration=0)
+    node = Node(config={"hostname":"pc_a", "start_up_duration":0, "shut_down_duration":0})
 
     assert node.operating_state is NodeOperatingState.OFF  # node is in OFF state
 
@@ -196,21 +196,23 @@ Setting up a Client-Server Network
     def client_server_network() -> Tuple[Computer, Server, Network]:
         network = Network()
 
-        client = Computer(
-            hostname="client",
-            ip_address="192.168.1.2",
-            subnet_mask="255.255.255.0",
-            default_gateway="192.168.1.1",
-            start_up_duration=0,
+        client = Computer(config={
+            "hostname":"client",
+            "ip_address":"192.168.1.2",
+            "subnet_mask":"255.255.255.0",
+            "default_gateway":"192.168.1.1",
+            "start_up_duration":0,
+            }
         )
         client.power_on()
 
-        server = Server(
-            hostname="server",
-            ip_address="192.168.1.3",
-            subnet_mask="255.255.255.0",
-            default_gateway="192.168.1.1",
-            start_up_duration=0,
+        server = Server(config = {
+            "hostname":"server",
+            "ip_address":"192.168.1.3",
+            "subnet_mask":"255.255.255.0",
+            "default_gateway":"192.168.1.1",
+            "start_up_duration":0,
+            }
         )
         server.power_on()
 

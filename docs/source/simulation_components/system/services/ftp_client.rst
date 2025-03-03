@@ -49,12 +49,13 @@ Python
     from primaite.simulator.system.services.ftp.ftp_client import FTPClient
 
     # Create Server
-    server = Server(
-        hostname="server",
-        ip_address="192.168.2.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.10",
-        start_up_duration=0,
+    server = Server(config = {
+        "hostname":"server",
+        "ip_address":"192.168.2.2",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.10",
+        "start_up_duration":0,
+        }
     )
     server.power_on()
 

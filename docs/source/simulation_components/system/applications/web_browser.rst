@@ -50,12 +50,13 @@ The :ref:`DNSClient` must be configured to use the :ref:`DNSServer`. The :ref:`D
     from primaite.simulator.system.applications.web_browser import WebBrowser
 
     # Create Computer
-    computer = Computer(
-        hostname="computer",
-        ip_address="192.168.1.2",
-        subnet_mask="255.255.255.0",
-        default_gateway="192.168.1.1",
-        start_up_duration=0,
+    computer = Computer(config={
+        "hostname":"computer",
+        "ip_address":"192.168.1.2",
+        "subnet_mask":"255.255.255.0",
+        "default_gateway":"192.168.1.1",
+        "start_up_duration":0,
+        }
     )
     computer.power_on()
 

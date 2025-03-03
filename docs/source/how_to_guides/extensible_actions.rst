@@ -2,10 +2,10 @@
 
     © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+.. _extensible_actions:
 
 Extensible Actions
 ******************
-
 
 Changes to Actions class Structure.
 ===================================
@@ -32,7 +32,7 @@ The ConfigSchema sub-class of the action must contain all `configurable` variabl
 
 
 Unique discriminator
-#################
+####################
 
 When declaring a custom class, it must have a unique discriminator string, that allows PrimAITE to generate the correct action when needed.
 
@@ -48,6 +48,7 @@ When declaring a custom class, it must have a unique discriminator string, that 
             node_name: str
             directory_name: str
 
+        @classmethod
         def form_request(cls, config: ConfigSchema) -> RequestFormat:
             return ["network",
                     "node",
@@ -64,4 +65,4 @@ The above action would fail pydantic validation as the discriminator "node-folde
 form_request method
 ###################
 
-PrimAITE actions need to have a `form_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment.
+PrimAITE actions need to have a `form_request` method, which can be passed to the `RequestManager` for processing. This allows the custom action to be actioned within the simulation environment. Further information and an example of this can be seen in :ref:`custom_actions`.
