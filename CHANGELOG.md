@@ -8,12 +8,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.0.0] = 2025-03-XX
 
 ### Added
+-   Log observation space data by episode and step.
+-   Added ability to set the observation threshold for NMNE, file access and application executions.
 -   Added `show_history` method to Agents, allowing you to view actions taken by an agent per step. By default, `do-nothing` actions are omitted.
--  New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
--  Added ability to set the observation threshold for NMNE, file access and application executions
--   UC7 Scenario model changes plus config files and example notebooks.
+-   New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
+-   Added ability to set the observation threshold for NMNE, file access and application executions
+-   UC7 Scenario model changes including Threat Actor Profile, TAP001 and TAP003 agents plus config files and example notebooks.
+-   New HOW-TO guides describing how to use the new extension system to customise actions, environments and rewards.
+-   Added version and plugin fields to YAML configs to ensure compatibility with future versions.
+-   Network Node Adder class provides a framework for adding nodes to a network in a standardised way.
 
 ### Changed
+-   ACL's are no longer applied to layer-2 traffic.
+-   Random number seed values are recorded in simulation/seed.log if the seed is set in the config file
+    or `generate_seed_value` is set to `true`.
+-   ARP .show() method will now include the port number associated with each entry.
+-   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config
+    to allow the agents to be able to see actual health states of services and applications without
+    requiring scans (default `True`, set to `False` to allow agents to see actual health state without scanning).
+-   Updated the `Terminal` class to provide response information when sending remote command execution.
 -   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
 -   Actions within PrimAITE are now extensible, allowing for plugin support.
 -   Added a config schema to `ObservationManager`, `ActionManager`, and `RewardFunction`.
@@ -23,30 +36,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Action parameters are no longer defined through IDs, instead meaningful data is provided directly in the action map
 -   Test and example YAMLs have been updated to match the new agent and action schemas, such as:
     -   Removed empty action spaces, observation spaces, or reward spaces for agent which didn't use them
-    -   Relabeled action parameters to match the new action config schemas, and updated the values to no longer rely on indices
+    -   Relabelled action parameters to match the new action config schemas, and updated the values to no longer rely on indices
     -   Removed action space options which were previously used for assigning meaning to action space IDs
 -   Updated tests that don't use YAMLs to still use the new action and agent schemas
 -   Nodes now use a config schema and are extensible, allowing for plugin support.
 -   Node tests have been updated to use the new node config schemas when not using YAML files.
 -   Documentation has been updated to include details of extensability with PrimAITE.
+-   Software is created in the GOOD health state instead of UNUSED.
+-   Standardised naming convention for YAML config files using kebab-case.
+    This naming convention is used for configuring software, observations, actions and node types.
+    NB: A migration guide will be available with this release.
+
 ### Fixed
 -   DNS client no longer fails to check its cache if a DNS server address is missing.
 -   DNS client now correctly inherits the node's DNS address configuration setting.
+-   ACL observations now include the ACL at index 0.
+-   SoftwareManager.show() correctly displays all the software associated with a port whether the software is listening or not.
 
-
-## [3.3.1] - 2024-12-04
-
-### Added
--   Log observation space data by episode and step.
--  Added ability to set the observation threshold for NMNE, file access and application executions
-
-### Changed
--   ACL's are no longer applied to layer-2 traffic.
--   Random number seed values are recorded in simulation/seed.log if the seed is set in the config file
-    or `generate_seed_value` is set to `true`.
--   ARP .show() method will now include the port number associated with each entry.
--   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config to allow the agents to be able to see actual health states of services and applications without requiring scans (default `True`, set to `False` to allow agents to see actual health state without scanning).
--   Updated the `Terminal` class to provide response information when sending remote command execution.
 
 ## [3.3.0] - 2024-09-04
 ### Added
