@@ -14,18 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   New ``node-send-local-command`` action implemented which grants agents the ability to execute commands locally. (Previously limited to remote only)
 -   Added ability to set the observation threshold for NMNE, file access and application executions
 -   UC7 Scenario model changes including Threat Actor Profile, TAP001 and TAP003 agents plus config files and example notebooks.
--   New HOW-TO guides describing how to use the new extension system to customise actions, environments and rewards.
+-   New how-to guides describing how to use the new extension system to customise actions, environments and rewards.
 -   Added version and plugin fields to YAML configs to ensure compatibility with future versions.
 -   Network Node Adder class provides a framework for adding nodes to a network in a standardised way.
 
 ### Changed
--   ACL's are no longer applied to layer-2 traffic.
+-   ACLs are no longer applied to layer-2 traffic.
 -   Random number seed values are recorded in simulation/seed.log if the seed is set in the config file
     or `generate_seed_value` is set to `true`.
 -   ARP .show() method will now include the port number associated with each entry.
--   Added `services_requires_scan` and `applications_requires_scan` to agent observation space config
-    to allow the agents to be able to see actual health states of services and applications without
-    requiring scans (default `True`, set to `False` to allow agents to see actual health state without scanning).
+-   The behaviour that services, applications, files and folders require scanning before their observations are updated is now optional.
 -   Updated the `Terminal` class to provide response information when sending remote command execution.
 -   Agents now follow a common configuration format, simplifying the configuration of agents and their extensibilty.
 -   Actions within PrimAITE are now extensible, allowing for plugin support.
