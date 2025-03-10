@@ -32,6 +32,7 @@ What is PrimAITE?
    source/how_to_guides/extensible_agents
    source/how_to_guides/extensible_nodes
    source/how_to_guides/extensible_rewards
+   source/how_to_guides/primaite_yaml_migration_guide
 
 .. toctree::
    :caption: Usage:
