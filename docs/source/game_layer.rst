@@ -42,7 +42,7 @@ An agent's reward function is managed by the ``RewardManager``. It calculates re
 Reward Components
 -----------------
 
-Currently implemented are reward components tailored to the data manipulation scenario. View the full API and description of how they work here: :py:modules:`primaite.game.agent.rewards`.
+Currently implemented are reward components tailored to the data manipulation scenario. View the full API and description of how they work here: :py:mod:`primaite.game.agent.rewards`.
 
 Reward Sharing
 --------------

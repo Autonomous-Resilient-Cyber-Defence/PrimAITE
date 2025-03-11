@@ -79,7 +79,7 @@ To make your own changes to PrimAITE, perform the install from source (developer
 
 #### 1. Clone the PrimAITE repository
 ``` unix
-git clone git@github.com:{todo:fill in URL}/PrimAITE.git
+git clone git@github.com:Autonomous-Resilient-Cyber-Defence/PrimAITE.git
 ```
 
 #### 2. CD into the repo directory
