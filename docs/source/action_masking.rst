@@ -2,6 +2,8 @@
 
     © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+.. _action_masking:
+
 Action Masking
 **************
 The PrimAITE simulation is able to provide action masks in the environment output. These action masks let the agents know

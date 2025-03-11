@@ -33,7 +33,7 @@ However, a few more options have been introduced:
         sys_log_level: WARNING
         agent_log_level: INFO
 
-More information can be found in the detailed in the configuration page: :ref:`_io_settings`.
+More information can be found in the detailed in the configuration page: :ref:`io_settings`.
 
 ``game``
 ========

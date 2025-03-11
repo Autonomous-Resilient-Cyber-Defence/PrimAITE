@@ -17,50 +17,50 @@ All agent types within PrimAITE must be subclassed from ``AbstractAgent`` in ord
 
 The core features that should be implemented in any new agent are detailed below:
 
-#. **ConfigSchema**:
+**ConfigSchema**:
 
-    Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*, these would be listed seperately.
-	Agent generation will fail pydantic checks if incorrect or invalid parameters are passed to the ConfigSchema of the chosen Agent.
-
-
-    .. code-block:: python
-
-        class ExampleAgent(AbstractAgent, discriminator = "ExampleAgent"):
-            """An example agent for demonstration purposes."""
-
-            config: "ExampleAgent.ConfigSchema" = Field(default_factory= lambda: ExampleAgent.ConfigSchema())
-            """Agent configuration"""
-            num_executions: int = 0
-            """Number of action executions by agent"""
-
-            class ConfigSchema(AbstractAgent.ConfigSchema):
-                """ExampleAgent configuration schema"""
-
-                type: str = "ExampleAgent
-                """Name of agent"""
-                starting_host: int
-                """Host node that this agent should start from in the given environment."""
+Configurable items within a new agent within PrimAITE should contain a ``ConfigSchema`` which holds all configurable variables of the agent. This should not include parameters related to its *state*, these would be listed seperately.
+Agent generation will fail pydantic checks if incorrect or invalid parameters are passed to the ConfigSchema of the chosen Agent.
 
 
-	.. code-block:: yaml
+.. code-block:: python
 
-		- ref: example_green_agent
-		  team: GREEN
-		  type: example-agent
+    class ExampleAgent(AbstractAgent, discriminator = "ExampleAgent"):
+        """An example agent for demonstration purposes."""
 
-		  action_space:
-			action_map:
-				0:
-					action: do-nothing
-					options: {}
-		  agent_settings:
-			start_step: 25
-			frequency: 20
-			variance: 5
-			starting_host: "Server_1"
+        config: "ExampleAgent.ConfigSchema" = Field(default_factory= lambda: ExampleAgent.ConfigSchema())
+        """Agent configuration"""
+        num_executions: int = 0
+        """Number of action executions by agent"""
+
+        class ConfigSchema(AbstractAgent.ConfigSchema):
+            """ExampleAgent configuration schema"""
+
+            type: str = "ExampleAgent
+            """Name of agent"""
+            starting_host: int
+            """Host node that this agent should start from in the given environment."""
 
 
-#. **discriminators**:
+.. code-block:: yaml
+
+    - ref: example_green_agent
+        team: GREEN
+        type: example-agent
+
+        action_space:
+        action_map:
+            0:
+                action: do-nothing
+                options: {}
+        agent_settings:
+        start_step: 25
+        frequency: 20
+        variance: 5
+        starting_host: "Server_1"
+
+
+**discriminators**:
 
     All agent classes should have an ``discriminator`` attribute, a unique kebab-case string, for when they are added to the base ``AbstractAgent`` registry. This is then specified in your configuration YAML, and used by PrimAITE to generate the correct Agent.
 
