@@ -215,7 +215,7 @@ class FTPClient(FTPServiceABC, discriminator="ftp-client"):
         :param: dest_file_name: The name of the file to be saved on the FTP Server.
         :type: dest_file_name: str
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is PORT_LOOKUP["FTP"].
         :type: dest_port: Optional[Port]
 
         :param: session_id: The id of the session
@@ -276,7 +276,7 @@ class FTPClient(FTPServiceABC, discriminator="ftp-client"):
         :param: dest_file_name: The name of the file to be saved on the FTP Server.
         :type: dest_file_name: str
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is PORT_LOOKUP["FTP"].
         :type: dest_port: Optional[int]
         """
         self._active = True

@@ -57,8 +57,8 @@ class Firewall(Router, discriminator="firewall"):
         >>> # Permit HTTP traffic to the DMZ
         >>> firewall.dmz_inbound_acl.add_rule(
         ...    action=ACLAction.PERMIT,
-        ...    protocol=IPProtocol["TCP"],
-        ...    dst_port=Port["HTTP"],
+        ...    protocol=PROTOCOL_LOOKUP["TCP"],
+        ...    dst_port=PORT_LOOKUP["HTTP"],
         ...    src_ip_address="0.0.0.0",
         ...    src_wildcard_mask="0.0.0.0",
         ...    dst_ip_address="172.16.0.0",

@@ -15,7 +15,7 @@ Key features
 - Connects to the :ref:`FTPServer` via the ``SoftwareManager``.
 - Simulates FTP requests and FTPPacket transfer across a network
 - Allows the emulation of FTP commands between an FTP client and server:
-    - PORT: specifies the port that server should connect to on the client (currently only uses ``Port["FTP"]``)
+    - PORT: specifies the port that server should connect to on the client (currently only uses ``PORT_LOOKUP["FTP"]``)
     - STOR: stores a file from client to server
     - RETR: retrieves a file from the FTP server
     - QUIT: disconnect from server
