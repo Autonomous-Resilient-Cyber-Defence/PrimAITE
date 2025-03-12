@@ -4,11 +4,6 @@
 
 .. _common_node_attributes:
 
-``ref``
--------
-
-Human readable name used as reference for the |NODE|. Not used in code.
-
 ``hostname``
 ------------
 
