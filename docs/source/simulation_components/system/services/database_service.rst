@@ -82,15 +82,13 @@ Via Configuration
     simulation:
         network:
             nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: database_service
-                    type: database-service
-                    options:
-                        backup_server_ip: 192.168.0.10
+            - hostname: example_server
+            type: server
+            ...
+            services:
+            - type: database-service
+            options:
+                backup_server_ip: 192.168.0.10
 
 Configuration
 =============
