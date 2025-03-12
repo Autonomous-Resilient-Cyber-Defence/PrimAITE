@@ -21,7 +21,7 @@ Usage
 =====
 
 - Install on a Node via the ``SoftwareManager`` to start the `WebServer`.
-- Service runs on HTTP port 80 by default. (TODO: HTTPS)
+- Service runs on HTTP port 80 by default.
 - A :ref:`DatabaseClient` must be installed and configured on the same node as the ``WebServer`` if it is intended to send a users request i.e.
     in the case that the :ref:`WebBrowser` sends a request with users in its request path, the ``WebServer`` will utilise the ``DatabaseClient`` to send a request to the ``DatabaseService``
 
