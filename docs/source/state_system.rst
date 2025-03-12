@@ -13,19 +13,67 @@ This code snippet demonstrates how the state information is defined within the `
 
 .. code-block:: python
 
-    class Node(SimComponent):
+    class Node(SimComponent, ABC):
+        """
+        A basic Node class that represents a node on the network.
+
+        This class manages the state of the node, including the NICs (Network Interface Cards), accounts, applications,
+        services, processes, file system, and various managers like ARP, ICMP, SessionManager, and SoftwareManager.
+
+        :param hostname: The node hostname on the network.
+        :param operating_state: The node operating state, either ON or OFF.
+        """
+
         operating_state: NodeOperatingState = NodeOperatingState.OFF
+        "The hardware state of the node."
+        network_interfaces: Dict[str, NetworkInterface] = {}
+        "The Network Interfaces on the node."
+        network_interface: Dict[int, NetworkInterface] = {}
+        "The Network Interfaces on the node by port id."
+        accounts: Dict[str, Account] = {}
+        "All accounts on the node."
+        applications: Dict[str, Application] = {}
+        "All applications on the node."
         services: Dict[str, Service] = {}
+        "All services on the node."
+        processes: Dict[str, Process] = {}
+        "All processes on the node."
+        file_system: FileSystem
+        "The nodes file system."
 
-        def describe_state(self) -> Dict:
-            state = super().describe_state()
-            state["operating_state"] = self.operating_state.value
-            state["services"] = {uuid: svc.describe_state() for uuid, svc in self.services.items()}
-            return state
+    ...
+    class ConfigSchema(BaseModel, ABC):
+        """Configuration Schema for Node based classes."""
 
-    class Service(SimComponent):
-        health_state: ServiceHealthState = ServiceHealthState.GOOD
-        def describe_state(self) -> Dict:
-            state = super().describe_state()
-            state["health_state"] = self.health_state.value
-            return state
+        ...
+            revealed_to_red: bool = False
+            "Informs whether the node has been revealed to a red agent."
+
+    ...
+    def describe_state(self) -> Dict:
+    """
+    Produce a dictionary describing the current state of this object.
+
+    Please see :py:meth:`primaite.simulator.core.SimComponent.describe_state` for a more detailed explanation.
+
+    :return: Current state of this object and child objects.
+    :rtype: Dict
+    """
+    state = super().describe_state()
+    state.update(
+        {
+            "hostname": self.config.hostname,
+            "operating_state": self.operating_state.value,
+            "NICs": {
+                eth_num: network_interface.describe_state()
+                for eth_num, network_interface in self.network_interface.items()
+            },
+            "file_system": self.file_system.describe_state(),
+            "applications": {app.name: app.describe_state() for app in self.applications.values()},
+            "services": {svc.name: svc.describe_state() for svc in self.services.values()},
+            "process": {proc.name: proc.describe_state() for proc in self.processes.values()},
+            "revealed_to_red": self.config.revealed_to_red,
+        }
+    )
+    return state
+    ...
