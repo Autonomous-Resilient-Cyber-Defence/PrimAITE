@@ -40,7 +40,7 @@ More information can be found in the detailed in the configuration page: :ref:`i
 
 No reformatting required for ``game`` section.
 
-If users have installed plugins that introduce new ports or protocols then the game must be configured with use them.
+If users have installed plugins that introduce new ports or protocols then the game can be configured with use them.
 
 This can be done by adding to the ``ports`` and ``protocols`` list as shown in the yaml snippet below:
 
@@ -67,31 +67,145 @@ This can be done by adding to the ``ports`` and ``protocols`` list as shown in t
 ``agents``
 ==========
 
-PrimAITE 4.0.0 removes the requirement for agents to use indexes in actions.
+PrimAITE 4.0.0 changes action parameters to use meaningful names instead of indexes.
 
-To match the new schema, 3.0.0  agent's must adhere to the following:
+To match the new schema, agent configs written for PrimAITE 3.X should make the following changes:
 
-- The ``action_list`` sub-section within the ``action_space`` is no longer required and can be removed.
-- The ``options`` sub-section can also be removed. (Note that you do not accidentally remove ``options`` sub-section within the ``observation_space``)
-- The agent that require an ``action_map`` sub-section require the following alterations:
-    - Action's must now be converted to kebab-case:
-    - Action ``options`` that previously required identifiers now instead require names.
+``action_space``
+----------------
+
+- remove the ``options``,  and ``action_list`` sections.
+- update the ``action_map`` to use the new naming schema for actions, they use kebab case instead of camel case. A conversion table is provided below.
+- update the ``action_map`` to follow the new parameter schemas. ID-based parameters were replaced with name-based parameters. Use your old config's ``action_space.options`` field to find the appropriate mapping for action parameters in your particular scenario.
+    - ``node_id`` is now ``node_name``
+    - ``application_id`` is now ``application_name``
+    - ``service_id`` is now ``service_name``
+    - ``folder_id`` is now ``folder_name``
+    - ``nic_id`` is now ``nic_num`` (and is now 1-indexed instead of 0-indexed for consistency with the simulation)
+    - ``port_id`` is now ``port_num`` (and is now 1-indexed instead of 0-indexed for consistency with the simulation)
+    - ``source_ip_id`` is now ``src_ip``
+    - ``source_wildcard_id`` is now ``src_wildcard``
+    - ``source_port_id`` is now ``src_port``
+    - ``dest_port_id`` is now ``dst_port``
+    - ``dest_wildcard_id`` is now ``dst_wildcard``
+    - ``dest_port_id`` is now ``dst_port``
+    - ``protocol_id`` is now ``protocol``
+
+**Example on how to map old paramater IDs to new paramter names**
 
 .. code-block:: yaml
 
-    # scan webapp service (4.0.0)
-    1:
-        action: node-service-scan   # kebab-case
-        options:
-          node_name: web_server     # IDs are no longer used - reference the name directly.
-          service_name: web-server
+    game:
+    max_episode_length: 128
+    ports:
+        - FTP
+        - HTTP
+    protocols:
+        - TCP
+        - UDP
 
-    # scan webapp service (3.0.0)
-    1:
-        action: NODE_SERVICE_SCAN
-        options:
-          node_id: 1
-          service_id: 0
+    # ...
+
+      options:
+        nodes:
+          - node_name: PC-1
+            applications:
+              - application_name: DatabaseClient
+            folders:
+              - folder_name: downloads
+                files:
+                  - file_name: chrome.exe
+              - folder_name: other_folder
+                files:
+                  - file_name: firefox.exe
+          - node_name: PC-2
+            applications:
+              - application_name: WebBrowser
+            folders:
+              - folder_name: folder_1
+                files:
+                  - file_name: file2.jpg
+              - folder_name: folder_2
+                files:
+                  - file_name: file3.jpg
+          - node_name: PC-3
+            services:
+              - service_name: FTPClient
+          - node_name: PC-4
+          - node_name: PC-5
+
+        max_folders_per_node: 1
+        max_files_per_folder: 1
+        max_services_per_node: 2
+        max_nics_per_node: 8
+        max_acl_rules: 10
+        ip_list:
+                         #  0 reserved for padding to align with observations
+                         #  1 reserved for ALL ips
+          - 192.168.1.11 #  2
+          - 200.10.1.10  #  3
+
+
+        wildcard_list:
+          - 0.0.0.1      # 0
+          - 0.0.0.255    # 1
+          - 0.0.255.255  # 2
+
+From the above old-style YAML ``action_space.options`` example, the following changes should be made to action map:
+
+- Actions with ``node_id: 0`` should use ``node_name: PC-1``
+- Actions with ``node_id: 1`` should use ``node_name: PC-2``
+- Actions with ``node_id: 2`` should use ``node_name: PC-3``
+- Actions with ``node_id: 3`` should use ``node_name: PC-4``
+- Actions with ``node_id: 4`` should use ``node_name: PC-5``
+- Actions with ``node_id: 0`` and ``application_id: 0`` should use ``application_name: DatabaseClient`` (The application list is specific to each node)
+- Actions with ``node_id: 1`` and ``application_id: 0`` should use ``application_name: WebBrowser`` (The application list is specific to each node)
+- Actions with ``node_id: 0`` and ``folder_id: 0`` should use ``folder_name: downloads`` (The folder list is specific to each node)
+- Actions with ``node_id: 0`` and ``folder_id: 1`` should use ``folder_name: other_folder`` (The folder list is specific to each node)
+- Actions with ``node_id: 1`` and ``folder_id: 0`` should use ``folder_name: folder_1`` (The folder list is specific to each node)
+- Actions with ``node_id: 1`` and ``folder_id: 1`` should use ``folder_name: folder_2`` (The folder list is specific to each node)
+- Actions with ``node_id: 0`` and ``folder_id: 0`` and ``file_id: 0`` should use ``file_name: chrome.exe`` (The file list is specific to each node and folder)
+- Actions with ``node_id: 0`` and ``folder_id: 1`` and ``file_id: 0`` should use ``file_name: firefox.exe`` (The file list is specific to each node and folder)
+- Actions with ``node_id: 1`` and ``folder_id: 0`` and ``file_id: 0`` should use ``file_name: file2.jpg`` (The file list is specific to each node and folder)
+- Actions with ``node_id: 1`` and ``folder_id: 1`` and ``file_id: 0`` should use ``file_name: file3.jpg`` (The file list is specific to each node and folder)
+- Actions with ``nic_id: <N>`` should use ``nic_num: <N+1>``
+- Actions with ``port_id: <N>`` should use ``port_num: <N+1>``
+- Actions with ``source_ip_id: 0`` should not be present in your original config as this has no effect
+- Actions with ``source_ip_id: 1`` should use ``src_ip: ALL``
+- Actions with ``source_ip_id: 2`` should use ``src_ip: 192.168.1.11``
+- Actions with ``source_ip_id: 3`` should use ``src_ip: 200.10.1.10``
+- Actions with ``dest_ip_id: 0`` should not be present in your original config as this has no effect
+- Actions with ``dest_ip_id: 1`` should use ``dst_ip: ALL``
+- Actions with ``dest_ip_id: 2`` should use ``dst_ip: 192.168.1.11``
+- Actions with ``dest_ip_id: 3`` should use ``dst_ip: 200.10.1.10``
+- Actions with ``source_wildcard_id: 0`` should use ``src_wildcard: 0.0.0.1``
+- Actions with ``source_wildcard_id: 0`` should use ``src_wildcard: 0.0.0.255``
+- Actions with ``source_wildcard_id: 0`` should use ``src_wildcard: 0.0.255.255``
+- Actions with ``dest_wildcard_id: 0`` should use ``dst_wildcard: 0.0.0.1``
+- Actions with ``dest_wildcard_id: 0`` should use ``dst_wildcard: 0.0.0.255``
+- Actions with ``dest_wildcard_id: 0`` should use ``dst_wildcard: 0.0.255.255``
+- Actions with ``source_port_id: 0`` should not be present in your original config as this has no effect
+- Actions with ``source_port_id: 1`` should use ``src_port: ALL``
+- Actions with ``source_port_id: 2`` should use ``src_port: FTP``
+- Actions with ``source_port_id: 3`` should use ``src_port: HTTP``
+- Actions with ``dest_port_id: 0`` should not be present in your original config as this has no effect
+- Actions with ``dest_port_id: 1`` should use ``dst_port: ALL``
+- Actions with ``dest_port_id: 2`` should use ``dst_port: FTP``
+- Actions with ``dest_port_id: 3`` should use ``dst_port: HTTP``
+- Actions with ``protocol_id: 0`` should not be present in your original config as this has no effect
+- Actions with ``protocol_id: 1`` should use ``protocol: ALL``
+- Actions with ``protocol_id: 2`` should use ``protocol: TCP``
+- Actions with ``protocol_id: 3`` should use ``protocol: UDP``
+
+``observation_space``
+---------------------
+
+    - the ``type`` parameter values now use lower kebab case. A conversion table is provided below.
+
+``reward_function``
+-------------------
+    - the ``type`` parameter values now use lower kebab case. A conversion table is provided below.
+
 
 +-------------------------------------+-------------------------------------+
 | *3.0.0 action name*                 | *4.0.0 action name*                 |
