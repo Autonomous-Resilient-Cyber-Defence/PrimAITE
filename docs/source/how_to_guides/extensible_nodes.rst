@@ -22,30 +22,30 @@ An example of how additional Node classes is below, taken from `router.py` withi
 
 .. code-block:: Python
 
-class Router(NetworkNode, identifier="router"):
-    """ Represents a network router within the simulation, managing routing and forwarding of IP packets across network interfaces."""
+    class Router(NetworkNode, identifier="router"):
+        """ Represents a network router within the simulation, managing routing and forwarding of IP packets across network interfaces."""
 
-    SYSTEM_SOFTWARE: ClassVar[Dict] = {
-        "user-session-manager": UserSessionManager,
-        "user-manager": UserManager,
-        "terminal": Terminal,
-    }
+        SYSTEM_SOFTWARE: ClassVar[Dict] = {
+            "user-session-manager": UserSessionManager,
+            "user-manager": UserManager,
+            "terminal": Terminal,
+        }
 
-    network_interfaces: Dict[str, RouterInterface] = {}
-    "The Router Interfaces on the node."
-    network_interface: Dict[int, RouterInterface] = {}
-    "The Router Interfaces on the node by port id."
+        network_interfaces: Dict[str, RouterInterface] = {}
+        "The Router Interfaces on the node."
+        network_interface: Dict[int, RouterInterface] = {}
+        "The Router Interfaces on the node by port id."
 
-    sys_log: SysLog
+        sys_log: SysLog
 
-    config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSchema())
+        config: "Router.ConfigSchema" = Field(default_factory=lambda: Router.ConfigSchema())
 
-    class ConfigSchema(NetworkNode.ConfigSchema):
-        """Configuration Schema for Router Objects."""
+        class ConfigSchema(NetworkNode.ConfigSchema):
+            """Configuration Schema for Router Objects."""
 
-        num_ports: int = 5
+            num_ports: int = 5
 
-        hostname: str = "Router"
+            hostname: str = "Router"
 
 
 

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Base class for system software."""
 import copy
 from abc import ABC, abstractmethod
 from datetime import datetime

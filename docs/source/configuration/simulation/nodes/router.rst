@@ -17,16 +17,15 @@ example router
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: router_1
-                hostname: router_1
-                type: router
-                num_ports: 5
-                ports:
-                    ...
-                acl:
-                    ...
+      network:
+        nodes:
+          - hostname: router_1
+            type: router
+            num_ports: 5
+            ports:
+                ...
+            acl:
+                ...
 
 .. include:: common/common_node_attributes.rst
 
@@ -49,15 +48,15 @@ Example of setting ports for a router with 2 ports:
 .. code-block:: yaml
 
     nodes:
-        - ref: router_1
+        - hostname: router_1
         ...
         ports:
-            1:
-                ip_address: 192.168.1.1
-                subnet_mask: 255.255.255.0
-            2:
-                ip_address: 192.168.10.1
-                subnet_mask: 255.255.255.0
+          1:
+            ip_address: 192.168.1.1
+            subnet_mask: 255.255.255.0
+          2:
+            ip_address: 192.168.10.1
+            subnet_mask: 255.255.255.0
 
 ``ip_address``
 """"""""""""""
@@ -81,12 +80,12 @@ e.g.
 .. code-block:: yaml
 
     nodes:
-        - ref: router_1
+        - hostname: router_1
         ...
         acl:
-            1:
-                action: PERMIT
-                protocol: ICMP
+          1:
+            action: PERMIT
+            protocol: ICMP
 
 See :py:mod:`primaite.simulator.network.hardware.nodes.network.router.AccessControlList`
 

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Mathematical methods used in PrimAITE."""
 from random import random
 from typing import Any, Iterable, Mapping
 

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""HTTP server."""
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse

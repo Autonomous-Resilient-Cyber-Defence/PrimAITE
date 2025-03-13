@@ -128,7 +128,7 @@ class DoSBot(DatabaseClient, discriminator="dos-bot"):
         Configure the Denial of Service bot.
 
         :param: target_ip_address: The IP address of the Node containing the target service.
-        :param: target_port: The port of the target service. Optional - Default is `Port["HTTP"]`
+        :param: target_port: The port of the target service. Optional - Default is `PORT_LOOKUP["HTTP"]`
         :param: payload: The payload the DoS Bot will throw at the target service. Optional - Default is `None`
         :param: repeat: If True, the bot will maintain the attack. Optional - Default is `True`
         :param: port_scan_p_of_success: The chance of the port scan being successful. Optional - Default is 0.1 (10%)

@@ -89,7 +89,7 @@ Agents can execute local commands without needing to perform a separate remote l
         ...
           action: node-send-local-command
           options:
-            node_id: 0
+            node_name: node_a
             username: admin
             password: admin
             command: # Example command - Creates a file called 'cat.png' in the downloads folder.
@@ -112,7 +112,7 @@ Agents are able to use the terminal to login into remote nodes via ``SSH`` which
         ...
           action: node-session-remote-login
           options:
-            node_id: 0
+            node_name: node_a
             username: admin
             password: admin
             remote_ip: 192.168.0.10 # Example Ip Address. (The remote host's IP that will be used by ssh)
@@ -129,7 +129,7 @@ After remotely logging into another host, an agent can use the ``node-send-remot
         ...
           action: node-send-remote-command
           options:
-            node_id: 0
+            node_name: node_a
             remote_ip: 192.168.0.10
             command:
               - "file_system"

@@ -1,6 +1,7 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 # flake8: noqa
 # Pre-import all the observations when we load up the observations module so that they can be resolved by the parser.
+"""Converts PrimAITE simulation data into numerical RL-ready observations."""
 from primaite.game.agent.observations.acl_observation import ACLObservation
 from primaite.game.agent.observations.file_system_observations import FileObservation, FolderObservation
 from primaite.game.agent.observations.firewall_observation import FirewallObservation

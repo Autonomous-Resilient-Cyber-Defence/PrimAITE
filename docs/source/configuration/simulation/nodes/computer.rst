@@ -17,19 +17,18 @@ example computer
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: client_1
-                hostname: client_1
-                type: computer
-                ip_address: 192.168.0.10
-                subnet_mask: 255.255.255.0
-                default_gateway: 192.168.0.1
-                dns_server: 192.168.1.10
-                applications:
-                    ...
-                services:
-                    ...
+      network:
+        nodes:
+        - hostname: client_1
+          type: computer
+          ip_address: 192.168.0.10c
+          subnet_mask: 255.255.255.0
+          default_gateway: 192.168.0.1
+          dns_server: 192.168.1.10
+          applications:
+            ...
+          services:
+            ...
 
 .. include:: common/common_node_attributes.rst
 

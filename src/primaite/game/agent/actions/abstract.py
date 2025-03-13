@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Action base class."""
 from __future__ import annotations
 
 from abc import ABC

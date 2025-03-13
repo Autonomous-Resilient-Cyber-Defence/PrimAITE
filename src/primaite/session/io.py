@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Utilities for reading settings and writing of log files."""
 import json
 from datetime import datetime
 from pathlib import Path

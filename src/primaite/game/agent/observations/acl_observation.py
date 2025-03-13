@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Observations for access control lists (ACLs) on routers and firewalls."""
 from __future__ import annotations
 
 from typing import Dict, List, Optional

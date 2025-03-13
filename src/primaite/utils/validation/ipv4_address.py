@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-
+"""Validation for IPv4 addresses expressed as strings."""
 
 from ipaddress import IPv4Address
 from typing import Any, Final

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""NTP Server."""
 from datetime import datetime
 from typing import Dict, Optional
 

@@ -403,7 +403,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 1
+                position: 0
                 permission: DENY
                 src_ip: 192.168.10.21 # client 1
                 dst_ip: ALL # ALL
@@ -416,7 +416,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 2
+                position: 1
                 permission: DENY
                 src_ip: 192.168.10.22 # client 2
                 dst_ip: ALL # ALL
@@ -429,7 +429,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 3
+                position: 2
                 permission: DENY
                 src_ip: 192.168.10.21 # client 1
                 dst_ip: 192.168.1.12 # web server
@@ -442,7 +442,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 4
+                position: 3
                 permission: DENY
                 src_ip: 192.168.10.22 # client 2
                 dst_ip: 192.168.1.12 # web server
@@ -455,7 +455,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 5
+                position: 4
                 permission: DENY
                 src_ip: 192.168.10.21 # client 1
                 dst_ip: 192.168.1.14 # database
@@ -468,7 +468,7 @@ agents:
             action: "router-acl-add-rule"
             options:
                 target_router: router_1
-                position: 6
+                position: 5
                 permission: DENY
                 src_ip: 192.168.10.22 # client 2
                 dst_ip: 192.168.1.14 # database
