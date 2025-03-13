@@ -66,15 +66,13 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: web_server
-                    type: web-server
+      network:
+        nodes:
+        - hostname: example_server
+        type: server
+        ...
+        services:
+        - type: web-server
 
 
 ``Common Attributes``

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Top-level simulation object that holds references to all child simulation components."""
 from typing import Dict
 
 from primaite.interface.request import RequestResponse

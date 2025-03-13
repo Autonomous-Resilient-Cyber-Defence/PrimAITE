@@ -78,15 +78,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-            - hostname: example_computer
-            type: computer
-            ...
-            applications:
-            - type: web-browser
-            options:
-                target_url: http://example.com/
+      network:
+        nodes:
+        - hostname: example_computer
+        type: computer
+        ...
+        applications:
+        - type: web-browser
+        options:
+          target_url: http://example.com/
 
 Configuration
 =============

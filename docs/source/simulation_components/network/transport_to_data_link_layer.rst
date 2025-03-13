@@ -14,9 +14,11 @@ Transport Layer (Layer 4)
 **UDPHeader:** Represents a UDP header for the transport layer of a Network Frame. It includes source and destination
 ports. UDP (User Datagram Protocol) is a connectionless and unreliable transport protocol used for data transmission.
 
-**TCPFlags:** Enum representing TCP control flags used in a TCP connection, such as SYN, ACK, FIN, and RST. TCP
-(Transmission Control Protocol) is a connection-oriented and reliable transport protocol used for establishing and
-maintaining data streams.
+..
+    **TCPFlags:** Enum representing TCP control flags used in a TCP connection, such as SYN, ACK, FIN, and RST. TCP
+    (Transmission Control Protocol) is a connection-oriented and reliable transport protocol used for establishing and
+    maintaining data streams.
+.. not currently used
 
 **TCPHeader:** Represents a TCP header for the transport layer of a Network Frame. It includes source and destination
 ports and TCP flags. This header is used for establishing and managing TCP connections.

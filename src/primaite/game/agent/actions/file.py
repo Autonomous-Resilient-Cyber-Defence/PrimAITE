@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Actions for interacting with the files on network hosts."""
 from abc import ABC
 from typing import ClassVar
 

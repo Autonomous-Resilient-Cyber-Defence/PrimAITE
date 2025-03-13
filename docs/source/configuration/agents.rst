@@ -13,19 +13,19 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
 .. code-block:: yaml
 
     agents:
-        - ref: red_agent_example
-            ...
-        - ref: blue_agent_example
-            ...
-        - ref: green_agent_example
-            team: GREEN
-            type: probabilistic-agent
+    - ref: red_agent_example
+        ...
+    - ref: blue_agent_example
+        ...
+    - ref: green_agent_example
+    team: GREEN
+    type: probabilistic-agent
 
-            agent_settings:
-                start_step: 5
-                frequency: 4
-            variance: 3
-            flatten_obs: False
+    agent_settings:
+      start_step: 5
+      frequency: 4
+      variance: 3
+      flatten_obs: False
 
 ``ref``
 -------

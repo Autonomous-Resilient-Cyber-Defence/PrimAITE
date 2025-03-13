@@ -1,15 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-"""yaml example.
-
-agents:
-  - name: agent_1
-    action_space:
-      actions:
-        - do-nothing
-        - node-service-start
-        - node-service-stop
-      action_map:
-"""
+"""Validate and keep track of an agent's action set."""
 
 from __future__ import annotations
 
