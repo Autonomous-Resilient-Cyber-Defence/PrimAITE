@@ -23,8 +23,6 @@ from primaite.utils.validation.ip_protocol import PROTOCOL_LOOKUP
 from primaite.utils.validation.port import PORT_LOOKUP
 
 
-# TODO 2824: Since remote terminal connections and remote user sessions are the same thing, we could refactor
-# the terminal to leverage the user session manager's list. This way we avoid potential bugs and code ducplication
 class TerminalClientConnection(BaseModel):
     """
     TerminalClientConnection Class.
