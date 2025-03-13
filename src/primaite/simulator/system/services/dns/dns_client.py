@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""DNS Client."""
 from ipaddress import IPv4Address
 from typing import Dict, Optional, TYPE_CHECKING
 
