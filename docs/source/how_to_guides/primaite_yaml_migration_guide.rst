@@ -341,7 +341,7 @@ From the above old-style YAML ``action_space.options`` example, the following ch
 +----------------------------------------------+----------------------------------------------+
 | ``GREEN_ADMIN_DATABASE_UNREACHABLE_PENALTY`` | ``green-admin-database-unreachable-penalty`` |
 +----------------------------------------------+----------------------------------------------+
-| ``ACTION_PENALTY                             | ``action-penalty``                           |
+| ``ACTION_PENALTY``                           | ``action-penalty``                           |
 +----------------------------------------------+----------------------------------------------+
 | ``DATABASE_FILE_INTEGRITY``                  | ``database-file-integrity``                  |
 +----------------------------------------------+----------------------------------------------+
