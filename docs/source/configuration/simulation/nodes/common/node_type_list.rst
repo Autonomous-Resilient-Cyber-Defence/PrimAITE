@@ -12,6 +12,7 @@ Available options are:
 - ``computer``
 - ``firewall``
 - ``router``
+- ``wireless_router``
 - ``server``
 - ``switch``
 

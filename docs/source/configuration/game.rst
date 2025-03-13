@@ -59,4 +59,4 @@ These are used to determine the thresholds of high, medium and low categories fo
 ``seed``
 --------
 
-Used to configure the random seeds used within PrimAITE, ensuring determinism within episode/session runs. If empty or set to -1, no seed is set.
+Used to configure the random seeds used within PrimAITE, ensuring determinism within episode/session runs. If empty or set to -1, no seed is set. The given seed value is logged (by default) in ``primaite/<VERSION>/sessions/<DATE>/<TIME>/simulation_output``.
