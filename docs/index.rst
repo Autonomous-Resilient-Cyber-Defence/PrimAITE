@@ -43,7 +43,6 @@ What is PrimAITE?
    source/simulation
    source/config
    source/rewards
-   source/customising_scenarios
    source/varying_config_files
    source/environment
    source/action_masking

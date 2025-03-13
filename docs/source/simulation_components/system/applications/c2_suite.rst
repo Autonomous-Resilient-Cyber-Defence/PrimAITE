@@ -77,9 +77,9 @@ Adding to this, the following behaviour of the C2 beacon can be configured by us
 +---------------------+---------------------------------------------------------------------------+
 |keep_alive_frequency | How often should the C2 Beacon confirm it's connection in timesteps.      |
 +---------------------+---------------------------------------------------------------------------+
-|masquerade_protocol  | What protocol should the C2 traffic masquerade as? (HTTP, FTP or DNS)     |
+|masquerade_protocol  | What protocol should the C2 traffic masquerade as? (TCP opr UDP)          |
 +---------------------+---------------------------------------------------------------------------+
-|masquerade_port      | What port should the C2 traffic use? (TCP or UDP)                         |
+|masquerade_port      | What port should the C2 traffic use? (HTTP, FTP, or DNS)                  |
 +---------------------+---------------------------------------------------------------------------+
 
 
@@ -115,38 +115,30 @@ Python
 """"""
 .. code-block:: python
 
-    from primaite.simulator.network.container import Network
-    from primaite.simulator.network.hardware.nodes.host.computer import Computer
-    from primaite.simulator.network.hardware.nodes.network.switch import Switch
-    from primaite.simulator.system.applications.database_client import DatabaseClient
-    from primaite.simulator.system.applications.red_applications.ransomware_script import RansomwareScript
-    from primaite.simulator.system.services.database.database_service import DatabaseService
-    from primaite.simulator.system.applications.red_applications.c2.c2_server import C2Command, C2Server
-    from primaite.simulator.system.applications.red_applications.c2.c2_beacon import C2Beacon
-
     # Network Setup
     network = Network()
 
 
-    switch = Switch(config={"hostname":"switch", "start_up_duration":0, "num_ports":4})
+    switch = Switch(config=Switch.ConfigSchema(hostname="switch", start_up_duration=0, num_ports=4))
     switch.power_on()
 
-    node_a = Computer(config={"hostname":"node_a", "ip_address":"192.168.0.10", "subnet_mask":"255.255.255.0", "start_up_duration":0})
+    node_a = Computer(config=Computer.ConfigSchema(hostname="node_a", ip_address="192.168.0.10", subnet_mask="255.255.255.0", start_up_duration=0))
     node_a.power_on()
     network.connect(node_a.network_interface[1], switch.network_interface[1])
 
-    node_b = Computer(config={"hostname":"node_b", "ip_address":"192.168.0.11", "subnet_mask":"255.255.255.0", "start_up_duration":0})
+    node_b = Computer(config=Computer.ConfigSchema(hostname="node_b", ip_address="192.168.0.11", subnet_mask="255.255.255.0", start_up_duration=0))
     node_b.power_on()
 
     network.connect(node_b.network_interface[1], switch.network_interface[2])
 
-    node_c = Computer(config={"hostname":"node_c", "ip_address":"192.168.0.12", "subnet_mask":"255.255.255.0", "start_up_duration":0})
+    node_c = Computer(config=Computer.ConfigSchema(hostname="node_c", ip_address="192.168.0.12", subnet_mask="255.255.255.0", start_up_duration=0))
     node_c.power_on()
     network.connect(node_c.network_interface[1], switch.network_interface[3])
 
     node_c.software_manager.install(software_class=DatabaseService)
     node_b.software_manager.install(software_class=DatabaseClient)
     node_b.software_manager.install(software_class=RansomwareScript)
+    node_b.software_manager.install(software_class=C2Beacon)
     node_a.software_manager.install(software_class=C2Server)
 
     # C2 Application objects
@@ -154,8 +146,8 @@ Python
     c2_server_host: Computer = network.get_node_by_hostname("node_a")
     c2_beacon_host: Computer = network.get_node_by_hostname("node_b")
 
-    c2_server: C2Server = c2_server_host.software_manager.software["C2Server"]
-    c2_beacon: C2Beacon = c2_beacon_host.software_manager.software["C2Beacon"]
+    c2_server: C2Server = c2_server_host.software_manager.software["c2-server"]
+    c2_beacon: C2Beacon = c2_beacon_host.software_manager.software["c2-beacon"]
 
     # Configuring the C2 Beacon
     c2_beacon.configure(c2_server_ip_address="192.168.0.10", keep_alive_frequency=5)
@@ -287,8 +279,6 @@ It's worth noting that this may be a useful option to bypass ACL rules.
 
 This must be a string i.e *UDP*. Defaults to ``TCP``.
 
-*Please refer to the ``IPProtocol`` class for further reference.*
-
 ``Masquerade Port``
 """""""""""""""""""
 
@@ -299,8 +289,6 @@ Currently only ``FTP``, ``HTTP`` and ``DNS`` are valid masquerade port options.
 It's worth noting that this may be a useful option to bypass ACL rules.
 
 This must be a string i.e ``DNS``. Defaults to ``HTTP``.
-
-*Please refer to the ``IPProtocol`` class for further reference.*
 
 ``Common Attributes``
 ^^^^^^^^^^^^^^^^^^^^^
