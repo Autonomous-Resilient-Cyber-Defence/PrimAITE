@@ -75,4 +75,3 @@ snippet demonstrates usage of the ``ActionPermissionValidator``.
     phone2 = Smartphone(name="phone2", connected=True)
     phone.apply_request(request=["reset_factory_settings"])
     # >>> True
-
