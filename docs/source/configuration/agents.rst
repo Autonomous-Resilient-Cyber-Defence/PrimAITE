@@ -22,9 +22,8 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
             type: probabilistic-agent
 
             agent_settings:
-                start_settings:
-                    start_step: 5
-                    frequency: 4
+                start_step: 5
+                frequency: 4
             variance: 3
             flatten_obs: False
 
@@ -124,10 +123,9 @@ e.g.
 .. code-block:: yaml
 
     agent_settings:
-        start_settings:
-            start_step: 25
-            frequency: 20
-            variance: 5
+        start_step: 25
+        frequency: 20
+        variance: 5
 
 ``start_step``
 ^^^^^^^^^^^^^^
