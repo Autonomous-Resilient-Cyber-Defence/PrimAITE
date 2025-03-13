@@ -67,17 +67,17 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-            - hostname: example_server
-            type: server
-            ...
-            services:
-            - type: dns-server
-            options:
-                domain_mapping:
-                    example.com: 192.168.0.10
-                    another-example.com: 192.168.10.10
+      network:
+        nodes:
+        - hostname: example_server
+        type: server
+        ...
+        services:
+        - type: dns-server
+        options:
+          domain_mapping:
+          example.com: 192.168.0.10
+          another-example.com: 192.168.10.10
 
 Configuration
 =============

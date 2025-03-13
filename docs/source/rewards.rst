@@ -25,8 +25,8 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: dummy
-              weight: 1.0
+          - type: dummy
+            weight: 1.0
 
 
 :py:class:`primaite.game.agent.rewards.DatabaseFileIntegrity`
@@ -38,12 +38,12 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: database-file-integrity
-              weight: 1.0
-              options:
-                node_hostname: server_1
-                folder_name: database
-                file_name: database.db
+          - type: database-file-integrity
+            weight: 1.0
+            options:
+              node_hostname: server_1
+              folder_name: database
+              file_name: database.db
 
 
 :py:class:`primaite.game.agent.rewards.WebServer404Penalty`
@@ -55,12 +55,12 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: web-server-404-penalty
-              node_hostname: web_server
-              weight: 1.0
-              options:
-                service_name: WebService
-                sticky: false
+          - type: web-server-404-penalty
+            node_hostname: web_server
+            weight: 1.0
+            options:
+              service_name: WebService
+              sticky: false
 
 
 :py:class:`primaite.game.agent.rewards.WebpageUnavailablePenalty`
@@ -72,11 +72,11 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: webpage-unavailable-penalty
-              node_hostname: computer_1
-              weight: 1.0
-              options:
-                sticky: false
+          - type: webpage-unavailable-penalty
+            node_hostname: computer_1
+            weight: 1.0
+            options:
+              sticky: false
 
 
 :py:class:`primaite.game.agent.rewards.GreenAdminDatabaseUnreachablePenalty`
@@ -88,11 +88,11 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: green-admin-database-unreachable-penalty
-              weight: 1.0
-              options:
-                node_hostname: admin_pc_1
-                sticky: false
+          - type: green-admin-database-unreachable-penalty
+            weight: 1.0
+            options:
+              node_hostname: admin_pc_1
+              sticky: false
 
 
 :py:class:`primaite.game.agent.rewards.SharedReward`
@@ -106,10 +106,10 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: shared-reward
-              weight: 1.0
-              options:
-                agent_name: scripted_agent
+          - type: shared-reward
+            weight: 1.0
+            options:
+              agent_name: scripted_agent
 
 
 :py:class:`primaite.game.agent.rewards.ActionPenalty`
@@ -121,8 +121,8 @@ The following API pages describe the use of each reward component and the possib
         # ...
         reward_function:
           reward_components:
-            - type: action-penalty
-              weight: 1.0
-              options:
-                  action_penalty: -0.3
-                  do_nothing_penalty: 0.0
+          - type: action-penalty
+            weight: 1.0
+            options:
+                action_penalty: -0.3
+                do_nothing_penalty: 0.0

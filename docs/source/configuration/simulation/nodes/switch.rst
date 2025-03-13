@@ -17,12 +17,11 @@ example switch
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: switch_1
-                hostname: switch_1
-                type: switch
-                num_ports: 8
+      network:
+        nodes:
+          hostname: switch_1
+          type: switch
+          num_ports: 8
 
 .. include:: common/common_node_attributes.rst
 

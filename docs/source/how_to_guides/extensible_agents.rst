@@ -45,19 +45,20 @@ Agent generation will fail pydantic checks if incorrect or invalid parameters ar
 .. code-block:: yaml
 
     - ref: example_green_agent
-        team: GREEN
-        type: example-agent
+      team: GREEN
+      type: example-agent
 
-        action_space:
-        action_map:
-            0:
-                action: do-nothing
-                options: {}
-        agent_settings:
+      agent_settings:
         start_step: 25
         frequency: 20
         variance: 5
         starting_host: "Server_1"
+
+      action_space:
+      action_map:
+        0:
+          action: do-nothing
+          options: {}
 
 
 **discriminators**:

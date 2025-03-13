@@ -19,16 +19,15 @@ example server
     simulation:
         network:
             nodes:
-                - ref: server_1
-                hostname: server_1
-                type: server
-                ip_address: 192.168.10.10
-                subnet_mask: 255.255.255.0
-                default_gateway: 192.168.10.1
-                dns_server: 192.168.1.10
-                applications:
+                - hostname: server_1
+                  type: server
+                  ip_address: 192.168.10.10
+                  subnet_mask: 255.255.255.0
+                  default_gateway: 192.168.10.1
+                  dns_server: 192.168.1.10
+                  applications:
                     ...
-                services:
+                  services:
                     ...
 
 .. include:: common/common_node_attributes.rst

@@ -19,38 +19,35 @@ example firewall
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: firewall
-                    hostname: firewall
-                    type: firewall
-                    start_up_duration: 0
-                    shut_down_duration: 0
-                    ports:
-                        external_port: # port 1
-                            ip_address: 192.168.20.1
-                            subnet_mask: 255.255.255.0
-                        internal_port: # port 2
-                            ip_address: 192.168.1.2
-                            subnet_mask: 255.255.255.0
-                        dmz_port: # port 3
-                            ip_address: 192.168.10.1
-                            subnet_mask: 255.255.255.0
-                    acl:
-                        internal_inbound_acl:
-                            ...
-                        internal_outbound_acl:
-                            ...
-                        dmz_inbound_acl:
-                            ...
-                        dmz_outbound_acl:
-                            ...
-                        external_inbound_acl:
-                            ...
-                        external_outbound_acl:
-                            ...
-                    routes:
-                        ...
+      network:
+        nodes:
+          - hostname: firewall
+            type: firewall
+            ports:
+              external_port: # port 1
+                ip_address: 192.168.20.1
+                subnet_mask: 255.255.255.0
+              internal_port: # port 2
+                ip_address: 192.168.1.2
+                subnet_mask: 255.255.255.0
+              dmz_port: # port 3
+                ip_address: 192.168.10.1
+                subnet_mask: 255.255.255.0
+            acl:
+              internal_inbound_acl:
+                ...
+              internal_outbound_acl:
+                ...
+              dmz_inbound_acl:
+                ...
+              dmz_outbound_acl:
+                ...
+              external_inbound_acl:
+                ...
+              external_outbound_acl:
+                ...
+            routes:
+                ...
 
 .. include:: common/common_node_attributes.rst
 
@@ -70,18 +67,18 @@ The ports should be defined with an ip address and subnet mask e.g.
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
-        ...
+      - hostname: firewall
+      ...
         ports:
-            external_port: # port 1
-                ip_address: 192.168.20.1
-                subnet_mask: 255.255.255.0
-            internal_port: # port 2
-                ip_address: 192.168.1.2
-                subnet_mask: 255.255.255.0
-            dmz_port: # port 3
-                ip_address: 192.168.10.1
-                subnet_mask: 255.255.255.0
+          external_port: # port 1
+            ip_address: 192.168.20.1
+            subnet_mask: 255.255.255.0
+          internal_port: # port 2
+            ip_address: 192.168.1.2
+            subnet_mask: 255.255.255.0
+          dmz_port: # port 3
+            ip_address: 192.168.10.1
+            subnet_mask: 255.255.255.0
 
 ``ip_address``
 """"""""""""""
@@ -129,21 +126,21 @@ example:
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
+      - hostname: firewall
         ...
         acl:
-            internal_inbound_acl:
-                21: # position 21 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
-                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
-                22: # position 22 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: ARP   # are emitted from the ARP port
-                    dst_port: ARP   # are going towards an ARP port
-                23: # position 23 on ACL list
-                    action: PERMIT  # allow packets that
-                    protocol: ICMP  # are ICMP
+          internal_inbound_acl:
+            21: # position 21 on ACL list
+              action: PERMIT  # allow packets that
+              src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+              dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+            22: # position 22 on ACL list
+              action: PERMIT  # allow packets that
+              src_port: ARP   # are emitted from the ARP port
+              dst_port: ARP   # are going towards an ARP port
+            23: # position 23 on ACL list
+              action: PERMIT  # allow packets that
+              protocol: ICMP  # are ICMP
 
 ``internal_outbound_acl``
 """""""""""""""""""""""""
@@ -155,21 +152,21 @@ example:
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
-        ...
+      - hostname: firewall
+      ...
         acl:
-            internal_outbound_acl:
-                21: # position 21 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
-                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
-                22: # position 22 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: ARP   # are emitted from the ARP port
-                    dst_port: ARP   # are going towards an ARP port
-                23: # position 23 on ACL list
-                    action: PERMIT  # allow packets that
-                    protocol: ICMP  # are ICMP
+          internal_outbound_acl:
+            21: # position 21 on ACL list
+              action: PERMIT  # allow packets that
+              src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+              dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+            22: # position 22 on ACL list
+              action: PERMIT  # allow packets that
+              src_port: ARP   # are emitted from the ARP port
+              dst_port: ARP   # are going towards an ARP port
+            23: # position 23 on ACL list
+              action: PERMIT  # allow packets that
+              protocol: ICMP  # are ICMP
 
 
 ``dmz_inbound_acl``
@@ -216,29 +213,29 @@ example:
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
-        ...
-        acl:
-            dmz_outbound_acl:
-                19: # position 19 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
-                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
-                20: # position 20 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: HTTP   # are emitted from the HTTP port
-                    dst_port: HTTP   # are going towards an HTTP port
-                21: # position 21 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: HTTPS   # are emitted from the HTTPS port
-                    dst_port: HTTPS   # are going towards an HTTPS port
-                22: # position 22 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: ARP   # are emitted from the ARP port
-                    dst_port: ARP   # are going towards an ARP port
-                23: # position 23 on ACL list
-                    action: PERMIT  # allow packets that
-                    protocol: ICMP  # are ICMP
+      - hostname: firewall
+      ...
+      acl:
+        dmz_outbound_acl:
+          19: # position 19 on ACL list
+            action: PERMIT  # allow packets that
+            src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+            dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+          20: # position 20 on ACL list
+            action: PERMIT  # allow packets that
+            src_port: HTTP   # are emitted from the HTTP port
+            dst_port: HTTP   # are going towards an HTTP port
+          21: # position 21 on ACL list
+            action: PERMIT  # allow packets that
+            src_port: HTTPS   # are emitted from the HTTPS port
+            dst_port: HTTPS   # are going towards an HTTPS port
+          22: # position 22 on ACL list
+            action: PERMIT  # allow packets that
+            src_port: ARP   # are emitted from the ARP port
+            dst_port: ARP   # are going towards an ARP port
+          23: # position 23 on ACL list
+            action: PERMIT  # allow packets that
+            protocol: ICMP  # are ICMP
 
 
 
@@ -254,21 +251,21 @@ example:
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
-        ...
-        acl:
-            external_inbound_acl:
-                21: # position 19 on ACL list
-                    action: DENY  # deny packets that
-                    src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
-                    dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
-                22: # position 22 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: ARP   # are emitted from the ARP port
-                    dst_port: ARP   # are going towards an ARP port
-                23: # position 23 on ACL list
-                    action: PERMIT  # allow packets that
-                    protocol: ICMP  # are ICMP
+      - hostname: firewall
+      ...
+      acl:
+        external_inbound_acl:
+          21: # position 19 on ACL list
+            action: DENY  # deny packets that
+            src_port: POSTGRES_SERVER   # are emitted from the POSTGRES_SERVER port
+            dst_port: POSTGRES_SERVER   # are going towards an POSTGRES_SERVER port
+          22: # position 22 on ACL list
+            action: PERMIT  # allow packets that
+            src_port: ARP   # are emitted from the ARP port
+            dst_port: ARP   # are going towards an ARP port
+          23: # position 23 on ACL list
+            action: PERMIT  # allow packets that
+            protocol: ICMP  # are ICMP
 
 ``external_outbound_acl``
 """""""""""""""""""""""""
@@ -282,17 +279,17 @@ example:
 .. code-block:: yaml
 
     nodes:
-        - ref: firewall
-        ...
+      - hotsname: firewall
+      ...
         acl:
-            external_outbound_acl:
-                22: # position 22 on ACL list
-                    action: PERMIT  # allow packets that
-                    src_port: ARP   # are emitted from the ARP port
-                    dst_port: ARP   # are going towards an ARP port
-                23: # position 23 on ACL list
-                    action: PERMIT  # allow packets that
-                    protocol: ICMP  # are ICMP
+          external_outbound_acl:
+            22: # position 22 on ACL list
+              action: PERMIT  # allow packets that
+              src_port: ARP   # are emitted from the ARP port
+              dst_port: ARP   # are going towards an ARP port
+            23: # position 23 on ACL list
+              action: PERMIT  # allow packets that
+              protocol: ICMP  # are ICMP
 
 .. include:: common/common_network_node_attributes.rst
 
