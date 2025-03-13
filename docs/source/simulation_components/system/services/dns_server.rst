@@ -20,7 +20,7 @@ Key capabilities
 Usage
 =====
 - Install on a Node via the ``SoftwareManager`` to start the database service.
-- Service runs on TCP port 53 by default. (TODO: TCP for now, should be UDP in future)
+- Service runs on TCP port 53 by default.
 
 Implementation
 ==============
@@ -58,7 +58,7 @@ Python
     dns_server.start()
 
     # configure DatabaseService
-    dns_server.dns_register("arcd.com", IPv4Address("192.168.10.10"))
+    dns_server.dns_register("example.com", IPv4Address("192.168.10.10"))
 
 
 Via Configuration
@@ -69,17 +69,15 @@ Via Configuration
     simulation:
         network:
             nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: dns_server
-                    type: dns-server
-                    options:
-                        domain_mapping:
-                            arcd.com: 192.168.0.10
-                            another-example.com: 192.168.10.10
+            - hostname: example_server
+            type: server
+            ...
+            services:
+            - type: dns-server
+            options:
+                domain_mapping:
+                    example.com: 192.168.0.10
+                    another-example.com: 192.168.10.10
 
 Configuration
 =============
@@ -90,7 +88,7 @@ Configuration
 
 Domain mapping takes the domain and IP Addresses as a key-value pairs i.e.
 
-If the domain is "arcd.com" and the IP Address attributed to the domain is 192.168.0.10, then the value should be ``arcd.com: 192.168.0.10``
+If the domain is "example.com" and the IP Address attributed to the domain is 192.168.0.10, then the value should be ``example.com: 192.168.0.10``
 
 The key must be a string and the IP Address must be a valid octet i.e. in the range of ``0.0.0.0`` and ``255.255.255.255``.
 

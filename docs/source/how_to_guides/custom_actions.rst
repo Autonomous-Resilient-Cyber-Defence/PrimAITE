@@ -18,7 +18,7 @@ An example of a custom action is seen below, with key information about what is 
 
 .. code:: Python
 
-    class ExampleActionClass(AbstractAction, identifier="ExampleActions"):
+    class ExampleActionClass(AbstractAction, discriminator="ExampleActions"):
         """Example Action Class"""
 
         config: ExampleAction.ConfigSchema(AbstractAction.ConfigSchema)

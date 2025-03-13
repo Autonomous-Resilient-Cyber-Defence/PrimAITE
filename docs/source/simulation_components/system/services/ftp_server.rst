@@ -69,15 +69,13 @@ Via Configuration
     simulation:
         network:
             nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: ftp_server
-                    type: ftp-server
-                    options:
-                        server_password: test
+            - hostname: example_server
+            type: server
+            ...
+            services:
+            - type: ftp-server
+            options:
+                server_password: test
 
 Configuration
 =============
