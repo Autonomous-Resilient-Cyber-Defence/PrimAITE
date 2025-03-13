@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-"""Warning: SIM_OUTPUT is a mutable global variable for the simulation output directory."""
+"""The PrimAITE simulation layer."""
 from datetime import datetime
 from enum import IntEnum
 from pathlib import Path

@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-
+"""Actions for configuring software on network hosts."""
 from typing import List, Optional, Union
 
 from pydantic import ConfigDict, Field
