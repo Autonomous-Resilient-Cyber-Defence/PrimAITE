@@ -1,8 +1,8 @@
 name: build-sphinx-to-github-pages
 
 env:
-  GITHUB_ACTOR: {todo:fill in URL}
-  GITHUB_REPOSITORY: {todo:fill in URL}/PrimAITE
+  GITHUB_ACTOR: Autonomous-Resilient-Cyber-Defence
+  GITHUB_REPOSITORY: Autonomous-Resilient-Cyber-Defence/PrimAITE
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
 
 on:

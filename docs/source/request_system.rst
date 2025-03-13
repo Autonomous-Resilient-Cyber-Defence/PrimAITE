@@ -78,17 +78,26 @@ The ``RequestType`` object stores a reference to a method that executes the requ
 
 The ``RequestManager`` object stores a mapping between strings and request types. It is responsible for processing the request and passing it down the ownership tree. Technically, the ``RequestManager`` is itself a callable that accepts `request, context` tuple, and so it can be chained with other request managers.
 
-A simple example without chaining can be seen in the :py:class:`primaite.simulator.file_system.file_system.File` class.
+A simple example without chaining can be seen in the :py:class:`primaite.simulator.file_system.file_systemfile_system_item_abc.FileSystemItemABC` class.
 
 .. code-block:: python
 
-    class File(FileSystemItemABC):
+    class FileSystemItemABC(SimComponent):
         ...
         def _init_request_manager(self):
             ...
-            request_manager.add_request("scan", RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan())))
-            request_manager.add_request("repair", RequestType(func=lambda request, context: RequestResponse.from_bool(self.repair())))
-            request_manager.add_request("restore", RequestType(func=lambda request, context: RequestResponse.from_bool(self.restore())))
+            rm.add_request(
+            name="scan", request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.scan()))
+        )
+        rm.add_request(
+            name="checkhash",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.check_hash())),
+        )
+        rm.add_request(
+            name="repair",
+            request_type=RequestType(func=lambda request, context: RequestResponse.from_bool(self.repair())),
+        )
+        ...
 
 *ellipses (``...``) used to omit code impertinent to this explanation*
 
@@ -103,27 +112,18 @@ An example of how this works is in the :py:class:`primaite.simulator.network.har
 
 .. code-block:: python
 
-    class Node(SimComponent):
+    class Node(SimComponent, ABC):
         ...
-        def _init_request_manager(self):
+        def _init_request_manager(self) -> RequestManager:
             ...
-            # a regular action which is processed by the Node itself
-            request_manager.add_request("turn_on", RequestType(func=lambda request, context: self.turn_on()))
-
-            # if the Node receives a request where the first word is 'service', it will use a dummy manager
-            # called self._service_request_manager to pass on the request to the relevant service. This dummy
-            # manager is simply here to map the service name that that service's own action manager. This is
-            # done because the next string after "service" is always the name of that service, so we need an
-            # RequestManager to pop that string before sending it onto the relevant service's RequestManager.
+            # since there are potentially many services, create an request manager that can map service name
             self._service_request_manager = RequestManager()
-            request_manager.add_request("service", RequestType(func=self._service_request_manager))
-            ...
+            rm.add_request("service", RequestType(func=self._service_request_manager, validator=_node_is_on))
+            self._nic_request_manager = RequestManager()
+            rm.add_request("network_interface", RequestType(func=self._nic_request_manager, validator=_node_is_on))
 
-        def install_service(self, service):
-            self.services[service.name] = service
-            ...
-            # Here, the service name is registered to allow passing actions between the node and the service.
-            self._service_request_manager.add_request(service.name, RequestType(func=service._request_manager))
+            rm.add_request("file_system", RequestType(func=self.file_system._request_manager, validator=_node_is_on))
+
 
 This process is repeated until the request word corresponds to a callable function rather than another ``RequestManager`` .
 
@@ -142,3 +142,8 @@ The :py:class:`primaite.interface.request.RequestResponse<RequestResponse>` carr
 For instance, the ``execute`` action on a :py:class:`primaite.simulator.system.applications.web_browser.WebBrowser<WebBrowser>` calls the ``get_webpage()`` method. ``get_webpage()`` returns a True if the webpage was successfully retrieved, and False if unsuccessful for any reason, such as being blocked by an ACL, or if the database server is unresponsive. The boolean returned from ``get_webpage()`` is used to create the request response with ``from_bool()``.
 
 Just as the requests themselves were passed from owner to component, the request response is bubbled back up from component to owner until it arrives at the game layer.
+
+Example notebooks
+-----------------
+Further examples of the request system and be found in ``Requests-and-Responses.ipynb``
+and ``Terminal-Processing.ipynb`` notebooks.

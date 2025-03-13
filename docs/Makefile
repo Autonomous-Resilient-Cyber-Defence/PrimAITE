@@ -8,15 +8,17 @@ SOURCEDIR     = .
 BUILDDIR      = _build
 
 AUTOSUMMARY="source/_autosummary"
+NOTEBOOKS="source/notebooks/notebooks"
 
 # Remove command is different depending on OS
 ifdef OS
-	RM = IF exist $(AUTOSUMMARY) (  RMDIR $(AUTOSUMMARY) /s /q )
+	RM = IF exist $(AUTOSUMMARY) (RMDIR $(AUTOSUMMARY) /s /q) & IF exist $(NOTEBOOKS) (RMDIR $(NOTEBOOKS) /s /q)
 else
    ifeq ($(shell uname), Linux)
-      RM = rm -rf $(AUTOSUMMARY)
+      RM = rm -rf $(AUTOSUMMARY) $(NOTEBOOKS)
    endif
 endif
+
 
 # Put it first so that "make" without argument is like "make help".
 help:

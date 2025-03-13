@@ -66,17 +66,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: ntp_client
-                    type: ntp-client
-                    options:
-                        ntp_server_ip: 192.168.0.10
+      network:
+        nodes:
+        - hostname: example_server
+        type: server
+        ...
+        services:
+        - type: ntp-client
+        options:
+          ntp_server_ip: 192.168.0.10
 
 Configuration
 =============

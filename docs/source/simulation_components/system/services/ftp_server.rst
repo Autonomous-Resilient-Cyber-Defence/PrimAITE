@@ -67,17 +67,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: ftp_server
-                    type: ftp-server
-                    options:
-                        server_password: test
+      network:
+        nodes:
+        - hostname: example_server
+        type: server
+        ...
+        services:
+        - type: ftp-server
+        options:
+          server_password: test
 
 Configuration
 =============

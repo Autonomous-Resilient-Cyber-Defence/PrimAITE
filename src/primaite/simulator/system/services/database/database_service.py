@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Database service."""
 from ipaddress import IPv4Address
 from typing import Any, Dict, List, Literal, Optional, Union
 from uuid import uuid4

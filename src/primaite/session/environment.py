@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Main Gymnasium entrypoint for RL agents into PrimAITE."""
 import json
 import random
 import sys

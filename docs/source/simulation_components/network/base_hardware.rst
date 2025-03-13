@@ -21,6 +21,9 @@ The key elements defined in ``base.py`` are:
 
 ``Node``
 ========
+
+.. _node_description:
+
 The Node class stands as a central component in ``base.py``, acting as the superclass for all network nodes within a
 PrimAITE simulation.
 

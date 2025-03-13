@@ -28,30 +28,28 @@ To add a new reward class follow the example below. Note that the type attribute
 
 .. code-block:: Python
 
-class DatabaseFileIntegrity(AbstractReward, discriminator="database-file-integrity"):
-    """Reward function component which rewards the agent for maintaining the integrity of a database file."""
+    class DatabaseFileIntegrity(AbstractReward, discriminator="database-file-integrity"):
+        """Reward function component which rewards the agent for maintaining the integrity of a database file."""
 
-    config: "DatabaseFileIntegrity.ConfigSchema"
-    location_in_state: List[str] = [""]
-    reward: float = 0.0
+        config: "DatabaseFileIntegrity.ConfigSchema"
+        location_in_state: List[str] = [""]
+        reward: float = 0.0
 
-    class ConfigSchema(AbstractReward.ConfigSchema):
-        """ConfigSchema for DatabaseFileIntegrity."""
+        class ConfigSchema(AbstractReward.ConfigSchema):
+            """ConfigSchema for DatabaseFileIntegrity."""
 
-        type: str = "database-file-integrity"
-        node_hostname: str
-        folder_name: str
-        file_name: str
+            type: str = "database-file-integrity"
+            node_hostname: str
+            folder_name: str
+            file_name: str
 
-    def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
-        """Calculate the reward for the current state.
-        pass
+        def calculate(self, state: Dict, last_action_response: "AgentHistoryItem") -> float:
+            """Calculate the reward for the current state.
+            pass
 
 
 
 Changes to YAML file.
 =====================
-.. code:: YAML
-
     There's no longer a need to provide a `dns_server` as an option in the simulation section
     of the config file.

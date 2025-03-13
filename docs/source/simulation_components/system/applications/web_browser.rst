@@ -66,7 +66,7 @@ The :ref:`DNSClient` must be configured to use the :ref:`DNSServer`. The :ref:`D
     web_browser.run()
 
     # configure the WebBrowser
-    web_browser.target_url = "arcd.com"
+    web_browser.target_url = "example.com"
 
     # once DNS server is configured with the correct domain mapping
     # this should work
@@ -78,17 +78,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_computer
-                hostname: example_computer
-                type: computer
-                ...
-                applications:
-                    - ref: web_browser
-                    type: web-browser
-                    options:
-                        target_url: http://arcd.com/
+      network:
+        nodes:
+        - hostname: example_computer
+        type: computer
+        ...
+        applications:
+        - type: web-browser
+        options:
+          target_url: http://example.com/
 
 Configuration
 =============
@@ -101,11 +99,10 @@ The URL that the ``WebBrowser`` will request when ``get_webpage`` is called with
 
 The URL can be in any format so long as the domain is within it e.g.
 
-The domain ``arcd.com`` can be matched by
+The domain ``example.com`` can be matched by
 
-- http://arcd.com/
-- http://arcd.com/users/
-- arcd.com
+- http://example.com/
+- example.com
 
 
 ``Common Attributes``

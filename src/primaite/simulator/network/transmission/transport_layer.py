@@ -15,8 +15,8 @@ class UDPHeader(BaseModel):
     :Example:
 
     >>> udp_header = UDPHeader(
-    ...     src_port=Port["HTTP_ALT"],
-    ...     dst_port=Port["HTTP"],
+    ...     src_port=PORT_LOOKUP["HTTP_ALT"],
+    ...     dst_port=PORT_LOOKUP["HTTP"],
     ... )
     """
 
@@ -54,8 +54,8 @@ class TCPHeader(BaseModel):
     :Example:
 
     >>> tcp_header = TCPHeader(
-    ...     src_port=Port["HTTP_ALT"],
-    ...     dst_port=Port["HTTP"],
+    ...     src_port=PORT_LOOKUP["HTTP_ALT"],
+    ...     dst_port=PORT_LOOKUP["HTTP"],
     ...     flags=[TCPFlags.SYN, TCPFlags.ACK]
     ... )
     """

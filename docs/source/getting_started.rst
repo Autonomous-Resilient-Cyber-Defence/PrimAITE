@@ -113,7 +113,7 @@ For example:
 
 .. code-block:: bash
 
-    git clone https://github.com/{todo:fill in URL}/PrimAITE
+    git clone https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE
     cd primaite
 
 2. Create and activate your Python virtual environment (venv)

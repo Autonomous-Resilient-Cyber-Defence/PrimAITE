@@ -66,15 +66,13 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: ntp_server
-                    type: ntp-server
+      network:
+        nodes:
+        - hostname: example_server
+            type: server
+        ...
+        services:
+        - type: ntp-server
 
 
 ``Common Attributes``

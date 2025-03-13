@@ -156,8 +156,8 @@ To prevent all external traffic from accessing the internal network, with except
    # Exception rule to allow HTTP traffic from external to internal network
    firewall.internal_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTP"],
        dst_ip_address="192.168.1.0",
        dst_wildcard_mask="0.0.0.255",
        position=2
@@ -172,16 +172,16 @@ To enable external traffic to access specific services hosted within the DMZ:
    # Allow HTTP and HTTPS traffic to the DMZ
    firewall.dmz_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTP"],
        dst_ip_address="172.16.0.0",
        dst_wildcard_mask="0.0.0.255",
        position=3
    )
    firewall.dmz_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTPS"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTPS"],
        dst_ip_address="172.16.0.0",
        dst_wildcard_mask="0.0.0.255",
        position=4
@@ -196,9 +196,9 @@ To permit SSH access from a designated external IP to a specific server within t
    # Allow SSH from a specific external IP to an internal server
    firewall.internal_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
        src_ip_address="10.0.0.2",
-       dst_port=Port["SSH"],
+       dst_port=PORT_LOOKUP["SSH"],
        dst_ip_address="192.168.1.10",
        position=5
    )
@@ -212,9 +212,9 @@ To limit database server access to selected external IP addresses:
    # Allow PostgreSQL traffic from an authorized external IP to the internal DB server
    firewall.internal_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
        src_ip_address="10.0.0.3",
-       dst_port=Port["POSTGRES_SERVER"],
+       dst_port=PORT_LOOKUP["POSTGRES_SERVER"],
        dst_ip_address="192.168.1.20",
        position=6
    )
@@ -222,8 +222,8 @@ To limit database server access to selected external IP addresses:
    # Deny all other PostgreSQL traffic from external sources
    firewall.internal_inbound_acl.add_rule(
        action=ACLAction.DENY,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["POSTGRES_SERVER"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["POSTGRES_SERVER"],
        dst_ip_address="192.168.1.0",
        dst_wildcard_mask="0.0.0.255",
        position=7
@@ -247,15 +247,15 @@ To authorize HTTP/HTTPS access to a DMZ-hosted web server, excluding known malic
    # Allow HTTP/HTTPS traffic to the DMZ web server
    firewall.dmz_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTP"],
        dst_ip_address="172.16.0.2",
        position=9
    )
    firewall.dmz_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTPS"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTPS"],
        dst_ip_address="172.16.0.2",
        position=10
    )
@@ -269,9 +269,9 @@ To facilitate restricted access from the internal network to DMZ-hosted services
    # Permit specific internal application server HTTPS access to a DMZ-hosted API
    firewall.internal_outbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
        src_ip_address="192.168.1.30",  # Internal application server IP
-       dst_port=Port["HTTPS"],
+       dst_port=PORT_LOOKUP["HTTPS"],
        dst_ip_address="172.16.0.3",  # DMZ API server IP
        position=11
    )
@@ -289,9 +289,9 @@ To facilitate restricted access from the internal network to DMZ-hosted services
    # Corresponding rule in DMZ inbound ACL to allow the traffic from the specific internal server
    firewall.dmz_inbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
        src_ip_address="192.168.1.30",  # Ensuring this specific source is allowed
-       dst_port=Port["HTTPS"],
+       dst_port=PORT_LOOKUP["HTTPS"],
        dst_ip_address="172.16.0.3",  # DMZ API server IP
        position=13
    )
@@ -301,7 +301,7 @@ To facilitate restricted access from the internal network to DMZ-hosted services
        action=ACLAction.DENY,
        src_ip_address="192.168.1.0",
        src_wildcard_mask="0.0.0.255",
-       dst_port=Port["HTTPS"],
+       dst_port=PORT_LOOKUP["HTTPS"],
        dst_ip_address="172.16.0.3",  # DMZ API server IP
        position=14
    )
@@ -315,8 +315,8 @@ To block all SSH access attempts from the external network:
    # Deny all SSH traffic from any external source
    firewall.external_inbound_acl.add_rule(
        action=ACLAction.DENY,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["SSH"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["SSH"],
        position=1
    )
 
@@ -329,8 +329,8 @@ To allow the internal network to initiate HTTP connections to the external netwo
    # Permit outgoing HTTP traffic from the internal network to any external destination
    firewall.external_outbound_acl.add_rule(
        action=ACLAction.PERMIT,
-       protocol=IPProtocol["TCP"],
-       dst_port=Port["HTTP"],
+       protocol=PROTOCOL_LOOKUP["TCP"],
+       dst_port=PORT_LOOKUP["HTTP"],
        position=2
    )
 

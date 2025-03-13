@@ -79,22 +79,20 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_computer
-                hostname: example_computer
-                type: computer
-                ...
-                applications:
-                    - ref: dos_bot
-                    type: dos-bot
-                    options:
-                        target_ip_address: 192.168.0.10
-                        payload: SPOOF DATA
-                        repeat: False
-                        port_scan_p_of_success: 0.8
-                        dos_intensity: 1.0
-                        max_sessions: 1000
+      network:
+        nodes:
+        - hostname: example_computer
+        type: computer
+        ...
+        applications:
+        - type: dos-bot
+        options:
+          target_ip_address: 192.168.0.10
+          payload: SPOOF DATA
+          repeat: False
+          port_scan_p_of_success: 0.8
+          dos_intensity: 1.0
+          max_sessions: 1000
 
 Configuration
 =============

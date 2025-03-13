@@ -167,8 +167,8 @@ Perform a horizontal port scan on port 5432 across multiple IP addresses:
 
    {
       IPv4Address('192.168.1.12'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["POSTGRES_SERVER"]: 5432>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["POSTGRES_SERVER"]: 5432>
          ]
       }
    }
@@ -202,9 +202,9 @@ Perform a vertical port scan on multiple ports on a single IP address:
 
    {
       IPv4Address('192.168.1.12'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["FTP"]: 21>,
-            <Port["HTTP"]: 80>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["FTP"]: 21>,
+            <PORT_LOOKUP["HTTP"]: 80>
          ]
       }
    }
@@ -243,15 +243,15 @@ Perform a box scan on multiple ports across multiple IP addresses:
 
    {
       IPv4Address('192.168.1.13'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["FTP"]: 21>,
-            <Port["HTTP"]: 80>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["FTP"]: 21>,
+            <PORT_LOOKUP["HTTP"]: 80>
          ]
       },
       IPv4Address('192.168.1.12'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["FTP"]: 21>,
-            <Port["HTTP"]: 80>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["FTP"]: 21>,
+            <PORT_LOOKUP["HTTP"]: 80>
          ]
       }
    }
@@ -291,36 +291,36 @@ Perform a full box scan on all ports, over both TCP and UDP, on a whole subnet:
 
    {
       IPv4Address('192.168.1.11'): {
-         <IPProtocol["UDP"]: 'udp'>: [
-            <Port["ARP"]: 219>
+         <PROTOCOL_LOOKUP["UDP"]: 'udp'>: [
+            <PORT_LOOKUP["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.1'): {
-         <IPProtocol["UDP"]: 'udp'>: [
-            <Port["ARP"]: 219>
+         <PROTOCOL_LOOKUP["UDP"]: 'udp'>: [
+            <PORT_LOOKUP["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.12'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["HTTP"]: 80>,
-            <Port["DNS"]: 53>,
-            <Port["POSTGRES_SERVER"]: 5432>,
-            <Port["FTP"]: 21>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["HTTP"]: 80>,
+            <PORT_LOOKUP["DNS"]: 53>,
+            <PORT_LOOKUP["POSTGRES_SERVER"]: 5432>,
+            <PORT_LOOKUP["FTP"]: 21>
          ],
-         <IPProtocol["UDP"]: 'udp'>: [
-            <Port["NTP"]: 123>,
-            <Port["ARP"]: 219>
+         <PROTOCOL_LOOKUP["UDP"]: 'udp'>: [
+            <PORT_LOOKUP["NTP"]: 123>,
+            <PORT_LOOKUP["ARP"]: 219>
          ]
       },
       IPv4Address('192.168.1.13'): {
-         <IPProtocol["TCP"]: 'tcp'>: [
-            <Port["HTTP"]: 80>,
-            <Port["DNS"]: 53>,
-            <Port["FTP"]: 21>
+         <PROTOCOL_LOOKUP["TCP"]: 'tcp'>: [
+            <PORT_LOOKUP["HTTP"]: 80>,
+            <PORT_LOOKUP["DNS"]: 53>,
+            <PORT_LOOKUP["FTP"]: 21>
          ],
-         <IPProtocol["UDP"]: 'udp'>: [
-            <Port["NTP"]: 123>,
-            <Port["ARP"]: 219>
+         <PROTOCOL_LOOKUP["UDP"]: 'udp'>: [
+            <PORT_LOOKUP["NTP"]: 123>,
+            <PORT_LOOKUP["ARP"]: 219>
          ]
       }
    }

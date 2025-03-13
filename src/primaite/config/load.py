@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Convenience methods for finding filepaths to default PrimAITE configs."""
 from pathlib import Path
 from typing import Dict, Final, Union
 

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Optional logger for internal agent decisions and debugging."""
 import logging
 from pathlib import Path
 from typing import Optional

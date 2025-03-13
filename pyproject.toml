@@ -92,7 +92,7 @@ order_by_type = "False"
 line-length = 120
 
 [project.urls]
-Homepage = "https://github.com/{todo:fill in URL}/PrimAITE"
-Documentation = "https://{todo:fill in URL}.github.io/PrimAITE"
-Repository = "https://github.com/{todo:fill in URL}/PrimAITE"
-Changelog = "https://github.com/{todo:fill in URL}/PrimAITE/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+Documentation = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+Repository = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE"
+Changelog = "https://github.com/Autonomous-Resilient-Cyber-Defence/PrimAITE/blob/main/CHANGELOG.md"
