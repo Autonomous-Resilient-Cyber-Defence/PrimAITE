@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Actions for manipulating Access Control Lists (ACLs)."""
 from __future__ import annotations
 
 from abc import ABC

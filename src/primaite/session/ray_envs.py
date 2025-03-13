@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Entrypoint for Ray RLLib single- and multi-agent environments."""
 import json
 from typing import Dict, SupportsFloat, Tuple
 

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Strategies for selecting the game configuration between different episodes of a session."""
 import copy
 from abc import ABC, abstractmethod
 from itertools import chain

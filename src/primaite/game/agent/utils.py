@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Utility functions used in the PrimAITE game layer."""
 from typing import Any, Dict, Hashable, Optional, Sequence
 
 NOT_PRESENT_IN_STATE = object()

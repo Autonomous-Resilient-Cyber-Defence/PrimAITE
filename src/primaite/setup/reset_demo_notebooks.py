@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Clear the user data directory of example notebooks and copy fresh copies in."""
 import filecmp
 import shutil
 from logging import Logger
