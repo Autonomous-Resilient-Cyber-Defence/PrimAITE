@@ -13,20 +13,19 @@ Agents can be scripted (deterministic and stochastic), or controlled by a reinfo
 .. code-block:: yaml
 
     agents:
-        - ref: red_agent_example
-            ...
-        - ref: blue_agent_example
-            ...
-        - ref: green_agent_example
-            team: GREEN
-            type: probabilistic-agent
+    - ref: red_agent_example
+        ...
+    - ref: blue_agent_example
+        ...
+    - ref: green_agent_example
+    team: GREEN
+    type: probabilistic-agent
 
-            agent_settings:
-                start_settings:
-                    start_step: 5
-                    frequency: 4
-            variance: 3
-            flatten_obs: False
+    agent_settings:
+      start_step: 5
+      frequency: 4
+      variance: 3
+      flatten_obs: False
 
 ``ref``
 -------
@@ -97,8 +96,7 @@ Similar to action space, this is defined as a list of components from the :py:mo
 
 ``reward_components``
 ^^^^^^^^^^^^^^^^^^^^^
-TODO: update description
-A list of reward types from :py:mod:`primaite.game.agent.rewards.RewardFunction.rew_class_identifiers`
+A list of available reward types from :py:mod:`primaite.game.agent.rewards.RewardFunction.rew_class_identifiers`
 
 e.g.
 
@@ -106,7 +104,13 @@ e.g.
 
     reward_components:
         - type: dummy
+          weight: 1.0
         - type: database-file-integrity
+          weight: 0.40
+          options:
+            node_hostname: database_server
+            folder_name: database
+            file_name: database.db
 
 
 ``agent_settings``
@@ -119,10 +123,9 @@ e.g.
 .. code-block:: yaml
 
     agent_settings:
-        start_settings:
-            start_step: 25
-            frequency: 20
-            variance: 5
+        start_step: 25
+        frequency: 20
+        variance: 5
 
 ``start_step``
 ^^^^^^^^^^^^^^
@@ -154,4 +157,4 @@ If ``True``, gymnasium flattening will be performed on the observation space bef
 -----------------
 
 Agents will record their action log for each step. This is a summary of what the agent did, along with response information from requests within the simulation.
-A summary of the actions taken by the agent can be viewed using the `show_history()` function. By default, this will display all actions taken apart from ``DONOTHING``.
+A summary of the actions taken by the agent can be viewed using the `show_history()` function. By default, this will display all actions taken apart from ``do-nothing``.

@@ -61,9 +61,6 @@ def test_node_os_scan(node):
     """Test OS Scanning."""
     node.operating_state = NodeOperatingState.ON
 
-    # add process to node
-    # TODO implement processes
-
     # add services to node
     node.software_manager.install(DummyService)
     service = node.software_manager.software.get("dummy-service")
@@ -95,7 +92,6 @@ def test_node_os_scan(node):
         node.apply_timestep(timestep=i)
 
     # should update the state of all items
-    # TODO assert process.health_state_visible == SoftwareHealthState.COMPROMISED
     assert service.health_state_visible == SoftwareHealthState.COMPROMISED
     assert application.health_state_visible == SoftwareHealthState.COMPROMISED
     assert folder.visible_health_status == FileSystemItemHealthStatus.CORRUPT
@@ -106,9 +102,6 @@ def test_node_os_scan(node):
 def test_node_red_scan(node):
     """Test revealing to red"""
     node.operating_state = NodeOperatingState.ON
-
-    # add process to node
-    # TODO implement processes
 
     # add services to node
     node.software_manager.install(DummyService)
@@ -138,7 +131,6 @@ def test_node_red_scan(node):
         node.apply_timestep(timestep=i)
 
     # should update the state of all items
-    # TODO assert process.revealed_to_red is True
     assert service.revealed_to_red is True
     assert application.revealed_to_red is True
     assert folder.revealed_to_red is True

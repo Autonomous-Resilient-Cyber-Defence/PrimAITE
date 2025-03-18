@@ -64,7 +64,7 @@ other wireless devices within the same frequency band.
 Example Scenario
 ----------------
 
-This example sets up a network with two PCs (PC A and PC B), each connected to their own `WirelessRouter`
+This example sets up a network with two PCs (PC A and PC B), each connected to their own ``WirelessRouter``
 (Router 1 and Router 2). These routers are then wirelessly connected to each other, enabling communication between the
 PCs through the routers over the airspace. Access Control Lists (ACLs) are configured on the routers to permit ARP and
 ICMP traffic, ensuring basic network connectivity and ping functionality.
@@ -160,7 +160,7 @@ network segments.
 Viewing Wireless Network Configuration
 --------------------------------------
 
-The `AirSpace.show()` function is an invaluable tool for inspecting the current wireless network configuration within
+The :py:meth:`AirSpace.show() <primaite.simulator.network.airspace.AirSpace.show()>` function is an invaluable tool for inspecting the current wireless network configuration within
 the PrimAITE environment. It presents a table summarising all wireless interfaces, including routers and access points,
 that are active within the airspace. The table outlines each device's connected node name, MAC address, IP address,
 subnet mask, operating frequency, and status, providing a comprehensive view of the wireless network topology.
@@ -168,7 +168,7 @@ subnet mask, operating frequency, and status, providing a comprehensive view of 
 Example Output
 ^^^^^^^^^^^^^^^
 
-Below is an example output of the `AirSpace.show()` function, demonstrating the visibility it provides into the
+Below is an example output of the :py:meth:`AirSpace.show() <primaite.simulator.network.airspace.AirSpace.show()>` function, demonstrating the visibility it provides into the
 wireless network:
 
 .. code-block:: none
@@ -182,10 +182,10 @@ wireless network:
 
 This table aids in verifying that wireless devices are correctly configured and operational. It also helps in
 diagnosing connectivity issues by ensuring that devices are on the correct frequency and have the appropriate network
-settings. The `Status` column, indicating whether a device is enabled or disabled, further assists in troubleshooting
+settings. The ``Status`` column, indicating whether a device is enabled or disabled, further assists in troubleshooting
 by quickly identifying any devices that are not actively participating in the network.
 
-Utilising the `AirSpace.show()` function is particularly beneficial in complex network simulations where multiple
+Utilising the :py:meth:`AirSpace.show() <primaite.simulator.network.airspace.AirSpace.show()>` function is particularly beneficial in complex network simulations where multiple
 wireless devices are in use. It provides a snapshot of the wireless landscape, facilitating the understanding of how
 devices interact within the network and ensuring that configurations are aligned with the intended network architecture.
 

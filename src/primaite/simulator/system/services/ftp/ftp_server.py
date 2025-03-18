@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""FTP Server."""
 from typing import Any, Optional
 
 from pydantic import Field

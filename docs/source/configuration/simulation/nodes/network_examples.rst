@@ -389,7 +389,7 @@ connections, but the ACL that allows the nodes in the LAN to communicate with th
     pc_1 = network.get_node_by_hostname("pc_1")
     pc_1.ping(pc_1.default_gateway)
 
-pc_1.sys_log.show()
+    pc_1.sys_log.show()
 
 If SysLog capture is toggled on and the simulation log level is set to INFO, the `pc_1` the result of the ping should be
 captured in the `pc_1` SysLog:
@@ -443,7 +443,8 @@ SomeTech. This extended network includes detailed sub-networks with specialised 
 complex routing capabilities, and robust security protocols implemented through Access Control Lists (ACLs). Designed
 to mimic the intricacies of actual network environments, this network provides a detailed look at how various network
 components interact and function together to support both internal corporate activities and external communications.
-
+NB: the network described here is not the same as the UC7 network used by notebooks such as ``UC7-Training,ipynb`` or
+the network in ``Privilege-Escalation-and-Data-Loss-Example.ipynb``.
 
 .. image:: images/primaite_example_multi_lan_with_internet_network_dark.png
     :align: center

@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Clear user data folder of example config files and put fresh copies in."""
 import filecmp
 import os
 import shutil

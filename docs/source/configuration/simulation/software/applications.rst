@@ -14,12 +14,10 @@ Applications takes a list of applications as shown in the example below.
 
 .. code-block:: yaml
 
-    - ref: client_1
-    hostname: client_1
-    type: computer
+    - hostname: client_1
+      type: computer
     ...
     applications:
-        - ref: example_application
         type: example_application_type
         options:
             # this section is different for each application

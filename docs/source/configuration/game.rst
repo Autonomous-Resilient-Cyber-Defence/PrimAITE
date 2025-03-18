@@ -42,14 +42,14 @@ The maximum number of episodes a Reinforcement Learning agent(s) can be trained 
 
 A list of ports that the Reinforcement Learning agent(s) are able to see in the observation space.
 
-See :ref:`List of Ports <List of Ports>` for a list of ports.
+See :py:const:`primaite.utils.validation.port.PORT_LOOKUP` for a list of ports.
 
 ``protocols``
 -------------
 
 A list of protocols that the Reinforcement Learning agent(s) are able to see in the observation space.
 
-See :ref:`List of IPProtocols <List of IPProtocols>` for a list of protocols.
+See :py:const:`primaite.utils.validation.ip_protocol.PROTOCOL_LOOKUP` for a list of protocols.
 
 ``thresholds``
 --------------
@@ -59,4 +59,4 @@ These are used to determine the thresholds of high, medium and low categories fo
 ``seed``
 --------
 
-Used to configure the random seeds used within PrimAITE, ensuring determinism within episode/session runs. If empty or set to -1, no seed is set.
+Used to configure the random seeds used within PrimAITE, ensuring determinism within episode/session runs. If empty or set to -1, no seed is set. The given seed value is logged (by default) in ``primaite/<VERSION>/sessions/<DATE>/<TIME>/simulation_output``.

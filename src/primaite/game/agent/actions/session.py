@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Actions for performing login and logout on local and remote hosts."""
 from abc import ABC, abstractmethod
 
 from primaite.game.agent.actions.manager import AbstractAction

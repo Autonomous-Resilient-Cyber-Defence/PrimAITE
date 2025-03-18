@@ -265,7 +265,7 @@ class AccessControlList(SimComponent):
         >>> acl = AccessControlList()
         >>> acl.add_rule(
         ...    action=ACLAction.PERMIT,
-        ...    protocol=IPProtocol["TCP"],
+        ...    protocol=PROTOCOL_LOOKUP["TCP"],
         ...    src_ip_address="192.168.1.0",
         ...    src_wildcard_mask="0.0.0.255",
         ...    dst_ip_address="192.168.2.0",
@@ -399,11 +399,11 @@ class AccessControlList(SimComponent):
             >>> router = Router("router")
             >>> router.add_rule(
             ...    action=ACLAction.DENY,
-            ...    protocol=IPProtocol["TCP"],
+            ...    protocol=PROTOCOL_LOOKUP["TCP"],
             ...    src_ip_address="192.168.1.0",
             ...    src_wildcard_mask="0.0.0.255",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port["SSH"],
+            ...    dst_port=PORT_LOOKUP["SSH"],
             ...    position=5
             ... )
             >>> # This permits SSH traffic from the 192.168.1.0/24 subnet to the 10.10.10.5 server.
@@ -411,10 +411,10 @@ class AccessControlList(SimComponent):
             >>> # Then if we want to allow a specific IP address from this subnet to SSH into the server
             >>> router.add_rule(
             ...    action=ACLAction.PERMIT,
-            ...    protocol=IPProtocol["TCP"],
+            ...    protocol=PROTOCOL_LOOKUP["TCP"],
             ...    src_ip_address="192.168.1.25",
             ...    dst_ip_address="10.10.10.5",
-            ...    dst_port=Port["SSH"],
+            ...    dst_port=PORT_LOOKUP["SSH"],
             ...    position=4
             ... )
 

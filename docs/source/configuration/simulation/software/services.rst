@@ -14,12 +14,10 @@ Services takes a list of services as shown in the example below.
 
 .. code-block:: yaml
 
-    - ref: client_1
     hostname: client_1
     type: computer
     ...
     applications:
-        - ref: example_service
         type: example_service_type
         options:
             # this section is different for each service

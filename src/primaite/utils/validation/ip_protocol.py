@@ -1,5 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
-# Define a custom IP protocol validator
+"""Validation for internet protocols."""
 from typing import Any
 
 from pydantic import BeforeValidator, TypeAdapter, ValidationError

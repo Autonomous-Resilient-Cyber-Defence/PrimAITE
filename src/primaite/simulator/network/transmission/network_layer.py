@@ -61,7 +61,7 @@ class IPPacket(BaseModel):
     >>> ip_packet = IPPacket(
     ...     src_ip_address=IPv4Address('192.168.0.1'),
     ...     dst_ip_address=IPv4Address('10.0.0.1'),
-    ...     protocol=IPProtocol["TCP"],
+    ...     protocol=PROTOCOL_LOOKUP["TCP"],
     ...     ttl=64,
     ...     precedence=Precedence.CRITICAL
     ... )

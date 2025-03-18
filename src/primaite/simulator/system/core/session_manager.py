@@ -332,7 +332,7 @@ class SessionManager:
             )
         # TODO: Only create IP packet if not ARP
         # ip_packet = None
-        # if dst_port != Port["ARP"]:
+        # if dst_port != PORT_LOOKUP["ARP"]:
         #     IPPacket(
         #         src_ip_address=outbound_network_interface.ip_address,
         #         dst_ip_address=dst_ip_address,

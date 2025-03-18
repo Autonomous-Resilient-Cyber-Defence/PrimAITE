@@ -42,4 +42,4 @@ Should your custom environment need any additional PrimAITE plugins, each must b
 Configuration Items
 ===================
 
-For detailed information about the remaining configuration items found within the configuration file, see :ref:`Configurable Items`.
+For detailed information about the remaining configuration items found within the configuration file, see :ref:`Configurable_Items`.

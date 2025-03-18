@@ -5,8 +5,7 @@
 
 ``simulation``
 ==============
-In this section the network layout is defined. This part of the config follows a hierarchical structure. Almost every component defines a ``ref`` field which acts as a human-readable unique identifier, used by other parts of the config, such as agents.
-# TODO: ref field is no longer real
+In this section the network layout is defined. This part of the config follows a hierarchical structure.
 At the top level of the network are ``nodes``, ``links`` and ``airspace``.
 
 e.g.
@@ -26,7 +25,7 @@ e.g.
 ``nodes``
 ---------
 
-This is where the list of nodes are defined. Some items will differ according to the node type, however, there will be common items such as a node's reference (which is used by the agent), the node's ``type`` and ``hostname``
+This is where the list of nodes are defined. Some items will differ according to the node type, however, there will be common items such as a node's hostname (which is used by the agent) and the node's ``type``.
 
 To see the configuration for these nodes, refer to the following:
 
@@ -74,10 +73,6 @@ this results in:
         endpoint_b_port: 2 # port 2 on switch
         bandwidth: 100
 
-``ref``
-^^^^^^^
-
-The human readable name for the link. Not used in code, however is useful for a human to understand what the link is for.
 
 ``endpoint_a_hostname``
 ^^^^^^^^^^^^^^^^^^^^^^^

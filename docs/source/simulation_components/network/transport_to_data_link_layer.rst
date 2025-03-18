@@ -14,9 +14,11 @@ Transport Layer (Layer 4)
 **UDPHeader:** Represents a UDP header for the transport layer of a Network Frame. It includes source and destination
 ports. UDP (User Datagram Protocol) is a connectionless and unreliable transport protocol used for data transmission.
 
-**TCPFlags:** Enum representing TCP control flags used in a TCP connection, such as SYN, ACK, FIN, and RST. TCP
-(Transmission Control Protocol) is a connection-oriented and reliable transport protocol used for establishing and
-maintaining data streams.
+..
+    **TCPFlags:** Enum representing TCP control flags used in a TCP connection, such as SYN, ACK, FIN, and RST. TCP
+    (Transmission Control Protocol) is a connection-oriented and reliable transport protocol used for establishing and
+    maintaining data streams.
+.. not currently used
 
 **TCPHeader:** Represents a TCP header for the transport layer of a Network Frame. It includes source and destination
 ports and TCP flags. This header is used for establishing and managing TCP connections.
@@ -104,7 +106,7 @@ address of 'aa:bb:cc:dd:ee:ff' to port 8080 on the host 10.0.0.10 which has a NI
     ip_packet = IPPacket(
         src_ip_address="192.168.0.100",
         dst_ip_address="10.0.0.10",
-        protocol=IPProtocol["TCP"]
+        protocol=PROTOCOL_LOOKUP["TCP"]
     )
     # Data Link Layer
     ethernet_header = EthernetHeader(

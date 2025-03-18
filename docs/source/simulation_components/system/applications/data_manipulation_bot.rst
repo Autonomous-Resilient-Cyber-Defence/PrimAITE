@@ -27,6 +27,7 @@ The bot performs attacks in the following stages to simulate the real pattern of
 - Attacking - *The bot delivers the payload to the discovered database servers.*
 
 Each of these stages has a random, configurable probability of succeeding (by default 10%). The bot can also be configured to repeat the attack once complete.
+NB: The Port Scan is achieved using game layer functionality based on a probablility of success calculation.
 
 Usage
 =====
@@ -99,16 +100,12 @@ If not using the data manipulation bot manually, it needs to be used with a data
           type: red-database-corrupting-agent
 
           agent_settings:
-            start_settings:
-              start_step: 25
-              frequency: 20
-              variance: 5
     # ...
 
     simulation:
       network:
         nodes:
-        - ref: client_1
+        - hostname: client_1
           type: computer
           # ... additional configuration here
           applications:

@@ -70,17 +70,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_server
-                hostname: example_server
-                type: server
-                ...
-                services:
-                    - ref: dns_client
-                    type: dns-client
-                    options:
-                        dns_server: 192.168.0.10
+      network:
+        nodes:
+            - hostname: example_server
+        type: server
+        ...
+        services:
+        - type: dns-client
+        options:
+          dns_server: 192.168.0.10
 
 Configuration
 =============

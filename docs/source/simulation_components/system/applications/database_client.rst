@@ -76,17 +76,15 @@ Via Configuration
 .. code-block:: yaml
 
     simulation:
-        network:
-            nodes:
-                - ref: example_computer
-                hostname: example_computer
-                type: computer
-                ...
-                applications:
-                    - ref: database_client
-                    type: database-client
-                    options:
-                        db_server_ip: 192.168.0.1
+      network:
+        nodes:
+        - hostname: example_computer
+        type: computer
+        ...
+        applications:
+        - type: database-client
+        options:
+          db_server_ip: 192.168.0.1
 
 Configuration
 =============

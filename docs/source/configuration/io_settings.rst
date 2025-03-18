@@ -2,6 +2,7 @@
 
     © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
 
+.. _io_settings:
 
 ``io_settings``
 ===============
@@ -13,7 +14,6 @@ This section configures how PrimAITE saves data during simulation and training.
 .. code-block:: yaml
 
     io_settings:
-        # save_logs: True
         save_agent_actions: True
         save_step_metadata: False
         save_pcap_logs: False
@@ -24,11 +24,6 @@ This section configures how PrimAITE saves data during simulation and training.
         sys_log_level: WARNING
         agent_log_level: INFO
 
-
-``save_logs``
--------------
-
-*currently unused*.
 
 ``save_agent_actions``
 ----------------------

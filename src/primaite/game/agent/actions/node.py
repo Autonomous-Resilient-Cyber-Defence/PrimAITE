@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Actions for interacting with nodes on the network."""
 from abc import ABC, abstractmethod
 from typing import ClassVar, List, Literal, Optional, Union
 

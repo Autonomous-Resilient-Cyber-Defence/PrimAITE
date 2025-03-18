@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""FTP Service base class."""
 from abc import ABC
 from ipaddress import IPv4Address
 from typing import Dict, Optional
@@ -114,7 +115,7 @@ class FTPServiceABC(Service, ABC):
         :param: dest_ip_address: The IP address of the machine that hosts the FTP Server.
         :type: dest_ip_address: Optional[IPv4Address]
 
-        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is Port["FTP"].
+        :param: dest_port: The open port of the machine that hosts the FTP Server. Default is PORT_LOOKUP["FTP"].
         :type: dest_port: Optional[Port]
 
         :param: session_id: session ID linked to the FTP Packet. Optional.

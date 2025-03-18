@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Simulation of a file on a computer file system."""
 from __future__ import annotations
 
 import hashlib

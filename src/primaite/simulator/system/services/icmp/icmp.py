@@ -1,4 +1,5 @@
 # © Crown-owned copyright 2025, Defence Science and Technology Laboratory UK
+"""Internet Control Message Protocol."""
 import secrets
 from ipaddress import IPv4Address
 from typing import Any, Dict, Optional, Tuple, Union
